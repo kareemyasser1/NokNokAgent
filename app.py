@@ -20,7 +20,7 @@ load_dotenv()
 
 # Set up OpenAI API key
 #api_key = st.secrets["OPENAI_API_KEY"]
-api_key = st.secrets.get("OPENAI_API_KEY")
+api_key = st.secrets["OPENAI_API_KEY"]
 
 def init_google_sheets():
     scope = [
