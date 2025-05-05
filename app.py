@@ -20,7 +20,7 @@ load_dotenv()
 
 # Set up OpenAI API key
 #api_key = st.secrets["OPENAI_API_KEY"]
-api_key = get_secret("OPENAI_API_KEY")
+api_key = st.secrets("OPENAI_API_KEY")
 # Initialize Google Sheets
 def init_google_sheets():
     scope = ['https://spreadsheets.google.com/feeds',
@@ -28,7 +28,7 @@ def init_google_sheets():
     
     # Try to use service account info from environment variables first
     #creds_json = json.dumps(st.secrets["google_service_account"])
-    creds_json = get_secret("GOOGLE_CREDENTIALS")
+    creds_json = st.secrets("GOOGLE_CREDENTIALS")
     try:
         if creds_json:
             # Print debug info about credentials (first 30 chars)
