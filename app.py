@@ -22,43 +22,49 @@ load_dotenv()
 #api_key = st.secrets["OPENAI_API_KEY"]
 api_key = st.secrets.get("OPENAI_API_KEY")
 
-# Initialize Google Sheets
 def init_google_sheets():
-    # Define the scope for Google Sheets and Google Drive
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
-    
-    # Try to load the credentials from Streamlit secrets
-    creds_json = st.secrets["GOOGLE_CREDENTIALS"]  # Access the GOOGLE_CREDENTIALS from secrets.toml
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    creds_dict = None
+
+    # 1️⃣  Look in Streamlit secrets
+    if "GOOGLE_CREDENTIALS" in st.secrets:
+        raw = st.secrets["GOOGLE_CREDENTIALS"]
+
+        if isinstance(raw, str):
+            # secrets stored as one JSON string
+            creds_dict = json.loads(raw)
+        else:
+            # secrets stored as a TOML table  (what you chose)
+            creds_dict = dict(raw)          # convert ConfigDict → normal dict
+
+    # 2️⃣  Fallback to credentials.json on disk
+    elif os.path.exists("credentials.json"):
+        with open("credentials.json", "r", encoding="utf-8") as f:
+            creds_dict = json.load(f)
+
+    if not creds_dict:
+        st.error(
+            "Google credentials not found. "
+            "Add them to `.streamlit/secrets.toml` or place `credentials.json` "
+            "in the app folder."
+        )
+        return None
 
     try:
-        if creds_json:
-            # Print debug info about credentials (first 30 chars)
-            print(f"Credentials first 30 chars: {creds_json[:30]}...")
-
-            # Load the credentials as JSON
-            #creds_dict = json.loads(creds_json)  # Convert the string to a JSON object
-            #credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)  # Create the credentials object
-            creds_dict  = dict(st.secrets["GOOGLE_CREDENTIALS"])
-            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-        else:
-            # Fallback: try to use a local credentials file
-            if not os.path.exists('credentials.json'):
-                st.error("credentials.json file not found and GOOGLE_CREDENTIALS environment variable not set")
-                return None
-
-            credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-
-        # Authorize the client with the credentials
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+            creds_dict, scope
+        )
         client = gspread.authorize(credentials)
-        return client  # Return the Google Sheets client
-    except json.JSONDecodeError as e:
-        st.error(f"JSON format error in credentials: {e}")
-        st.info("Make sure your JSON credentials don't have line breaks or extra spaces")
-        return None
+        return client
+
     except Exception as e:
         st.error(f"Failed to initialize Google Sheets: {e}")
         return None
+
 
 # Get existing sheets - use direct ID instead of name
 def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"):
