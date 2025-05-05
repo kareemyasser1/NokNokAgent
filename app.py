@@ -37,8 +37,10 @@ def init_google_sheets():
             print(f"Credentials first 30 chars: {creds_json[:30]}...")
 
             # Load the credentials as JSON
-            creds_dict = json.loads(creds_json)  # Convert the string to a JSON object
-            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)  # Create the credentials object
+            #creds_dict = json.loads(creds_json)  # Convert the string to a JSON object
+            #credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)  # Create the credentials object
+            creds_dict  = dict(st.secrets["GOOGLE_CREDENTIALS"])
+            credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         else:
             # Fallback: try to use a local credentials file
             if not os.path.exists('credentials.json'):
