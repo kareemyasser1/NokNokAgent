@@ -199,11 +199,11 @@ def handle_items_search(handler, context):
 
         target_sheet = handler.noknok_sheets.get("items") \
                        or next(iter(handler.noknok_sheets.values()))
-        target_sheet.update_acell("G2", item_name)
+        target_sheet.update_acell("F2", item_name)
 
         # wait 3 seconds for on-sheet formula / script to populate H2
         time.sleep(3)
-        json_results = target_sheet.acell("H2").value or ""
+        json_results = target_sheet.acell("G2").value or ""
 
         # 3) compose prompt
         prompt_template = (
@@ -291,7 +291,7 @@ def register_all_conditions(handler):
         "Extract item, fetch JSON from sheet, answer user"
     )
     registered_count += 1
-    
+
     return registered_count
 
 # Support URL condition
