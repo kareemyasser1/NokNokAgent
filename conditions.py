@@ -185,7 +185,7 @@ def handle_items_request(handler, context):
 
         # 2) Extract item-name via GPT
         extract_prompt = (
-            "Extract the item name that appears in quotes from this assistant reply. "
+            "Extract the item name that is right before the words (here noknok.com/items.) appears in quotes from this assistant reply. "
             "Return *only* the item name, without quotes or extra text.\n\n"
             f"{reply}"
         )
