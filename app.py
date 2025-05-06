@@ -857,8 +857,8 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                     print("Items-URL detected in response, queuing items search")
                     st.session_state.items_search_pending = True
                     st.session_state.items_search_prompt = prompt
-                    should_add_to_history = False
-                    response_container.empty()
+                    should_add_to_history = True
+                    #response_container.empty()
                     st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
