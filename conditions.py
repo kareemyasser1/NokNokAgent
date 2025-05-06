@@ -192,19 +192,20 @@ def handle_items_search(handler, context):
         if not m:
             return {"type": "error", "message": "Could not extract item name"}
         item_name = m.group(1).strip()
+        # 2) write item to G2 on the Items sheet only
+        items_ws = handler.noknok_sheets.get("items")
+        if items_ws is None:
+            return {"type": "error", "message": "‘Items’ worksheet not found"}
+        target_sheet = items_ws
 
-        # 2) write item to G2 on any available sheet (prefer Items sheet)
-        if not handler.noknok_sheets:
-            return {"type": "error", "message": "Sheets client not available"}
+        target_sheet.update("F2", [[item_name]])   # write the search term
+        print(f"Wrote '{item_name}' to Items!F2")
 
-        target_sheet = handler.noknok_sheets.get("items") \
-                       or next(iter(handler.noknok_sheets.values()))
-       
-        # NEW
-        target_sheet.update("F2", [[item_name]])   # ← writes even under quotas
-        time.sleep(3)                              # ← keep the wait
+        # wait 3 seconds for formula / script to fill H2
+        time.sleep(3)
         json_results = target_sheet.acell("G2").value or ""
-        print(f"H2 after wait: {json_results[:60]}...")
+        print(f"Items!G2 -> {json_results[:60]}…")
+       
 
         # 3) compose prompt
         prompt_template = (
@@ -227,7 +228,7 @@ def handle_items_search(handler, context):
                                      .replace("@json@", json_results)
 
         # 4) ask GPT
-        client = OpenAI(api_key=get_secret("OPENAI_API_KEY"))
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         gpt_resp = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": user_prompt}],
