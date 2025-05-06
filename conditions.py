@@ -188,7 +188,8 @@ def handle_items_search(handler, context):
 
         # 1) extract item name in quotes
         #   supports "..." or “...”
-        m = re.search('noknok.com/items', reply_text, re.I)
+        m = re.search(r'[“"]([^”"]+)[”"]\s*[^"\n]*?noknok\.com/items', reply_text, re.I)
+
         if not m:
             return {"type": "error", "message": "Could not extract item name"}
         item_name = m.group(1).strip()
