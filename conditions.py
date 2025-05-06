@@ -190,8 +190,9 @@ def handle_items_search(handler, context):
         #   supports "..." or “...”
         # 1) Extract item name (supports "..." and “...”)
        # 1) Extract item name (only plain quotes "..." and message must contain noknok.com/items)
+                # 1) Extract item name (supports both "..." and “...”)
         if "noknok.com/items" in reply_text:
-            m = re.search(r'"([^"]+)"', reply_text)
+            m = re.search(r'[“"]([^”"]+)[”"]', reply_text)
             if not m:
                 return {"type": "error", "message": "Could not extract item name in quotes"}
             item_name = m.group(1).strip()
@@ -205,6 +206,7 @@ def handle_items_search(handler, context):
 
         items_ws.update("F2", [[item_name]])  # write the search term
         print(f"Wrote '{item_name}' to Items!F2")
+
 
 
         # wait 3 seconds for formula / script to fill H2
