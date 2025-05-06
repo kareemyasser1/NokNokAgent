@@ -198,12 +198,12 @@ def handle_items_search(handler, context):
             return {"type": "error", "message": "Sheets client not available"}
 
         target_sheet = handler.noknok_sheets.get("items") \
-                       or next(iter(handler.noknok_sheets.values()))
+                      # or next(iter(handler.noknok_sheets.values()))
         target_sheet.update_acell("F2", item_name)
 
         # wait 3 seconds for on-sheet formula / script to populate H2
         time.sleep(5)
-        json_results = target_sheet.acell("G2").value or ""
+        json_results = target_sheet.acell("G2").value #or ""
 
         # 3) compose prompt
         prompt_template = (
