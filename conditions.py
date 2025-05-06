@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import time
 import streamlit as st
 from openai import OpenAI, OpenAIError
+import re
+
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
     """Check if the GPT reply contains noknok.com/support which requires human agent handoff"""
@@ -181,7 +183,10 @@ def handle_items_request(handler, context):
         # client_id = getattr(handler, "current_client_id", None)
         # if not client_id:x
         #     return {"type":"error","message":"No client selected for item lookup"}
-
+         # 0) Pre-conditions
+        client_id = getattr(handler, "current_client_id", None)
+        if not client_id:
+            return {"type": "error", "message": "No client selected for item lookup"}
         # reply = context["reply"]
         # last_user = context.get("last_user_message", "")
         # extract_prompt = (
