@@ -202,7 +202,7 @@ def handle_items_search(handler, context):
         target_sheet.update_acell("F2", item_name)
 
         # wait 3 seconds for on-sheet formula / script to populate H2
-        time.sleep(3)
+        time.sleep(5)
         json_results = target_sheet.acell("G2").value or ""
 
         # 3) compose prompt
