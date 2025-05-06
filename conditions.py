@@ -188,19 +188,22 @@ def handle_items_search(handler, context):
 
         # 1) extract item name in quotes
         #   supports "..." or “...”
-        m = re.search(r'[“"]([^”"]+)[”"]\s*[^"\n]*?noknok\.com/items', reply_text, re.I)
+        # 1) Extract item name (supports "..." and “...”)
+        m = re.search(r'(?:“([^”]+)”|"([^"]+)")\s*[^"\n]*?noknok\.com/items', reply_text, re.I)
 
         if not m:
             return {"type": "error", "message": "Could not extract item name"}
-        item_name = m.group(1).strip()
-        # 2) write item to G2 on the Items sheet only
+
+        item_name = (m.group(1) or m.group(2)).strip()
+
+        # 2) Write item to F2 on the Items sheet
         items_ws = handler.noknok_sheets.get("items")
         if items_ws is None:
             return {"type": "error", "message": "‘Items’ worksheet not found"}
-        target_sheet = items_ws
 
-        target_sheet.update("F2", [[item_name]])   # write the search term
+        items_ws.update("F2", [[item_name]])  # write the search term
         print(f"Wrote '{item_name}' to Items!F2")
+
 
         # wait 3 seconds for formula / script to fill H2
         time.sleep(3)
