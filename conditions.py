@@ -191,21 +191,48 @@ def handle_items_search(handler, context):
         # 1) Extract item name (supports "..." and “...”)
        # 1) Extract item name (only plain quotes "..." and message must contain noknok.com/items)
                 # 1) Extract item name (supports both "..." and “...”)
-        if "noknok.com/items" in reply_text:
-            m = re.search(r'[“"]([^”"]+)[”"]', reply_text)
-            if not m:
-                return {"type": "error", "message": "Could not extract item name in quotes"}
+        # ---------- 1)  robust item-name extraction -----------------
+        reply_lower = reply_text.lower()
+        url_pos = reply_lower.find("noknok.com/items")
+        if url_pos == -1:
+            return {"type": "error", "message": "URL not found in reply"}
+
+        # work on the 120 chars that precede the URL (enough for long names)
+        context_snippet = reply_text[max(0, url_pos - 120): url_pos]
+
+        item_name = None
+
+        # 1-A  first try “quoted” or "quoted"
+        m = re.search(r'[“"]([^“”"]+?)["”]', context_snippet)
+        if m:
             item_name = m.group(1).strip()
-        else:
-            return {"type": "error", "message": "No noknok.com/items URL found in reply"}
 
-        # 2) Write item to F2 on the Items sheet
-        items_ws = handler.noknok_sheets.get("items")
-        if items_ws is None:
-            return {"type": "error", "message": "‘Items’ worksheet not found"}
+        # 1-B  fall-back → last sequence of letters/spaces ≥ 3 chars
+        if not item_name:
+            m = re.search(r'([A-Za-z][\w\s-]{2,})\s*$', context_snippet)
+            if m:
+                item_name = m.group(1).strip()
 
-        items_ws.update("F2", [[item_name]])  # write the search term
-        print(f"Wrote '{item_name}' to Items!F2")
+        if not item_name:
+            return {"type": "error",
+                    "message": "Could not extract item name from reply"}
+
+        print(f"Extracted item: {item_name}")
+        # if "noknok.com/items" in reply_text:
+        #     m = re.search(r'[“"]([^”"]+)[”"]', reply_text)
+        #     if not m:
+        #         return {"type": "error", "message": "Could not extract item name in quotes"}
+        #     item_name = m.group(1).strip()
+        # else:
+        #     return {"type": "error", "message": "No noknok.com/items URL found in reply"}
+
+        # # 2) Write item to F2 on the Items sheet
+        # items_ws = handler.noknok_sheets.get("items")
+        # if items_ws is None:
+        #     return {"type": "error", "message": "‘Items’ worksheet not found"}
+
+        # items_ws.update("F2", [[item_name]])  # write the search term
+        # print(f"Wrote '{item_name}' to Items!F2")
 
 
 
