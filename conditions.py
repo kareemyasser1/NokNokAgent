@@ -228,7 +228,7 @@ def handle_items_search(handler, context):
                                      .replace("@json@", json_results)
 
         # 4) ask GPT
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         gpt_resp = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": user_prompt}],
