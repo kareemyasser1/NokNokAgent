@@ -176,10 +176,10 @@ def handle_items_request(handler, context):
     6. Return the answer as 'message'.
     """
     try:
-        # 1) Ensure a client is selected
-        client_id = getattr(handler, "current_client_id", None)
-        if not client_id:
-            return {"type":"error","message":"No client selected for item lookup"}
+    #     # 1) Ensure a client is selected
+    #     client_id = getattr(handler, "current_client_id", None)
+    #     if not client_id:
+    #         return {"type":"error","message":"No client selected for item lookup"}
 
         reply = context.get("reply", "")
         last_user = context.get("last_user_message", "")
