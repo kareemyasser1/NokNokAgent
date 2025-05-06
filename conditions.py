@@ -177,10 +177,10 @@ def handle_items_request(handler, context):
     try:
         # 1) Ensure a client is selected
         # client_id = getattr(handler, "current_client_id", None)
-        # if not client_id:
+        # if not client_id:x
         #     return {"type":"error","message":"No client selected for item lookup"}
 
-        reply = context.get("reply", "")
+        reply = context.get("history", "")
         last_user = context.get("last_user_message", "")
 
         # 2) Extract item-name via GPT
@@ -350,7 +350,7 @@ def handle_order_cancellation(handler, context):
         }
     
     client_id = handler.current_client_id
-    
+
     # Find the most recent order for this client
     if not handler.order_data:
         return {
