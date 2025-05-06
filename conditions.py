@@ -1,10 +1,8 @@
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 import streamlit as st
-import re                # ← already present? add if missing
-import time              # we’ll sleep 3 s
 from openai import OpenAI, OpenAIError
-
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
     """Check if the GPT reply contains noknok.com/support which requires human agent handoff"""
@@ -118,7 +116,7 @@ def handle_address_update(handler, context):
         from openai import OpenAI, OpenAIError
         import os
         try:
-            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             gpt_resp = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": one_shot_prompt}],
@@ -159,6 +157,104 @@ def handle_address_update(handler, context):
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"} 
 
+def check_items_url_in_response(handler, context):
+    """Detect the items-URL trigger in the assistant’s reply."""
+    return bool(
+        context 
+        and "reply" in context 
+        and "noknok.com/items" in context["reply"]
+    )
+
+def handle_items_request(handler, context):
+    """
+    1. Extract the quoted item name from the assistant reply.
+    2. Write it to F2 of the 'Items' sheet, wait 3s.
+    3. Read JSON from G2.
+    4. Call OpenAI with the large prompt, injecting @history@ and @json@.
+    5. Return GPT’s answer as 'message'.
+    """
+    try:
+        # —————— 1) Client check ——————
+        client_id = getattr(handler, "current_client_id", None)
+        if not client_id:
+            return {"type":"error", "message":"No client selected for item lookup"}
+
+        # —————— 2) Extract item name ——————
+        reply = context.get("reply", "")
+        # match the first quoted substring
+        import re
+        m = re.search(r'"([^"]+)"', reply)
+        if not m:
+            return {"type":"error", "message":"Could not parse item name from reply"}
+        item_name = m.group(1).strip()
+
+        # —————— 3) Write item_name → F2; wait; read JSON ← G2 ——————
+        items_sheet = handler.noknok_sheets.get("items")
+        if not items_sheet:
+            return {"type":"error", "message":"Items sheet not available"}
+        # F2 = col 6, row 2
+        items_sheet.update_cell(2, 6, item_name)
+        time.sleep(3)
+        # G2 = col 7, row 2
+        json_results = items_sheet.cell(2, 7).value or ""
+        
+        # —————— 4) Build & call OpenAI prompt ——————
+        last_user = context.get("last_user_message", "")
+        template = """
+<Purpose> You will act as an assistant that helps users find information about items in our NokNok database based on search results. </Purpose>
+<Search Results Format> 
+You will receive:
+- A user question about an item
+- The top 5 search results from our database in JSON format
+- Each result contains: item name, price (in usd), stock availability (true/false), and distance (relevance measure)
+</Search Results Format> 
+
+When a clear match is found:
+- Directly answer the user's specific question about the item
+- If they asked about price: Provide the price information
+- If they asked about availability: Provide stock availability information
+- If item is out of stock: Reply verbatim with:
+  "Unfortunately we ran out of [item name]. We are doing our best in terms of stock availability. However, due to the current situation, there are some shortages from the suppliers themselves. Please bear with us, we are replenishing every 2 days!".
+
+When multiple relevant matches exist:
+- Ask the user to clarify which specific item they're referring to
+
+When no relevant match exists:
+- Say: "Unfortunately, NokNok doesn't provide [item name] yet. Is there any other item I can help you with?"
+
+Important Note: Never mention the "distance" value to users. This is only for internal relevance assessment.
+
+Here's your input:
+User inquiry: @history@
+Search results: @json@
+
+Now, please answer the user's query based on these search results. You are talking with the user directly and everything you say will be received by him. Don't explain your reasoning just answer directly now.
+"""
+        one_shot = (
+            template
+            .replace("@history@", last_user)
+            .replace("@json@", json_results)
+        )
+
+        try:
+            client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
+            resp = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role":"user","content":one_shot}],
+                stream=False
+            )
+            answer = resp.choices[0].message.content.strip()
+        except OpenAIError as e:
+            return {"type":"error", "message":f"OpenAI error: {e}"}
+
+        # —————— 5) Return result ——————
+        return {
+            "type": "items_searched",
+            "message": answer
+        }
+
+    except Exception as e:
+        return {"type":"error", "message":f"Unexpected error: {e}"}
 # CONDITION REGISTRY
 CONDITIONS_REGISTRY = {
     "support_url_handoff": {
@@ -167,119 +263,6 @@ CONDITIONS_REGISTRY = {
         "description": "Detect support URL in reply and handoff to human agent"
     }
 }
-# ───────────────────────────────────────────────────────────────
-# Items-search condition  ●  Triggered by "noknok.com/items"
-# ───────────────────────────────────────────────────────────────
-def check_items_url_in_response(handler, context):
-    return context and "reply" in context and "noknok.com/items" in context["reply"]
-
-
-def handle_items_search(handler, context):
-    """
-    1) extract item between quotes before noknok.com/items
-    2) write it to cell G2, wait, read JSON from H2
-    3) build specialised prompt and ask GPT
-    4) return the assistant answer or error dict
-    """
-    try:
-        # ── sanity: need client’s latest user message (history) in context
-        history_text = context.get("history", "").strip()
-        reply_text   = context.get("reply", "")
-
-        # 1) extract item name in quotes
-        #   supports "..." or “...”
-        # 1) Extract item name (supports "..." and “...”)
-       # 1) Extract item name (only plain quotes "..." and message must contain noknok.com/items)
-                # 1) Extract item name (supports both "..." and “...”)
-        # ---------- 1)  robust item-name extraction -----------------
-        reply_lower = reply_text.lower()
-        url_pos = reply_lower.find("noknok.com/items")
-        if url_pos == -1:
-            return {"type": "error", "message": "URL not found in reply"}
-
-        # work on the 120 chars that precede the URL (enough for long names)
-        context_snippet = reply_text[max(0, url_pos - 120): url_pos]
-
-        item_name = None
-
-        # 1-A  first try “quoted” or "quoted"
-        m = re.search(r'[“"]([^“”"]+?)["”]', context_snippet)
-        if m:
-            item_name = m.group(1).strip()
-
-        # 1-B  fall-back → last sequence of letters/spaces ≥ 3 chars
-        if not item_name:
-            m = re.search(r'([A-Za-z][\w\s-]{2,})\s*$', context_snippet)
-            if m:
-                item_name = m.group(1).strip()
-
-        if not item_name:
-            return {"type": "error",
-                    "message": "Could not extract item name from reply"}
-
-        print(f"Extracted item: {item_name}")
-        # if "noknok.com/items" in reply_text:
-        #     m = re.search(r'[“"]([^”"]+)[”"]', reply_text)
-        #     if not m:
-        #         return {"type": "error", "message": "Could not extract item name in quotes"}
-        #     item_name = m.group(1).strip()
-        # else:
-        #     return {"type": "error", "message": "No noknok.com/items URL found in reply"}
-
-        # # 2) Write item to F2 on the Items sheet
-        # items_ws = handler.noknok_sheets.get("items")
-        # if items_ws is None:
-        #     return {"type": "error", "message": "‘Items’ worksheet not found"}
-
-        # items_ws.update("F2", [[item_name]])  # write the search term
-        # print(f"Wrote '{item_name}' to Items!F2")
-
-
-
-        # wait 3 seconds for formula / script to fill H2
-        time.sleep(3)
-        json_results = target_sheet.acell("G2").value or ""
-        print(f"Items!G2 -> {json_results[:60]}…")
-       
-
-        # 3) compose prompt
-        prompt_template = (
-            "<Purpose> You will act as an assistant that helps users find "
-            "information about items in our NokNok database based on search results. </Purpose>\n"
-            "<Search Results Format>\n"
-            "You will receive:\n"
-            "-A user question about an item\n"
-            "-The top 5 search results from our database in JSON format\n"
-            "-Each result contains: item name, price (in usd), stock availability (true/false), "
-            "and distance (relevance measure)\n"
-            "</Search Results Format>\n\n"
-            "User inquiry: @history@\n"
-            "Search results: @json@\n\n"
-            "Now, please answer the user's query based on these search results. "
-            "You are talking with the user directly and everything you say will be received by him. "
-            "Don't explain your reasoning just answer directly now."
-        )
-        user_prompt = prompt_template.replace("@history@", history_text)\
-                                     .replace("@json@", json_results)
-
-        # 4) ask GPT
-        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        gpt_resp = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": user_prompt}],
-            stream=False
-        )
-        answer = gpt_resp.choices[0].message.content.strip()
-
-        return {
-            "type": "items_answer",
-            "message": answer
-        }
-
-    except OpenAIError as e:
-        return {"type": "error", "message": f"OpenAI error: {e}"}
-    except Exception as e:
-        return {"type": "error", "message": f"Unexpected error: {e}"}
 
 # Function to register all conditions with a handler
 def register_all_conditions(handler):
@@ -320,12 +303,12 @@ def register_all_conditions(handler):
         "Assistant indicated it updated the customer address"
     )
     registered_count += 1
-   # Items search condition
+    # Items-URL condition
     handler.register_condition(
         "items_search_detected",
         check_items_url_in_response,
-        handle_items_search,
-        "Extract item, fetch JSON from sheet, answer user"
+        handle_items_request,
+        "URL noknok.com/items detected → lookup item in sheet + GPT"
     )
     registered_count += 1
 

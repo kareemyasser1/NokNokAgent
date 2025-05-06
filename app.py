@@ -852,12 +852,13 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                     should_add_to_history = False
                     #response_container.empty()
                     st.rerun()
+                # … existing refund/cancel/support branches …
                 elif "noknok.com/items" in full_response:
-                    print("Items URL detected, handling condition")
+                    print("Items-URL detected in response, queuing items search")
                     st.session_state.items_search_pending = True
-                    st.session_state.items_search_prompt = prompt      # last user input
-                    should_add_to_history = True
-                    #response_container.empty()
+                    st.session_state.items_search_prompt = prompt
+                    should_add_to_history = False
+                    response_container.empty()
                     st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
@@ -1226,37 +1227,49 @@ if "address_update_pending" in st.session_state and st.session_state.address_upd
 # ─────────────────────────────────────────────────────────────
 # Handle queued items-search workflow
 # ─────────────────────────────────────────────────────────────
-if "items_search_pending" in st.session_state and st.session_state.items_search_pending:
+if st.session_state.get("items_search_pending"):
     client_id = st.session_state.current_client_id
-    # last user message (the one that triggered the assistant suggestion)
-    last_user_msg = st.session_state.items_search_prompt
-    # build context for ConditionHandler
-    context = {
-        "client_id": client_id,
-        "reply": "noknok.com/items",
-        "history": last_user_msg
-    }
-    results = st.session_state.condition_handler.evaluate_conditions(context)
-
-    # display result
-    if results:
-        for res in results:
-            if res.get("id") == "items_search_detected":
-                final_msg = res["result"].get("message", "")
-                with st.chat_message("assistant"):
-                    st.write(final_msg)
-                st.session_state.messages.append({"role": "assistant", "content": final_msg})
-                if st.session_state.chat_history_sheet:
-                    save_to_chat_history(
-                        st.session_state.chat_history_sheet,
-                        "System", "", final_msg
-                    )
+    if not client_id:
+        msg = "No client selected. Please select a client before searching items."
+        with st.chat_message("assistant"):
+            st.write(msg)
+        st.session_state.messages.append({"role":"assistant","content":msg})
     else:
-        err = "⚠️ Could not process item search."
-        with st.chat_message("assistant"): st.write(err)
-        st.session_state.messages.append({"role": "assistant", "content": err})
+        # Capture last user message
+        last_user = ""
+        for m in reversed(st.session_state.messages):
+            if m["role"] == "user":
+                last_user = m["content"]
+                break
 
-    # clear flag
+        context = {
+            "client_id": client_id,
+            "reply": "noknok.com/items",
+            "last_user_message": last_user
+        }
+        results = st.session_state.condition_handler.evaluate_conditions(context)
+
+        if results:
+            for res in results:
+                if res.get("id") == "items_search_detected":
+                    text = res["result"].get("message", "")
+                    with st.chat_message("assistant"):
+                        st.write(text)
+                    st.session_state.messages.append({"role":"assistant","content":text})
+                    # save to history sheet
+                    if st.session_state.chat_history_sheet:
+                        save_to_chat_history(
+                            st.session_state.chat_history_sheet,
+                            "System", "Items search",
+                            text
+                        )
+        else:
+            err = "⚠️ Failed to search items."
+            with st.chat_message("assistant"):
+                st.write(err)
+            st.session_state.messages.append({"role":"assistant","content":err})
+
+    # clear the flag
     st.session_state.items_search_pending = False
     st.session_state.pop("items_search_prompt", None)
 
