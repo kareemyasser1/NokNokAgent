@@ -158,6 +158,7 @@ def handle_address_update(handler, context):
         return {"type": "error", "message": f"Unexpected error: {e}"} 
 
 
+
 def check_items_url_in_response(handler, context):
     """Trigger when the assistant’s reply contains noknok.com/items."""
     return bool(
@@ -176,30 +177,51 @@ def handle_items_request(handler, context):
     6. Return the answer as 'message'.
     """
     try:
-    #     # 1) Ensure a client is selected
-    #     client_id = getattr(handler, "current_client_id", None)
-    #     if not client_id:
-    #         return {"type":"error","message":"No client selected for item lookup"}
+        # 1) Ensure a client is selected
+        # client_id = getattr(handler, "current_client_id", None)
+        # if not client_id:x
+        #     return {"type":"error","message":"No client selected for item lookup"}
 
-        reply = context.get("reply", "")
+        # reply = context["reply"]
+        # last_user = context.get("last_user_message", "")
+        # extract_prompt = (
+        #     'From the assistant reply below, extract **only** the product name that is quoted '
+        #     'between “smart quotes” or "plain quotes".\n\n'
+        #     f"{context['reply']}"
+        # )
+
+        # # 2) Extract item-name via GPT
+       
+        # try:
+        #     extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
+        #     extract_resp = extractor.chat.completions.create(
+        #         model="gpt-4o",
+        #         messages=[{"role":"user","content":extract_prompt}],
+        #         stream=False
+        #     )
+        #     item_name = extract_resp.choices[0].message.content.strip().strip('"')
+        # except OpenAIError as e:
+        #     return {"type":"error","message":f"OpenAI extraction error: {e}"}
+        reply = context["reply"]
         last_user = context.get("last_user_message", "")
 
-        # 2) Extract item-name via GPT
-        extract_prompt = (
-            "Extract the item name that appears in quotes from this assistant reply. "
-            "Return *only* the item name, without quotes or extra text.\n\n"
-            f"{reply}"
-        )
-        try:
-            extractor = OpenAI(st.secrets["OPENAI_API_KEY"])
-            extract_resp = extractor.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role":"user","content":extract_prompt}],
-                stream=False
-            )
-            item_name = extract_resp.choices[0].message.content.strip().strip('"')
-        except OpenAIError as e:
-            return {"type":"error","message":f"OpenAI extraction error: {e}"}
+        # 1) Extract item name using regex
+        item_name = None
+
+        # Look for quoted text before noknok.com/items
+        m = re.search(r'[“"]([^”"]+)[”"]\s*[^"\n]*noknok\.com/items', reply, re.I)
+        if m:
+            item_name = m.group(1).strip()
+        else:
+            # fallback: any quoted text in the message containing noknok.com/items
+            if "noknok.com/items" in reply:
+                m = re.search(r'[“"]([^”"]+)[”"]', reply)
+                if m:
+                    item_name = m.group(1).strip()
+
+        if not item_name:
+            return {"type": "error", "message": "Could not extract item name"}
+
 
         # 3) Write item_name → F2, wait, then read JSON from G2
         items_sheet = handler.noknok_sheets.get("items")
@@ -262,112 +284,6 @@ Now, please answer the user's query based on these search results. You are talki
 
     except Exception as e:
         return {"type":"error","message":f"Unexpected error: {e}"}
-
-# def check_items_url_in_response(handler, context):
-#     """Trigger when the assistant’s reply contains noknok.com/items."""
-#     return bool(
-#         context
-#         and "reply" in context
-#         and "noknok.com/items" in context["reply"]
-#     )
-
-# def handle_items_request(handler, context):
-#     """
-#     1. Ask GPT to extract the quoted item name from the assistant reply.
-#     2. Write it to F2 (col 6,row 2) of the 'Items' sheet.
-#     3. Wait 3 s, then read G2 (col 7,row 2) as JSON results.
-#     4. Build the one-shot prompt (injecting last user message + that JSON).
-#     5. Ask GPT for the final item answer.
-#     6. Return the answer as 'message'.
-#     """
-#     try:
-#         # 1) Ensure a client is selected
-#         # client_id = getattr(handler, "current_client_id", None)
-#         # if not client_id:x
-#         #     return {"type":"error","message":"No client selected for item lookup"}
-
-#         reply = context["reply"]
-#         last_user = context.get("last_user_message", "")
-#         extract_prompt = (
-#             'From the assistant reply below, extract **only** the product name that is quoted '
-#             'between “smart quotes” or "plain quotes".\n\n'
-#             f"{context['reply']}"
-#         )
-
-#         # 2) Extract item-name via GPT
-       
-#         try:
-#             extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
-#             extract_resp = extractor.chat.completions.create(
-#                 model="gpt-4o",
-#                 messages=[{"role":"user","content":extract_prompt}],
-#                 stream=False
-#             )
-#             item_name = extract_resp.choices[0].message.content.strip().strip('"')
-#         except OpenAIError as e:
-#             return {"type":"error","message":f"OpenAI extraction error: {e}"}
-
-#         # 3) Write item_name → F2, wait, then read JSON from G2
-#         items_sheet = handler.noknok_sheets.get("items")
-#         if not items_sheet:
-#             return {"type":"error","message":"Items sheet not available"}
-#         items_sheet.update_cell(2, 6, item_name)   # F2
-#         time.sleep(3)
-#         json_results = items_sheet.cell(2, 7).value or ""  # G2
-
-#         # 4) Build the one-shot prompt
-#         template = """
-# <Purpose> You will act as an assistant that helps users find information about items in our NokNok database based on search results. </Purpose>
-# <Search Results Format> 
-# You will receive:
-# - A user question about an item
-# - The top 5 search results from our database in JSON format
-# - Each result contains: item name, price (in usd), stock availability (true/false), and distance (relevance measure)
-# </Search Results Format> 
-
-# When a clear match is found:
-# - Directly answer the user's specific question about the item
-# - If they asked about price: Provide the price information
-# - If they asked about availability: Provide stock availability information
-# - If item is out of stock: Reply verbatim with:
-#   "Unfortunately we ran out of [item name]. We are doing our best in terms of stock availability. However, due to the current situation, there are some shortages from the suppliers themselves. Please bear with us, we are replenishing every 2 days!".
-
-# When multiple relevant matches exist:
-# - Ask the user to clarify which specific item they're referring to
-
-# When no relevant match exists:
-# - Say: "Unfortunately, NokNok doesn't provide [item name] yet. Is there any other item I can help you with?"
-
-# Important Note: Never mention the "distance" value to users. This is only for internal relevance assessment.
-
-# Here's your input:
-# User inquiry: @history@
-# Search results: @json@
-
-# Now, please answer the user's query based on these search results. You are talking with the user directly and everything you say will be received by him. Don't explain your reasoning just answer directly now.
-# """
-#         one_shot = (
-#             template
-#             .replace("@history@", last_user)
-#             .replace("@json@", json_results)
-#         )
-
-#         # 5) Final GPT call for item answer
-#         try:
-#             final_resp = extractor.chat.completions.create(
-#                 model="gpt-4o",
-#                 messages=[{"role":"user","content":one_shot}],
-#                 stream=False
-#             )
-#             answer = final_resp.choices[0].message.content.strip()
-#         except OpenAIError as e:
-#             return {"type":"error","message":f"OpenAI final call error: {e}"}
-
-#         # 6) Return to app.py for display
-#         return {"type":"items_searched","message":answer}
-
-#     except Exception as e:
-#         return {"type":"error","message":f"Unexpected error: {e}"}
 
 # Function to register all conditions with a handler
 def register_all_conditions(handler):
