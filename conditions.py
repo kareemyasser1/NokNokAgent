@@ -180,7 +180,7 @@ def handle_items_request(handler, context):
         # if not client_id:x
         #     return {"type":"error","message":"No client selected for item lookup"}
 
-        reply = context["reoly"]
+        reply = context["reply"]
         last_user = context.get("last_user_message", "")
 
         # 2) Extract item-name via GPT
