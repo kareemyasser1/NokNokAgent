@@ -1,7 +1,9 @@
 import pandas as pd
 from datetime import datetime, timedelta
-import time
 import streamlit as st
+import re                # ← already present? add if missing
+import time              # we’ll sleep 3 s
+from openai import OpenAI, OpenAIError
 
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
@@ -165,6 +167,82 @@ CONDITIONS_REGISTRY = {
         "description": "Detect support URL in reply and handoff to human agent"
     }
 }
+# ───────────────────────────────────────────────────────────────
+# Items-search condition  ●  Triggered by "noknok.com/items"
+# ───────────────────────────────────────────────────────────────
+def check_items_url_in_response(handler, context):
+    return context and "reply" in context and "noknok.com/items" in context["reply"]
+
+
+def handle_items_search(handler, context):
+    """
+    1) extract item between quotes before noknok.com/items
+    2) write it to cell G2, wait, read JSON from H2
+    3) build specialised prompt and ask GPT
+    4) return the assistant answer or error dict
+    """
+    try:
+        # ── sanity: need client’s latest user message (history) in context
+        history_text = context.get("history", "").strip()
+        reply_text   = context.get("reply", "")
+
+        # 1) extract item name in quotes
+        #   supports "..." or “...”
+        m = re.search(r'[“"]([^”"]+)[”"]\s*[^"]*noknok\.com/items', reply_text, re.I)
+        if not m:
+            return {"type": "error", "message": "Could not extract item name"}
+        item_name = m.group(1).strip()
+
+        # 2) write item to G2 on any available sheet (prefer Items sheet)
+        if not handler.noknok_sheets:
+            return {"type": "error", "message": "Sheets client not available"}
+
+        target_sheet = handler.noknok_sheets.get("items") \
+                       or next(iter(handler.noknok_sheets.values()))
+        target_sheet.update_acell("G2", item_name)
+
+        # wait 3 seconds for on-sheet formula / script to populate H2
+        time.sleep(3)
+        json_results = target_sheet.acell("H2").value or ""
+
+        # 3) compose prompt
+        prompt_template = (
+            "<Purpose> You will act as an assistant that helps users find "
+            "information about items in our NokNok database based on search results. </Purpose>\n"
+            "<Search Results Format>\n"
+            "You will receive:\n"
+            "-A user question about an item\n"
+            "-The top 5 search results from our database in JSON format\n"
+            "-Each result contains: item name, price (in usd), stock availability (true/false), "
+            "and distance (relevance measure)\n"
+            "</Search Results Format>\n\n"
+            "User inquiry: @history@\n"
+            "Search results: @json@\n\n"
+            "Now, please answer the user's query based on these search results. "
+            "You are talking with the user directly and everything you say will be received by him. "
+            "Don't explain your reasoning just answer directly now."
+        )
+        user_prompt = prompt_template.replace("@history@", history_text)\
+                                     .replace("@json@", json_results)
+
+        # 4) ask GPT
+        client = OpenAI(api_key=get_secret("OPENAI_API_KEY"))
+        gpt_resp = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": user_prompt}],
+            stream=False
+        )
+        answer = gpt_resp.choices[0].message.content.strip()
+
+        return {
+            "type": "items_answer",
+            "message": answer
+        }
+
+    except OpenAIError as e:
+        return {"type": "error", "message": f"OpenAI error: {e}"}
+    except Exception as e:
+        return {"type": "error", "message": f"Unexpected error: {e}"}
 
 # Function to register all conditions with a handler
 def register_all_conditions(handler):
@@ -205,7 +283,15 @@ def register_all_conditions(handler):
         "Assistant indicated it updated the customer address"
     )
     registered_count += 1
-
+   # Items search condition
+    handler.register_condition(
+        "items_search_detected",
+        check_items_url_in_response,
+        handle_items_search,
+        "Extract item, fetch JSON from sheet, answer user"
+    )
+    registered_count += 1
+    
     return registered_count
 
 # Support URL condition

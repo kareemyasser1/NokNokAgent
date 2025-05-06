@@ -852,6 +852,13 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                     should_add_to_history = False
                     #response_container.empty()
                     st.rerun()
+                elif "noknok.com/items" in full_response:
+                    print("Items URL detected, handling condition")
+                    st.session_state.items_search_pending = True
+                    st.session_state.items_search_prompt = prompt      # last user input
+                    should_add_to_history = False
+                    response_container.empty()
+                    st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
                 # Add assistant response to chat history
@@ -1216,6 +1223,43 @@ if "address_update_pending" in st.session_state and st.session_state.address_upd
     # clear the flag
     st.session_state.address_update_pending = False
     st.session_state.pop("address_update_prompt", None)
+# ─────────────────────────────────────────────────────────────
+# Handle queued items-search workflow
+# ─────────────────────────────────────────────────────────────
+if "items_search_pending" in st.session_state and st.session_state.items_search_pending:
+    client_id = st.session_state.current_client_id
+    # last user message (the one that triggered the assistant suggestion)
+    last_user_msg = st.session_state.items_search_prompt
+    # build context for ConditionHandler
+    context = {
+        "client_id": client_id,
+        "reply": "noknok.com/items",
+        "history": last_user_msg
+    }
+    results = st.session_state.condition_handler.evaluate_conditions(context)
+
+    # display result
+    if results:
+        for res in results:
+            if res.get("id") == "items_search_detected":
+                final_msg = res["result"].get("message", "")
+                with st.chat_message("assistant"):
+                    st.write(final_msg)
+                st.session_state.messages.append({"role": "assistant", "content": final_msg})
+                if st.session_state.chat_history_sheet:
+                    save_to_chat_history(
+                        st.session_state.chat_history_sheet,
+                        "System", "", final_msg
+                    )
+    else:
+        err = "⚠️ Could not process item search."
+        with st.chat_message("assistant"): st.write(err)
+        st.session_state.messages.append({"role": "assistant", "content": err})
+
+    # clear flag
+    st.session_state.items_search_pending = False
+    st.session_state.pop("items_search_prompt", None)
+
 # ────────────────────────────────────────────────────────────
 #  Auto-refresh every minute & close chat after 5 min idle
 # ────────────────────────────────────────────────────────────
