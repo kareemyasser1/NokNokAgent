@@ -178,12 +178,11 @@ def handle_items_request(handler, context):
         client_id = getattr(handler, "current_client_id", None)
         if not client_id:
             return {"type":"error", "message":"No client selected for item lookup"}
-
         # —————— 2) Extract item name ——————
         reply = context.get("reply", "")
         # match the first quoted substring
         import re
-        m = re.search(r'"([^"]+)"', reply)
+        m = re.search(r'“([^"]+)”', reply)
         if not m:
             return {"type":"error", "message":"Could not parse item name from reply"}
         item_name = m.group(1).strip()
