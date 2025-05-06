@@ -187,7 +187,7 @@ def handle_items_request(handler, context):
         extract_prompt = (
             'from the history below,Extract the product name that is quoted between “smart quotes” or "plain quotes" in the message.'
             'Only extract it if the message contains the URL noknok.com/items.\n\n Here is the messages history:'
-            f"{reply}"
+            f'{reply}'
         )
         try:
             extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
