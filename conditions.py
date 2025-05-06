@@ -182,13 +182,14 @@ def handle_items_request(handler, context):
 
         reply = context["reply"]
         last_user = context.get("last_user_message", "")
+        extract_prompt = (
+            'From the assistant reply below, extract **only** the product name that is quoted '
+            'between “smart quotes” or "plain quotes".\n\n'
+            f"{context['reply']}"
+        )
 
         # 2) Extract item-name via GPT
-        extract_prompt = (
-            'from the history below,Extract the product name that is quoted between “smart quotes” or "plain quotes" in the message.'
-            'Only extract it if the message contains the URL noknok.com/items.\n\n Here is the messages history:'
-            f'{reply}'
-        )
+       
         try:
             extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             extract_resp = extractor.chat.completions.create(

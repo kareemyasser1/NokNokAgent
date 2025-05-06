@@ -856,6 +856,7 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                 elif "noknok.com/items" in full_response:
                     print("Items-URL detected in response, queuing items search")
                     st.session_state.items_search_pending = True
+                    st.session_state.items_search_response = full_response  
                     st.session_state.items_search_prompt = prompt
                     should_add_to_history = True
                     #response_container.empty()
@@ -1243,10 +1244,11 @@ if st.session_state.get("items_search_pending"):
                 break
 
         context = {
-            "client_id": client_id,
-            "reply": "noknok.com/items",
+            "client_id":         client_id,
+            "reply":             st.session_state.items_search_response,  # full Maya message
             "last_user_message": last_user
         }
+
         results = st.session_state.condition_handler.evaluate_conditions(context)
 
         if results:
