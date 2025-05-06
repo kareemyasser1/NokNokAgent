@@ -184,9 +184,9 @@ def handle_items_request(handler, context):
         # if not client_id:x
         #     return {"type":"error","message":"No client selected for item lookup"}
          # 0) Pre-conditions
-        client_id = getattr(handler, "current_client_id", None)
-        if not client_id:
-            return {"type": "error", "message": "No client selected for item lookup"}
+        # client_id = getattr(handler, "current_client_id", None)
+        # if not client_id:
+        #     return {"type": "error", "message": "No client selected for item lookup"}
         # reply = context["reply"]
         # last_user = context.get("last_user_message", "")
         # extract_prompt = (
