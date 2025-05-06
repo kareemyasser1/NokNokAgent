@@ -189,12 +189,14 @@ def handle_items_search(handler, context):
         # 1) extract item name in quotes
         #   supports "..." or “...”
         # 1) Extract item name (supports "..." and “...”)
-        m = re.search(r'(?:“([^”]+)”|"([^"]+)")\s*[^"\n]*?noknok\.com/items', reply_text, re.I)
-
-        if not m:
-            return {"type": "error", "message": "Could not extract item name"}
-
-        item_name = (m.group(1) or m.group(2)).strip()
+       # 1) Extract item name (only plain quotes "..." and message must contain noknok.com/items)
+        if "noknok.com/items" in reply_text:
+            m = re.search(r'"([^"]+)"', reply_text)
+            if not m:
+                return {"type": "error", "message": "Could not extract item name in quotes"}
+            item_name = m.group(1).strip()
+        else:
+            return {"type": "error", "message": "No noknok.com/items URL found in reply"}
 
         # 2) Write item to F2 on the Items sheet
         items_ws = handler.noknok_sheets.get("items")
