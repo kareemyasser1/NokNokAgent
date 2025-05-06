@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 import time
 import streamlit as st
 from openai import OpenAI, OpenAIError
-import re
-
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
     """Check if the GPT reply contains noknok.com/support which requires human agent handoff"""
@@ -159,8 +157,6 @@ def handle_address_update(handler, context):
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"} 
 
-
-
 def check_items_url_in_response(handler, context):
     """Trigger when the assistant’s reply contains noknok.com/items."""
     return bool(
@@ -183,50 +179,27 @@ def handle_items_request(handler, context):
         # client_id = getattr(handler, "current_client_id", None)
         # if not client_id:x
         #     return {"type":"error","message":"No client selected for item lookup"}
-         # 0) Pre-conditions
-        # client_id = getattr(handler, "current_client_id", None)
-        # if not client_id:
-        #     return {"type": "error", "message": "No client selected for item lookup"}
-        # reply = context["reply"]
-        # last_user = context.get("last_user_message", "")
-        # extract_prompt = (
-        #     'From the assistant reply below, extract **only** the product name that is quoted '
-        #     'between “smart quotes” or "plain quotes".\n\n'
-        #     f"{context['reply']}"
-        # )
 
-        # # 2) Extract item-name via GPT
-       
-        # try:
-        #     extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
-        #     extract_resp = extractor.chat.completions.create(
-        #         model="gpt-4o",
-        #         messages=[{"role":"user","content":extract_prompt}],
-        #         stream=False
-        #     )
-        #     item_name = extract_resp.choices[0].message.content.strip().strip('"')
-        # except OpenAIError as e:
-        #     return {"type":"error","message":f"OpenAI extraction error: {e}"}
         reply = context["reply"]
         last_user = context.get("last_user_message", "")
+        extract_prompt = (
+            'From the assistant reply below, extract **only** the product name that is quoted '
+            'between “smart quotes” or "plain quotes".\n\n'
+            f"{context['reply']}"
+        )
 
-        # 1) Extract item name using regex
-        item_name = None
-
-        # Look for quoted text before noknok.com/items
-        m = re.search(r'[“"]([^”"]+)[”"]\s*[^"\n]*noknok\.com/items', reply, re.I)
-        if m:
-            item_name = m.group(1).strip()
-        else:
-            # fallback: any quoted text in the message containing noknok.com/items
-            if "noknok.com/items" in reply:
-                m = re.search(r'[“"]([^”"]+)[”"]', reply)
-                if m:
-                    item_name = m.group(1).strip()
-
-        if not item_name:
-            return {"type": "error", "message": "Could not extract item name"}
-
+        # 2) Extract item-name via GPT
+       
+        try:
+            extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
+            extract_resp = extractor.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role":"user","content":extract_prompt}],
+                stream=False
+            )
+            item_name = extract_resp.choices[0].message.content.strip().strip('"')
+        except OpenAIError as e:
+            return {"type":"error","message":f"OpenAI extraction error: {e}"}
 
         # 3) Write item_name → F2, wait, then read JSON from G2
         items_sheet = handler.noknok_sheets.get("items")
