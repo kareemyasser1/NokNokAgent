@@ -191,7 +191,7 @@ def handle_items_request(handler, context):
             f"{reply}"
         )
         try:
-            extractor = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            extractor = OpenAI(st.secrets["OPENAI_API_KEY"])
             extract_resp = extractor.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role":"user","content":extract_prompt}],
