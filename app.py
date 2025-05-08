@@ -458,47 +458,14 @@ st.title("NokNok AI Assistant")
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
     st.session_state.uploader_version = 0
+
 if st.session_state.pop("reset_uploader", False):
     st.session_state.uploader_version += 1
-
-# Re-render uploader with dynamic key
-uploaded_file = st.file_uploader(
-    "Attach image (optional)",
-    type=["png", "jpg", "jpeg"],
-    key=f"image_uploader_{st.session_state.uploader_version}"
-)
-
-# Make uploader sticky at bottom (just above the chat input)
-st.markdown(
-    """
-    <style>
-    /* Stick the file uploader to the bottom-left just above Streamlit chat input */
-    div[data-testid="stFileUploader"] {
-        position: fixed;
-        bottom: 90px; /* adjust if chat_input height changes */
-        left: 20px;
-        background-color: white;
-        padding: 6px 10px;
-        border: 1px solid #DDD;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 1000;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-if uploaded_file is not None:
-    # Store the raw bytes in session_state until the next send
-    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
-    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-    st.info("Image attached – it will be sent with your next message.")
 
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
-        # Track inactivity / idle closing
+    # Track inactivity / idle closing
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
 
@@ -801,8 +768,8 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
-            # Image was consumed → bump uploader version so widget resets
-            st.session_state.uploader_version += 1
+            # Mark uploader for reset on next rerun so selection clears immediately
+            st.session_state.reset_uploader = True
         st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
             if prompt:
@@ -1676,3 +1643,17 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         highlighted_template = highlighted_template.replace("@OrderETA@", "**@OrderETA@**")
         
         st.markdown(highlighted_template) 
+
+# ─────────────────────────────────────────────
+# Bottom-bar image uploader (appears just above the chat input)
+# ─────────────────────────────────────────────
+
+uploaded_file = st.file_uploader(
+    "Attach image (optional)",
+    type=["png", "jpg", "jpeg"],
+    key=f"image_uploader_{st.session_state.uploader_version}"
+)
+if uploaded_file is not None:
+    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
+    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
+    st.info("Image attached – it will be sent with your next message.") 
