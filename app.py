@@ -751,14 +751,42 @@ for message in st.session_state.messages:
         if message.get("image_bytes"):
             st.image(message["image_bytes"])
 
-# Handle user input
-if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
+# Bottom-bar image uploader (appears just above the chat input)
+uploaded_file = st.file_uploader(
+    "Attach image (optional)",
+    type=["png", "jpg", "jpeg"],
+    key=f"image_uploader_{st.session_state.uploader_version}"
+)
+if uploaded_file is not None:
+    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
+    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
+    st.info("Image attached – it will be sent with your next message.")
+
+# Optional send button to allow sending image without typing text
+send_image_only = False
+if st.session_state.get("attached_image_bytes"):
+    send_image_only = st.button("Send image", key="send_image_btn")
+
+# -----------------------------------------------
+# Chat input & message sending
+# -----------------------------------------------
+
+prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
+
+# Determine if we should send a message this run
+should_send = (prompt_input is not None) or send_image_only
+
+if should_send:
+    prompt = prompt_input or ""  # allow empty string when image-only
     st.session_state.last_user_activity = datetime.now()
-    st.session_state.closing_message_sent = False      # reset idle flag
+    st.session_state.closing_message_sent = False
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
+    if send_image_only and not image_bytes:
+        # Edge-case: send button but no image (shouldn't normally happen)
+        send_image_only = False
 
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
@@ -768,7 +796,6 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
-            # Mark uploader for reset on next rerun so selection clears immediately
             st.session_state.reset_uploader = True
         st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
@@ -1643,17 +1670,3 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         highlighted_template = highlighted_template.replace("@OrderETA@", "**@OrderETA@**")
         
         st.markdown(highlighted_template) 
-
-# ─────────────────────────────────────────────
-# Bottom-bar image uploader (appears just above the chat input)
-# ─────────────────────────────────────────────
-
-uploaded_file = st.file_uploader(
-    "Attach image (optional)",
-    type=["png", "jpg", "jpeg"],
-    key=f"image_uploader_{st.session_state.uploader_version}"
-)
-if uploaded_file is not None:
-    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
-    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-    st.info("Image attached – it will be sent with your next message.") 
