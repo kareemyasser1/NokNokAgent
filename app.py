@@ -771,25 +771,34 @@ st.markdown(
         bottom: 90px;               /* just above chat_input */
         left: 50%;                  /* center align */
         transform: translateX(-50%);
-        width: calc(100% - 7rem);   /* leave space for Send button */
-        max-width: 43rem;
+        width: calc(100% - 3rem);   /* match horizontal padding of main container */
+        max-width: 46rem;           /* equals Streamlit block-container default */
         padding: 10px 12px 6px 12px;
         background: var(--background-color);
         border-top: 1px solid rgba(49,51,63,0.2);
         z-index: 9999;
     }
 
-    /* Position the Send Image button */
-    div[data-testid="baseButton-send_image_btn"] {
-        position: fixed;
-        bottom: 93px;               /* align with uploader */
-        right: calc((100% - 46rem)/2 + 1rem); /* align to right edge of main column */
-        z-index: 10000;
-    }
-
     /* Provide extra bottom padding so messages are not hidden under uploader */
     section.main > div:first-child {  /* block-container */
         padding-bottom: 150px;
+    }
+
+    /* Fix the 'Send image' button near the uploader bar */
+    div[data-testid="stButton"], div[data-testid="stButton"] > button {
+        /* Only affect the specific image-send button by relying on its key suffix */
+    }
+    div[data-testid="stButton"][id*="send_image_btn"] {
+        position: fixed;
+        bottom: 92px;               /* align with uploader */
+        right: calc(50% - 23rem + 8px); /* inside 46rem container, 8px padding */
+        z-index: 10000;
+    }
+    /* fallback: small screens */
+    @media (max-width: 768px) {
+        div[data-testid="stButton"][id*="send_image_btn"] {
+            right: 1rem;
+        }
     }
     </style>
     """,
@@ -797,8 +806,9 @@ st.markdown(
 )
 
 # Optional send button to allow sending image without typing text
-button_disabled = not st.session_state.get("attached_image_bytes")
-send_image_only = st.button("Send image", key="send_image_btn", disabled=button_disabled)
+send_image_only = False
+if st.session_state.get("attached_image_bytes"):
+    send_image_only = st.button("Send image", key="send_image_btn")
 
 # -----------------------------------------------
 # Chat input & message sending
