@@ -777,6 +777,16 @@ st.markdown(
         background: var(--background-color);
         border-top: 1px solid rgba(49,51,63,0.2);
         z-index: 9999;
+        display:flex;               /* allow horizontal layout */
+        align-items:center;
+    }
+
+    /* Style the Send-image button placed immediately after uploader */
+    div[data-testid="stFileUploader"] + div[data-testid="stButton"] {
+        position: fixed;
+        bottom: 90px;
+        right: calc(50% - 46rem/2 + 12px); /* align with container right padding */
+        z-index: 10000;
     }
 
     /* Provide extra bottom padding so messages are not hidden under uploader */
