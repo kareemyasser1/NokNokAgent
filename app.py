@@ -771,6 +771,10 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
+    # Reset the file_uploader widget selection (clears preview immediately)
+    current_uploader_key = f"image_uploader_{st.session_state.uploader_version}"
+    if current_uploader_key in st.session_state:
+        st.session_state[current_uploader_key] = None
 
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
