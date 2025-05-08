@@ -780,8 +780,8 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
-            # Image was consumed → bump uploader version so widget resets
-            st.session_state.uploader_version += 1
+        # Mark uploader for reset so the widget clears instantly
+        st.session_state.reset_uploader = True
         st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
             if prompt:
