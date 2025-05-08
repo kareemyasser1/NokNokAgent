@@ -14,6 +14,7 @@ import re
 from conditions import register_all_conditions
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -453,7 +454,16 @@ model = "gpt-4o"
 
 # App title
 st.title("NokNok AI Assistant")
-st.markdown("Ask Maya questions about orders, delivery, and services")
+
+# Prompt below handled in chat_input placeholder
+
+# Image uploader (optional attachment for next message)
+uploaded_file = st.file_uploader("Attach image (optional)", type=["png", "jpg", "jpeg"], key="image_uploader")
+if uploaded_file is not None:
+    # Store the raw bytes in session_state until the next send
+    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
+    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
+    st.info("Image attached – it will be sent with your next message.")
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -739,20 +749,34 @@ else:
 # Display chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.write(message["content"])
+        if message.get("content"):
+            st.write(message["content"])
+        if message.get("image_bytes"):
+            st.image(message["image_bytes"])
 
 # Handle user input
 if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False      # reset idle flag
 
+    # Read and consume any attached image
+    image_bytes = st.session_state.pop("attached_image_bytes", None)
+    image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
+
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
     else:
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        # Add user message (with optional image) to chat history
+        user_message_entry = {"role": "user", "content": prompt}
+        if image_bytes:
+            user_message_entry["image_bytes"] = image_bytes
+            user_message_entry["mime"] = image_mime
+        st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
-            st.write(prompt)
+            if prompt:
+                st.write(prompt)
+            if image_bytes:
+                st.image(image_bytes)
 
         # Generate response
         with st.chat_message("assistant"):
@@ -768,7 +792,18 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                 personalized_system_prompt = process_prompt_variables(system_prompt_template, current_client_id)
                 
                 messages_for_api = [{"role": "system", "content": personalized_system_prompt}]
-                messages_for_api.extend([{"role": m["role"], "content": m["content"]} for m in st.session_state.messages])
+                
+                # Convert stored messages to OpenAI format (supporting images)
+                for m in st.session_state.messages:
+                    if "image_bytes" in m and m["image_bytes"]:
+                        parts = []
+                        if m.get("content"):
+                            parts.append({"type": "text", "text": m["content"]})
+                        b64 = base64.b64encode(m["image_bytes"]).decode()
+                        parts.append({"type": "image_url", "image_url": {"url": f"data:{m.get('mime', 'image/jpeg')};base64,{b64}"}})
+                        messages_for_api.append({"role": m["role"], "content": parts})
+                    else:
+                        messages_for_api.append({"role": m["role"], "content": m["content"]})
                 
                 # Show a spinner while waiting for the response
                 with st.spinner("Maya is thinking..."):
