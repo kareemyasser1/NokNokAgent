@@ -455,10 +455,17 @@ model = "gpt-4o"
 # App title
 st.title("NokNok AI Assistant")
 
-# Prompt below handled in chat_input placeholder
+# Maintain a versioned key so we can reset the uploader after send
+if "uploader_version" not in st.session_state:
+    st.session_state.uploader_version = 0
 
-# Image uploader (optional attachment for next message)
-uploaded_file = st.file_uploader("Attach image (optional)", type=["png", "jpg", "jpeg"], key="image_uploader")
+# Re-render uploader with dynamic key
+uploaded_file = st.file_uploader(
+    "Attach image (optional)",
+    type=["png", "jpg", "jpeg"],
+    key=f"image_uploader_{st.session_state.uploader_version}"
+)
+
 if uploaded_file is not None:
     # Store the raw bytes in session_state until the next send
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
@@ -771,6 +778,8 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
+            # Image was consumed → bump uploader version so widget resets
+            st.session_state.uploader_version += 1
         st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
             if prompt:
