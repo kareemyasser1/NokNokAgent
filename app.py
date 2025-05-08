@@ -457,30 +457,13 @@ st.title("NokNok AI Assistant")
 
 # Prompt below handled in chat_input placeholder
 
-# --- Small attach-icon uploader -----------------------------
-attach_css = """
-<style>
-div[data-testid="stFileUploader"] > label > div {
-    display: none;            /* hide default text */
-}
-div[data-testid="stFileUploader"] {
-    width: 32px;              /* tiny square */
-    height: 32px;
-}
-</style>
-"""
-st.markdown(attach_css, unsafe_allow_html=True)
-
-uploaded_file = st.file_uploader("📎", type=["png", "jpg", "jpeg"], key="image_uploader", label_visibility="collapsed")
-
+# Image uploader (optional attachment for next message)
+uploaded_file = st.file_uploader("Attach image (optional)", type=["png", "jpg", "jpeg"], key="image_uploader")
 if uploaded_file is not None:
     # Store the raw bytes in session_state until the next send
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
     st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-
-    # Visual cue of attachment
-    with st.sidebar.expander("Attached Image", expanded=False):
-        st.image(st.session_state["attached_image_bytes"], width=120)
+    st.info("Image attached – it will be sent with your next message.")
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -779,9 +762,6 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
-    # Clear uploader widget (Streamlit workaround)
-    if "image_uploader" in st.session_state:
-        st.session_state["image_uploader"] = None
 
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
