@@ -793,6 +793,21 @@ send_image_only = False
 if st.session_state.get("attached_image_bytes"):
     send_image_only = st.button("Send image", key="send_image_btn")
 
+# Additional CSS to position the send-image button within the attachment bar
+st.markdown(
+    """
+    <style>
+    div.stButton > button[data-testid="baseButton-secondary"]:has(span:contains('Send image')) {
+        position: fixed;
+        bottom: 96px;
+        right: calc(50% - 46rem/2 + 12px); /* aligns with container max-width */
+        z-index: 10000;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # -----------------------------------------------
 # Chat input & message sending
 # -----------------------------------------------
