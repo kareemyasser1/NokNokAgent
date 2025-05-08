@@ -468,6 +468,27 @@ uploaded_file = st.file_uploader(
     key=f"image_uploader_{st.session_state.uploader_version}"
 )
 
+# Make uploader sticky at bottom (just above the chat input)
+st.markdown(
+    """
+    <style>
+    /* Stick the file uploader to the bottom-left just above Streamlit chat input */
+    div[data-testid="stFileUploader"] {
+        position: fixed;
+        bottom: 90px; /* adjust if chat_input height changes */
+        left: 20px;
+        background-color: white;
+        padding: 6px 10px;
+        border: 1px solid #DDD;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 if uploaded_file is not None:
     # Store the raw bytes in session_state until the next send
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
