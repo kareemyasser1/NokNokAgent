@@ -771,21 +771,19 @@ st.markdown(
         bottom: 90px;               /* just above chat_input */
         left: 50%;                  /* center align */
         transform: translateX(-50%);
-        width: calc(100% - 3rem);   /* match horizontal padding of main container */
-        max-width: 46rem;           /* equals Streamlit block-container default */
+        width: calc(100% - 7rem);   /* leave space for Send button */
+        max-width: 43rem;
         padding: 10px 12px 6px 12px;
         background: var(--background-color);
         border-top: 1px solid rgba(49,51,63,0.2);
         z-index: 9999;
-        display:flex;               /* allow horizontal layout */
-        align-items:center;
     }
 
-    /* Style the Send-image button placed immediately after uploader */
-    div[data-testid="stFileUploader"] + div[data-testid="stButton"] {
+    /* Position the Send Image button */
+    div[data-testid="baseButton-send_image_btn"] {
         position: fixed;
-        bottom: 90px;
-        right: calc(50% - 46rem/2 + 12px); /* align with container right padding */
+        bottom: 93px;               /* align with uploader */
+        right: calc((100% - 46rem)/2 + 1rem); /* align to right edge of main column */
         z-index: 10000;
     }
 
@@ -799,9 +797,8 @@ st.markdown(
 )
 
 # Optional send button to allow sending image without typing text
-send_image_only = False
-if st.session_state.get("attached_image_bytes"):
-    send_image_only = st.button("Send image", key="send_image_btn")
+button_disabled = not st.session_state.get("attached_image_bytes")
+send_image_only = st.button("Send image", key="send_image_btn", disabled=button_disabled)
 
 # -----------------------------------------------
 # Chat input & message sending
