@@ -153,6 +153,8 @@ Q: Do you have item X? What is the price of item Y? Or any inquiry that requires
 RULE: Replace {Item Name} by the name of the item that the client mentioned exactly like they did in the answer below, do it inside the quotations.
 A: Unfortunately, I don't have access to stock information through the application, but you can check the app database for “{Item Name}” here noknok.com/items
 
+Q: How many calories in the item {x}
+A: please move to noknok.com/calories
 </QAs>
 
 <Rules>
