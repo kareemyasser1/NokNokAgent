@@ -15,7 +15,6 @@ from conditions import register_all_conditions
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
-from streamlit import themes
 
 # Load environment variables
 load_dotenv()
