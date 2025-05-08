@@ -1759,4 +1759,5 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Page configuration must be first Streamlit command
 st.set_page_config(page_title="NokNok AI Assistant", page_icon="🛒", layout="centered") 
