@@ -15,6 +15,7 @@ from conditions import register_all_conditions
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
+from streamlit import themes
 
 # Load environment variables
 load_dotenv()
@@ -1711,4 +1712,52 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         highlighted_template = highlighted_template.replace("@Technical@", "**@Technical@**")
         highlighted_template = highlighted_template.replace("@OrderETA@", "**@OrderETA@**")
         
-        st.markdown(highlighted_template) 
+        st.markdown(highlighted_template)
+
+# Inject global CSS for ChatGPT-style look
+st.markdown(
+    """
+    <style>
+    /* Global font & background like ChatGPT */
+    html, body, [data-testid="stApp"]  {
+        background-color: #f7f7f8;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    /* Center chat container & set max width */
+    section.main > div:first-child {
+        max-width: 46rem;
+        margin: 0 auto;
+    }
+
+    /* Chat bubbles */
+    /* Assistant */
+    div[data-testid="stChatMessage"]:has(div[data-testid="stMarkdownContainer"]:not(:has(strong:contains("user")))) div[data-testid="stMarkdownContainer"] {
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 4px 0 12px 0;
+        color: #1e1e1e;
+    }
+
+    /* User bubble (detected via bold blue name inside)*/
+    div[data-testid="stChatMessage"] div.stMarkdown:has(em) {
+        background: #3b82f6;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 4px 0 12px 0;
+    }
+
+    /* Remove extra padding around chat message */
+    div[data-testid="stChatMessage"] > div:first-child { padding: 0; }
+
+    /* Remove top nav hamburger for clean look */
+    header {visibility: hidden;}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.set_page_config(page_title="NokNok AI Assistant", page_icon="🛒", layout="centered") 
