@@ -783,23 +783,6 @@ st.markdown(
     section.main > div:first-child {  /* block-container */
         padding-bottom: 150px;
     }
-
-    /* Fix the 'Send image' button near the uploader bar */
-    div[data-testid="stButton"], div[data-testid="stButton"] > button {
-        /* Only affect the specific image-send button by relying on its key suffix */
-    }
-    div[data-testid="stButton"][id*="send_image_btn"] {
-        position: fixed;
-        bottom: 92px;               /* align with uploader */
-        right: calc(50% - 23rem + 8px); /* inside 46rem container, 8px padding */
-        z-index: 10000;
-    }
-    /* fallback: small screens */
-    @media (max-width: 768px) {
-        div[data-testid="stButton"][id*="send_image_btn"] {
-            right: 1rem;
-        }
-    }
     </style>
     """,
     unsafe_allow_html=True
