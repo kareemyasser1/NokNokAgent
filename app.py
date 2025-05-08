@@ -15,6 +15,7 @@ from conditions import register_all_conditions
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
+import streamlit.components.v1 as components
 
 # Load environment variables
 load_dotenv()
@@ -454,6 +455,42 @@ model = "gpt-4o"
 
 # App title
 st.title("NokNok AI Assistant")
+
+# Inject animated particle background (from Exifa.net)
+particles_html = """
+<div id=\"particles-js\"></div>
+<style>
+#particles-js {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: -1;  /* keep behind all Streamlit elements */
+}
+</style>
+<script src=\"https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js\"></script>
+<script>
+particlesJS("particles-js", {
+  particles: {
+    number: { value: 300, density: { enable: true, value_area: 800 } },
+    color: { value: "#ffffff" },
+    shape: { type: "circle" },
+    opacity: { value: 0.5 },
+    size: { value: 2, random: true },
+    line_linked: { enable: true, distance: 100, color: "#ffffff", opacity: 0.22, width: 1 },
+    move: { enable: true, speed: 0.2, direction: "none", out_mode: "out", bounce: true }
+  },
+  interactivity: {
+    events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "repulse" } },
+    modes: { grab: { distance: 100, line_linked: { opacity: 1 } }, repulse: { distance: 200, duration: 0.4 } }
+  },
+  retina_detect: true
+});
+</script>
+"""
+# Render the background HTML once (iframe height large enough to cover viewport)
+components.html(particles_html, height=800, scrolling=False)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
