@@ -797,11 +797,12 @@ if st.session_state.get("attached_image_bytes"):
 st.markdown(
     """
     <style>
-    div.stButton > button[data-testid="baseButton-secondary"]:has(span:contains('Send image')) {
-        position: fixed;
-        bottom: 96px;
-        right: calc(50% - 46rem/2 + 12px); /* aligns with container max-width */
-        z-index: 10000;
+    /* Position button whose id starts with send_image_btn */
+    button[id^="send_image_btn"] {
+        position: fixed !important;
+        bottom: 96px !important;
+        right: calc(50% - 46rem/2 + 12px) !important; /* align with uploader bar */
+        z-index: 10000 !important;
     }
     </style>
     """,
