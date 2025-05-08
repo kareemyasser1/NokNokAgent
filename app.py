@@ -768,9 +768,11 @@ st.markdown(
     /* Pin the file uploader */
     div[data-testid="stFileUploader"] {
         position: fixed;
-        bottom: 90px;               /* slightly above chat_input */
-        left: 0;
-        width: 100%;
+        bottom: 90px;               /* just above chat_input */
+        left: 50%;                  /* center align */
+        transform: translateX(-50%);
+        width: calc(100% - 3rem);   /* match horizontal padding of main container */
+        max-width: 46rem;           /* equals Streamlit block-container default */
         padding: 10px 12px 6px 12px;
         background: var(--background-color);
         border-top: 1px solid rgba(49,51,63,0.2);
@@ -778,7 +780,7 @@ st.markdown(
     }
 
     /* Provide extra bottom padding so messages are not hidden under uploader */
-    section.main.css-1v0mbdj.egzxvld2 {   /* main block container wrapper class may vary */
+    section.main > div:first-child {  /* block-container */
         padding-bottom: 150px;
     }
     </style>
