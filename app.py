@@ -768,7 +768,7 @@ st.markdown(
     /* Pin the file uploader */
     div[data-testid="stFileUploader"] {
         position: fixed;
-        bottom: 90px;               /* slightly above chat_input */
+        bottom: 110px;              /* above chat_input */
         left: 50%;                  /* center horizontally */
         transform: translateX(-50%);
         width: calc(100% - 6rem);   /* match main block width accounting for padding */
@@ -780,8 +780,8 @@ st.markdown(
     }
 
     /* Provide extra bottom padding so messages are not hidden under uploader */
-    section.main.css-1v0mbdj.egzxvld2 {   /* main block container wrapper class may vary */
-        padding-bottom: 150px;
+    .block-container {
+        padding-bottom: 220px !important;
     }
     </style>
     """,
