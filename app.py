@@ -769,8 +769,10 @@ st.markdown(
     div[data-testid="stFileUploader"] {
         position: fixed;
         bottom: 90px;               /* slightly above chat_input */
-        left: 0;
-        width: 100%;
+        left: 50%;                  /* center horizontally */
+        transform: translateX(-50%);
+        width: calc(100% - 6rem);   /* match main block width accounting for padding */
+        max-width: 46rem;           /* similar to chat_input max width */
         padding: 10px 12px 6px 12px;
         background: var(--background-color);
         border-top: 1px solid rgba(49,51,63,0.2);
