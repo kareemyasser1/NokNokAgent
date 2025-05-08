@@ -460,9 +460,7 @@ st.markdown(
     """
     <style>
       /*  Page background  */
-      body, .stApp {
-          background: #f5f7fa;
-      }
+
 
       /*  Chat bubbles  */
       div[data-testid="stChatMessage"] {
