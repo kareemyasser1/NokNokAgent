@@ -760,7 +760,31 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
     st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-    st.info("Image attached – it will be sent with your next message.")
+
+# Inject CSS to keep uploader fixed at bottom (just above chat input)
+st.markdown(
+    """
+    <style>
+    /* Pin the file uploader */
+    div[data-testid="stFileUploader"] {
+        position: fixed;
+        bottom: 90px;               /* slightly above chat_input */
+        left: 0;
+        width: 100%;
+        padding: 10px 12px 6px 12px;
+        background: var(--background-color);
+        border-top: 1px solid rgba(49,51,63,0.2);
+        z-index: 9999;
+    }
+
+    /* Provide extra bottom padding so messages are not hidden under uploader */
+    section.main.css-1v0mbdj.egzxvld2 {   /* main block container wrapper class may vary */
+        padding-bottom: 150px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Optional send button to allow sending image without typing text
 send_image_only = False
