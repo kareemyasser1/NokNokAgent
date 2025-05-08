@@ -455,9 +455,11 @@ model = "gpt-4o"
 # App title
 st.title("NokNok AI Assistant")
 
-# Maintain a versioned key so we can reset the uploader after send
+# Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
     st.session_state.uploader_version = 0
+if st.session_state.pop("reset_uploader", False):
+    st.session_state.uploader_version += 1
 
 # Re-render uploader with dynamic key
 uploaded_file = st.file_uploader(
