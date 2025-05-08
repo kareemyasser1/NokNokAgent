@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import time
 import streamlit as st
 from openai import OpenAI, OpenAIError
+import json
+
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
     """Check if the GPT reply contains noknok.com/support which requires human agent handoff"""
@@ -49,6 +51,7 @@ def action_human_agent_handoff(handler, context=None):
             "error": str(e),
             "message": "Failed to process human agent handoff"
         }
+
 # ────────────────────────────────────────────────────────────────
 # Address-update condition
 # When the bot says:  "I just added your address information"
@@ -158,7 +161,7 @@ def handle_address_update(handler, context):
         return {"type": "error", "message": f"Unexpected error: {e}"} 
 
 def check_items_url_in_response(handler, context):
-    """Trigger when the assistant’s reply contains noknok.com/items."""
+    """Trigger when the assistant's reply contains noknok.com/items."""
     return bool(
         context
         and "reply" in context
@@ -184,7 +187,7 @@ def handle_items_request(handler, context):
         last_user = context.get("last_user_message", "")
         extract_prompt = (
             'From the assistant reply below, extract **only** the product name that is quoted '
-            'between “smart quotes” or "plain quotes".\n\n'
+            'between "smart quotes" or "plain quotes".\n\n'
             f"{context['reply']}"
         )
 
@@ -263,6 +266,89 @@ Now, please answer the user's query based on these search results. You are talki
     except Exception as e:
         return {"type":"error","message":f"Unexpected error: {e}"}
 
+# ─────────────────────────────────────────────────────────────
+# Calories URL condition
+# Triggered when assistant reply contains noknok.com/calories
+# ─────────────────────────────────────────────────────────────
+
+def check_calories_url_in_response(handler, context):
+    """Return True iff the assistant's reply contains noknok.com/calories"""
+    return bool(context and "reply" in context and "noknok.com/calories" in context["reply"])
+
+
+def handle_calories_request(handler, context):
+    """Run external GPT search workflow for calories and return best answer."""
+    try:
+        # Extract the last user message so we can build the search prompt
+        last_user_msg = context.get("last_user_message", "")
+
+        # Build the one-shot prompt
+        prompt_template = (
+            "You are an expert in calories searching, you will receive a message from the user requesting to "
+            "search the internet for calories. You must first start by searching the website of Carrefour Lebanon "
+            "to find the relevant details. Now if you can't find it in Carrefour Lebanon, search then Carrefour UAE, "
+            "Egypt and other Carrefour websites. Only if you can't find the item anywhere in any carrefour website, "
+            "only then search in different websites. Remember, you are talking directly with the user, so don't "
+            "explain your reasoning, just answer the user question. NEVER EXPLAIN YOUR REASONING. REMEMBER TO "
+            "ALWAYS ALWAYS SEARCH CARREFOUR WEBSITES FIRST.\n\n"
+            "For each query, return your findings in this JSON format:\n"
+            "{\n"
+            "  \"carrefourlebanonanswer\": \"A conversational response about what was found on Carrefour Lebanon "
+            "website or 'Missing' if not found\",\n"
+            "  \"carrefourforeignanswer\": \"A conversational response about what was found on other Carrefour "
+            "websites (UAE, Egypt, etc.) or 'Missing' if not found\",\n"
+            "  \"otheranswer\": \"A conversational response about what was found on non-Carrefour websites or "
+            "'Missing' if not found\"\n"
+            "}\n"
+            "But keep your answers a bit short, DON'T mention the website, only add the link. DO NOT SAY \"According "
+            "to Carrefour Lebanon\" or such.\n"
+            "Here's the user question: @history@"
+        )
+        prompt = prompt_template.replace("@history@", last_user_msg)
+
+        # Call OpenAI (synchronous, no streaming)
+        try:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            gpt_resp = client.chat.completions.create(
+                model="gpt-4o",  # Using same model family as elsewhere
+                messages=[{"role": "user", "content": prompt}],
+                stream=False
+            )
+            raw_answer = gpt_resp.choices[0].message.content.strip()
+        except OpenAIError as e:
+            return {"type": "error", "message": f"OpenAI API error: {e}"}
+
+        # Attempt to parse JSON from the answer.
+        try:
+            parsed = json.loads(raw_answer)
+        except json.JSONDecodeError:
+            # Try to locate JSON braces in the response
+            try:
+                first = raw_answer.find('{')
+                last = raw_answer.rfind('}')
+                parsed = json.loads(raw_answer[first:last+1]) if first != -1 and last != -1 else {}
+            except Exception:
+                parsed = {}
+
+        carrefour_lb = parsed.get("carrefourlebanonanswer")
+        carrefour_foreign = parsed.get("carrefourforeignanswer")
+        other = parsed.get("otheranswer")
+
+        # Decide which answer to send back
+        if carrefour_lb and carrefour_lb != "Missing":
+            final_msg = carrefour_lb
+        elif carrefour_foreign and carrefour_foreign != "Missing":
+            final_msg = carrefour_foreign
+        elif other and other != "Missing":
+            final_msg = other
+        else:
+            final_msg = "We couldn't find the calorie content for this item, can you please describe it again?"
+
+        return {"type": "calories_searched", "message": final_msg}
+
+    except Exception as e:
+        return {"type": "error", "message": f"Unexpected error: {e}"}
+
 # Function to register all conditions with a handler
 def register_all_conditions(handler):
     """Register all conditions with the provided handler"""
@@ -308,6 +394,14 @@ def register_all_conditions(handler):
         check_items_url_in_response,
         handle_items_request,
         "URL noknok.com/items detected → lookup item in sheet + GPT"
+    )
+    registered_count += 1
+    # Calories-URL condition
+    handler.register_condition(
+        "calories_search_detected",
+        check_calories_url_in_response,
+        handle_calories_request,
+        "URL noknok.com/calories detected → calories web search"
     )
     registered_count += 1
 
@@ -576,8 +670,6 @@ def handle_order_refund(handler, context):
                         client_sheet.update_cell(row_index, wallet_col, new_wallet_amount)
                         found = True
                         break
-                    else:
-                        raise Exception(f"Wallet column '{wallet_field}' not found in sheet")
             
             if not found:
                 return {

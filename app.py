@@ -861,6 +861,13 @@ if prompt := st.chat_input("Ask about orders, clients, or inventory..."):
                     should_add_to_history = True
                     #response_container.empty()
                     st.rerun()
+                elif "noknok.com/calories" in full_response:
+                    print("Calories-URL detected in response, queuing calories search")
+                    st.session_state.calories_search_pending = True
+                    st.session_state.calories_search_response = full_response
+                    st.session_state.calories_search_prompt = prompt
+                    should_add_to_history = True
+                    st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
                 # Add assistant response to chat history
@@ -1274,6 +1281,48 @@ if st.session_state.get("items_search_pending"):
     # clear the flag
     st.session_state.items_search_pending = False
     st.session_state.pop("items_search_prompt", None)
+
+# ─────────────────────────────────────────────────────────────
+# Handle queued calories-search workflow
+# ─────────────────────────────────────────────────────────────
+if st.session_state.get("calories_search_pending"):
+    # Capture last user message (regardless of client selection)
+    last_user = ""
+    for m in reversed(st.session_state.messages):
+        if m["role"] == "user":
+            last_user = m["content"]
+            break
+
+    context = {
+        "client_id": st.session_state.get("current_client_id"),
+        "reply": st.session_state.calories_search_response,
+        "last_user_message": last_user
+    }
+
+    results = st.session_state.condition_handler.evaluate_conditions(context)
+
+    if results:
+        for res in results:
+            if res.get("id") == "calories_search_detected":
+                text = res["result"].get("message", "")
+                with st.chat_message("assistant"):
+                    st.write(text)
+                st.session_state.messages.append({"role": "assistant", "content": text})
+                if st.session_state.chat_history_sheet:
+                    save_to_chat_history(
+                        st.session_state.chat_history_sheet,
+                        "System", "Calories search",
+                        text
+                    )
+    else:
+        err = "⚠️ Failed to retrieve calories information."
+        with st.chat_message("assistant"):
+            st.write(err)
+        st.session_state.messages.append({"role": "assistant", "content": err})
+
+    # clear the flag
+    st.session_state.calories_search_pending = False
+    st.session_state.pop("calories_search_prompt", None)
 
 # ────────────────────────────────────────────────────────────
 #  Auto-refresh every minute & close chat after 5 min idle
