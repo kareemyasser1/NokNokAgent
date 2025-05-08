@@ -455,6 +455,73 @@ model = "gpt-4o"
 # App title
 st.title("NokNok AI Assistant")
 
+# ――― Global Modern Chat UI Styling ―――
+st.markdown(
+    """
+    <style>
+      /*  Page background  */
+      body, .stApp {
+          background: #f5f7fa;
+      }
+
+      /*  Chat bubbles  */
+      div[data-testid="stChatMessage"] {
+          padding: 0 !important;
+      }
+
+      /* Assistant bubble */
+      div[data-testid="stChatMessage"]:has(.stChatMessageAvatar)[data-testid*="assistant"] > div:last-child {
+          background: #ffffff;
+          color: #222;
+          border-radius: 12px;
+          padding: 12px 16px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+
+      /* User bubble */
+      div[data-testid="stChatMessage"]:has(.stChatMessageAvatar)[data-testid*="user"] > div:last-child {
+          background: #0A7AFF;
+          color: #fff;
+          border-radius: 12px;
+          padding: 12px 16px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+
+      /*  Align bubbles  */
+      div[data-testid="stChatMessage"]:has(.stChatMessageAvatar)[data-testid*="user"]  {
+          justify-content: flex-end !important;
+      }
+      div[data-testid="stChatMessage"]:has(.stChatMessageAvatar)[data-testid*="assistant"]  {
+          justify-content: flex-start !important;
+      }
+
+      /*  Hide default avatars to keep UI clean  */
+      .stChatMessageAvatar {
+          display: none;
+      }
+
+      /*  Attachment bar tweaks  */
+      div[data-testid="stFileUploader"] {
+          border-radius: 8px;
+          border: 1px dashed #d0d5dd;
+      }
+
+      button[id^="send_image_btn"] {
+          background: #0A7AFF;
+          color: #fff;
+          border: none;
+          padding: 6px 14px;
+          border-radius: 6px;
+          font-weight: 600;
+      }
+      button[id^="send_image_btn"]:hover {
+          background: #0066d6;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
     st.session_state.uploader_version = 0
@@ -1711,53 +1778,4 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         highlighted_template = highlighted_template.replace("@Technical@", "**@Technical@**")
         highlighted_template = highlighted_template.replace("@OrderETA@", "**@OrderETA@**")
         
-        st.markdown(highlighted_template)
-
-# Inject global CSS for ChatGPT-style look
-st.markdown(
-    """
-    <style>
-    /* Global font & background like ChatGPT */
-    html, body, [data-testid="stApp"]  {
-        background-color: #f7f7f8;
-        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-    }
-
-    /* Center chat container & set max width */
-    section.main > div:first-child {
-        max-width: 46rem;
-        margin: 0 auto;
-    }
-
-    /* Chat bubbles */
-    /* Assistant */
-    div[data-testid="stChatMessage"]:has(div[data-testid="stMarkdownContainer"]:not(:has(strong:contains("user")))) div[data-testid="stMarkdownContainer"] {
-        background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin: 4px 0 12px 0;
-        color: #1e1e1e;
-    }
-
-    /* User bubble (detected via bold blue name inside)*/
-    div[data-testid="stChatMessage"] div.stMarkdown:has(em) {
-        background: #3b82f6;
-        color: white;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin: 4px 0 12px 0;
-    }
-
-    /* Remove extra padding around chat message */
-    div[data-testid="stChatMessage"] > div:first-child { padding: 0; }
-
-    /* Remove top nav hamburger for clean look */
-    header {visibility: hidden;}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Page configuration must be first Streamlit command
-st.set_page_config(page_title="NokNok AI Assistant", page_icon="🛒", layout="centered") 
+        st.markdown(highlighted_template) 
