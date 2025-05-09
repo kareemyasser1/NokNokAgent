@@ -647,6 +647,51 @@ if "chat_history_sheet" not in st.session_state:
 # Sidebar - Database stats
 st.sidebar.title("NokNok Database")
 
+# Add custom CSS for sidebar file uploader
+st.sidebar.markdown('''
+<style>
+/* Make the sidebar file uploader more attractive */
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+    width: 100%;
+    border: 1px dashed #4e8cff;
+    border-radius: 4px;
+    background-color: rgba(78, 140, 255, 0.05);
+    margin-top: 0.5rem;
+}
+
+/* Style the send image button */
+[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
+    background-color: #4e8cff !important;
+    color: white !important;
+    border: none !important;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+</style>
+''', unsafe_allow_html=True)
+
+# Add image attachment at the top of sidebar
+st.sidebar.markdown("### 📎 Attach")
+uploaded_file = st.sidebar.file_uploader(
+    "",  # Empty label
+    type=["png", "jpg", "jpeg"],
+    key=f"image_uploader_{st.session_state.uploader_version}",
+    label_visibility="collapsed"  # Hide the label completely
+)
+if uploaded_file is not None:
+    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
+    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
+    
+    # Show image preview
+    st.sidebar.image(uploaded_file, caption="Image preview", width=200)
+    
+    # Add send button
+    if st.sidebar.button("Send Image", key="send_image_btn"):
+        st.session_state["send_image_only"] = True
+        st.rerun()
+    else:
+        st.session_state["send_image_only"] = False
+
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
@@ -1781,50 +1826,6 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
 current_language = st.session_state.get("current_prompt_language", "english").capitalize()
 language_emoji = "🇱🇧" if current_language.lower() == "lebanese" else "🇬🇧"
 st.sidebar.markdown(f"### Current Prompt: {language_emoji} {current_language} Prompt")
-
-# Add custom CSS for sidebar file uploader
-st.sidebar.markdown('''
-<style>
-/* Make the sidebar file uploader more attractive */
-[data-testid="stSidebar"] [data-testid="stFileUploader"] {
-    width: 100%;
-    border: 1px dashed #4e8cff;
-    border-radius: 4px;
-    background-color: rgba(78, 140, 255, 0.05);
-    margin-top: 0.5rem;
-}
-
-/* Style the send image button */
-[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
-    background-color: #4e8cff !important;
-    color: white !important;
-    border: none !important;
-    width: 100%;
-    margin-top: 0.5rem;
-}
-</style>
-''', unsafe_allow_html=True)
-
-# Add image attachment in sidebar
-st.sidebar.markdown("### Attach Image")
-uploaded_file = st.sidebar.file_uploader(
-    "Upload an image to send",
-    type=["png", "jpg", "jpeg"],
-    key=f"image_uploader_{st.session_state.uploader_version}",
-)
-if uploaded_file is not None:
-    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
-    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-    
-    # Show image preview
-    st.sidebar.image(uploaded_file, caption="Image preview", width=200)
-    
-    # Add send button
-    if st.sidebar.button("Send Image", key="send_image_btn"):
-        st.session_state["send_image_only"] = True
-        st.rerun()
-    else:
-        st.session_state["send_image_only"] = False
 
 # ─────────────────────────────────────────────────────────────
 # Handle queued Lebanese prompt switch
