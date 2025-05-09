@@ -830,7 +830,6 @@ for message in st.session_state.messages:
 
 # Bottom-bar image uploader (appears just above the chat input)
 uploaded_file = st.file_uploader(
-    "Attach image (optional)",
     type=["png", "jpg", "jpeg"],
     key=f"image_uploader_{st.session_state.uploader_version}"
 )
