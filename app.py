@@ -560,24 +560,40 @@ def process_response_variables(response_text, client_id=None):
 model = "gpt-4o"
 
 # App title
-title_col1, title_col2 = st.columns([0.6, 5])
-with title_col1:
-    st.image("logo.png", width=200, use_container_width=False)
-with title_col2:
-    st.title("AI Assistant 🛒")
-    st.markdown('''
-    <style>
-    div.block-container{padding-top:2rem;}
-    div.stImage img {
-        margin-top: 3rem !important;
-        margin-bottom: 1rem;
-        vertical-align: middle;
-        display: block;
-        max-height: none !important;
-        object-fit: contain;
-    }
-    </style>
-    ''', unsafe_allow_html=True)
+import base64
+
+# Load the image as base64
+with open("logo.png", "rb") as f:
+    logo_base64 = base64.b64encode(f.read()).decode()
+
+st.markdown('''
+<style>
+.logo-title-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.logo-title-container img {
+    max-height: none !important;
+    object-fit: contain;
+}
+.title-text {
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+</style>
+''', unsafe_allow_html=True)
+
+# Custom layout for logo and title
+st.markdown(f'''
+<div class="logo-title-container">
+    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <h1 class="title-text">AI Assistant 🛒</h1>
+</div>
+''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
