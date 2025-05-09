@@ -567,11 +567,14 @@ with title_col2:
     st.title("AI Assistant 🛒")
     st.markdown('''
     <style>
-    div.block-container{padding-top:1rem;}
+    div.block-container{padding-top:2rem;}
     div.stImage img {
-        margin-top: 2rem;
+        margin-top: 3rem !important;
+        margin-bottom: 1rem;
         vertical-align: middle;
         display: block;
+        max-height: none !important;
+        object-fit: contain;
     }
     </style>
     ''', unsafe_allow_html=True)
