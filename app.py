@@ -562,10 +562,19 @@ model = "gpt-4o"
 # App title
 title_col1, title_col2 = st.columns([0.6, 5])
 with title_col1:
-    st.image("logo.png", width=200)
+    st.image("logo.png", width=200, use_column_width=False)
 with title_col2:
     st.title("AI Assistant 🛒")
-    st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
+    st.markdown('''
+    <style>
+    div.block-container{padding-top:1rem;}
+    div.stImage img {
+        margin-top: 2rem;
+        vertical-align: middle;
+        display: block;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
