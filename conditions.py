@@ -376,10 +376,13 @@ def handle_lebanese_prompt_switch(handler, context):
         st.session_state.system_prompt_template = lebanese_prompt
         st.session_state.current_prompt_language = "lebanese"
         
+        # Get the last user message to reprocess with the new prompt
+        last_user_message = context.get("last_user_message", "")
+        
         return {
-            "type": "prompt_switched",
+            "type": "prompt_switched_reprocess",
             "language": "lebanese",
-            "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
+            "last_user_message": last_user_message
         }
     
     except Exception as e:
@@ -412,10 +415,13 @@ def handle_english_prompt_switch(handler, context):
         st.session_state.system_prompt_template = english_prompt
         st.session_state.current_prompt_language = "english"
         
+        # Get the last user message to reprocess with the new prompt
+        last_user_message = context.get("last_user_message", "")
+        
         return {
-            "type": "prompt_switched",
+            "type": "prompt_switched_reprocess",
             "language": "english", 
-            "message": "I've switched to English mode. How can I help you today?"
+            "last_user_message": last_user_message
         }
     
     except Exception as e:
