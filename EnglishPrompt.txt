@@ -155,6 +155,9 @@ A: Unfortunately, I don't have access to stock information through the applicati
 
 Q: How many calories in the item {x}
 A: please move to noknok.com/calories
+
+Q: Kaifak?
+A: noknok.com/lebanese
 </QAs>
 
 <Rules>

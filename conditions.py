@@ -349,6 +349,78 @@ def handle_calories_request(handler, context):
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
 
+# ─────────────────────────────────────────────────────────────
+# Lebanese URL condition
+# Triggered when assistant reply contains noknok.com/lebanese
+# ─────────────────────────────────────────────────────────────
+
+def check_lebanese_url_in_response(handler, context):
+    """Return True iff the assistant's reply contains noknok.com/lebanese"""
+    return bool(context and "reply" in context and "noknok.com/lebanese" in context["reply"])
+
+
+def handle_lebanese_prompt_switch(handler, context):
+    """Switch the system prompt to LebanesePrompt.txt"""
+    try:
+        # Read the Lebanese prompt file
+        try:
+            with open('LebanesePrompt.txt', 'r', encoding='utf-8') as file:
+                lebanese_prompt = file.read()
+                if not lebanese_prompt:
+                    return {"type": "error", "message": "Lebanese prompt file is empty"}
+        except Exception as e:
+            return {"type": "error", "message": f"Failed to read Lebanese prompt file: {e}"}
+        
+        # Store the Lebanese prompt in the session state for app.py to use
+        import streamlit as st
+        st.session_state.system_prompt_template = lebanese_prompt
+        st.session_state.current_prompt_language = "lebanese"
+        
+        return {
+            "type": "prompt_switched",
+            "language": "lebanese",
+            "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
+        }
+    
+    except Exception as e:
+        return {"type": "error", "message": f"Unexpected error: {e}"}
+
+# ─────────────────────────────────────────────────────────────
+# Languages URL condition
+# Triggered when assistant reply contains noknok.com/languages
+# ─────────────────────────────────────────────────────────────
+
+def check_languages_url_in_response(handler, context):
+    """Return True iff the assistant's reply contains noknok.com/languages"""
+    return bool(context and "reply" in context and "noknok.com/languages" in context["reply"])
+
+
+def handle_english_prompt_switch(handler, context):
+    """Switch the system prompt to EnglishPrompt.txt"""
+    try:
+        # Read the English prompt file
+        try:
+            with open('EnglishPrompt.txt', 'r', encoding='utf-8') as file:
+                english_prompt = file.read()
+                if not english_prompt:
+                    return {"type": "error", "message": "English prompt file is empty"}
+        except Exception as e:
+            return {"type": "error", "message": f"Failed to read English prompt file: {e}"}
+        
+        # Store the English prompt in the session state for app.py to use
+        import streamlit as st
+        st.session_state.system_prompt_template = english_prompt
+        st.session_state.current_prompt_language = "english"
+        
+        return {
+            "type": "prompt_switched",
+            "language": "english", 
+            "message": "I've switched to English mode. How can I help you today?"
+        }
+    
+    except Exception as e:
+        return {"type": "error", "message": f"Unexpected error: {e}"}
+
 # Function to register all conditions with a handler
 def register_all_conditions(handler):
     """Register all conditions with the provided handler"""
@@ -380,7 +452,8 @@ def register_all_conditions(handler):
         "Refund URL detected in response"
     )
     registered_count += 1
-        # Address update condition
+    
+    # Address update condition
     handler.register_condition(
         "address_update_detected",
         check_address_update_in_response,
@@ -388,6 +461,7 @@ def register_all_conditions(handler):
         "Assistant indicated it updated the customer address"
     )
     registered_count += 1
+    
     # Items-URL condition
     handler.register_condition(
         "items_search_detected",
@@ -396,12 +470,31 @@ def register_all_conditions(handler):
         "URL noknok.com/items detected → lookup item in sheet + GPT"
     )
     registered_count += 1
+    
     # Calories-URL condition
     handler.register_condition(
         "calories_search_detected",
         check_calories_url_in_response,
         handle_calories_request,
         "URL noknok.com/calories detected → calories web search"
+    )
+    registered_count += 1
+    
+    # Lebanese language prompt condition
+    handler.register_condition(
+        "lebanese_language_detected",
+        check_lebanese_url_in_response,
+        handle_lebanese_prompt_switch,
+        "URL noknok.com/lebanese detected → switch to Lebanese prompt"
+    )
+    registered_count += 1
+    
+    # English language prompt condition (via /languages URL)
+    handler.register_condition(
+        "english_language_detected",
+        check_languages_url_in_response,
+        handle_english_prompt_switch,
+        "URL noknok.com/languages detected → switch to English prompt"
     )
     registered_count += 1
 

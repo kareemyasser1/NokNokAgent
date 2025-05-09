@@ -6,7 +6,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import json
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 import time
 import threading
 import re
@@ -283,15 +283,15 @@ def save_to_chat_history(worksheet, user, message, response):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     worksheet.append_row([timestamp, user, message, response])
 
-# Initialize system prompt directly from prompt.txt
+# Initialize system prompt directly from EnglishPrompt.txt
 try:
-    with open('prompt.txt', 'r', encoding='utf-8') as file:
+    with open('EnglishPrompt.txt', 'r', encoding='utf-8') as file:
         system_prompt_template = file.read()
-        print(f"Successfully loaded prompt.txt with {len(system_prompt_template)} characters")
+        print(f"Successfully loaded EnglishPrompt.txt with {len(system_prompt_template)} characters")
         if len(system_prompt_template) == 0:
             raise ValueError("Empty system prompt file")
 except Exception as e:
-    print(f"Error loading prompt.txt: {e}")
+    print(f"Error loading EnglishPrompt.txt: {e}")
     # Fallback system prompt
     system_prompt_template = """
     You are Maya, a friendly and helpful customer service agent at a Lebanese company called noknok, 
@@ -304,6 +304,15 @@ except Exception as e:
     Be professional, helpful, and provide accurate information about noknok's services.
     """
     print(f"Using fallback system prompt: {system_prompt_template[:50]}...")
+
+# If this is the first time loading the app, initialize the prompt language in session state
+if "current_prompt_language" not in st.session_state:
+    st.session_state.current_prompt_language = "english"
+    st.session_state.system_prompt_template = system_prompt_template
+# If we already have a prompt in session state (from a previous handler condition), use that
+elif "system_prompt_template" in st.session_state:
+    system_prompt_template = st.session_state.system_prompt_template
+    print(f"Using {st.session_state.current_prompt_language} prompt from session state")
 
 # Function to replace prompt variables
 def process_prompt_variables(prompt_template, client_id=None):
@@ -1049,6 +1058,20 @@ if should_send:
                     st.session_state.calories_search_prompt = prompt
                     should_add_to_history = True
                     st.rerun()
+                elif "noknok.com/lebanese" in full_response:
+                    print("Lebanese-URL detected in response, switching to Lebanese prompt")
+                    st.session_state.lebanese_prompt_pending = True
+                    st.session_state.lebanese_prompt_response = full_response
+                    st.session_state.lebanese_prompt_prompt = prompt
+                    should_add_to_history = True
+                    st.rerun()
+                elif "noknok.com/languages" in full_response:
+                    print("Languages-URL detected in response, switching to English prompt")
+                    st.session_state.english_prompt_pending = True
+                    st.session_state.english_prompt_response = full_response
+                    st.session_state.english_prompt_prompt = prompt
+                    should_add_to_history = True
+                    st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
                 # Add assistant response to chat history
@@ -1760,33 +1783,114 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         else:
             tech_value = "Technical issues = False"
         
-        # Display the extracted values in a table
-        variables = {
-            "clientName": "valued customer" if "@clientName@" not in system_prompt_template else 
-                        ("Not found" if client_name == "Not found" else 
-                         client_name if len(client_name) < 20 else client_name[:20] + "..."),
-            "ETA": "Default value" if "noknok is committed to delivering" in processed_prompt else 
-                   f"Specific time: {eta_value}" if eta_value else "Custom value",
-            "OrderDelay": delay_value,
-            "Technical": tech_value,
-            "OrderETA": "Same as ETA value"
-        }
+        st.markdown("**Prompt details:**")
+        st.write("- Client name:", client_name)
+        if eta_value:
+            st.write("- ETA value:", eta_value)
+        st.write("- Delivery status:", delay_value)
+        st.write("- Technical status:", tech_value)
         
-        # Create a DataFrame for display
-        df = pd.DataFrame(list(variables.items()), columns=["Variable", "Selected Value"])
-        st.table(df)
-        
-        # Display the processed prompt
-        st.subheader("Processed Prompt")
-        st.code(processed_prompt, language="markdown")
-        
-        # Display the original template with variables highlighted
-        st.subheader("Template Variables")
-        highlighted_template = system_prompt_template
-        highlighted_template = highlighted_template.replace("@clientName@", "**@clientName@**")
-        highlighted_template = highlighted_template.replace("@ETA@", "**@ETA@**")
-        highlighted_template = highlighted_template.replace("@OrderDelay@", "**@OrderDelay@**")
-        highlighted_template = highlighted_template.replace("@Technical@", "**@Technical@**")
-        highlighted_template = highlighted_template.replace("@OrderETA@", "**@OrderETA@**")
+        st.markdown("**Full processed prompt:**")
+        # Add basic syntax highlighting by converting special tokens to colored spans
+        highlighted_template = processed_prompt
+        highlighted_template = re.sub(r'@(\w+)@', r'<span style="color:red">@\1@</span>', highlighted_template)
         
         st.markdown(highlighted_template) 
+
+# Show current language indicator in sidebar
+current_language = st.session_state.get("current_prompt_language", "english").capitalize()
+language_emoji = "🇱🇧" if current_language.lower() == "lebanese" else "🇬🇧"
+st.sidebar.markdown(f"### Current Language: {language_emoji} {current_language}")
+st.sidebar.markdown("*To change language, ask the assistant for:*")
+st.sidebar.markdown("- 🇱🇧 Lebanese Arabic: `noknok.com/lebanese`")
+st.sidebar.markdown("- 🇬🇧 English: `noknok.com/languages`")
+
+# ─────────────────────────────────────────────────────────────
+# Handle queued Lebanese prompt switch
+# ─────────────────────────────────────────────────────────────
+if st.session_state.get("lebanese_prompt_pending"):
+    client_id = st.session_state.current_client_id
+    
+    # Capture last user message for context
+    last_user = ""
+    for m in reversed(st.session_state.messages):
+        if m["role"] == "user":
+            last_user = m["content"]
+            break
+
+    context = {
+        "client_id": client_id,
+        "reply": st.session_state.lebanese_prompt_response,
+        "last_user_message": last_user
+    }
+
+    results = st.session_state.condition_handler.evaluate_conditions(context)
+
+    if results:
+        for res in results:
+            if res.get("id") == "lebanese_language_detected":
+                text = res["result"].get("message", "")
+                with st.chat_message("assistant"):
+                    st.write(text)
+                st.session_state.messages.append({"role":"assistant","content":text})
+                # save to history sheet
+                if st.session_state.chat_history_sheet:
+                    save_to_chat_history(
+                        st.session_state.chat_history_sheet,
+                        "System", "Switched to Lebanese prompt",
+                        text
+                    )
+    else:
+        err = "⚠️ Failed to switch to Lebanese prompt."
+        with st.chat_message("assistant"):
+            st.write(err)
+        st.session_state.messages.append({"role":"assistant","content":err})
+
+    # clear the flag
+    st.session_state.lebanese_prompt_pending = False
+    st.session_state.pop("lebanese_prompt_prompt", None)
+
+# ─────────────────────────────────────────────────────────────
+# Handle queued English prompt switch
+# ─────────────────────────────────────────────────────────────
+if st.session_state.get("english_prompt_pending"):
+    client_id = st.session_state.current_client_id
+    
+    # Capture last user message for context
+    last_user = ""
+    for m in reversed(st.session_state.messages):
+        if m["role"] == "user":
+            last_user = m["content"]
+            break
+
+    context = {
+        "client_id": client_id,
+        "reply": st.session_state.english_prompt_response,
+        "last_user_message": last_user
+    }
+
+    results = st.session_state.condition_handler.evaluate_conditions(context)
+
+    if results:
+        for res in results:
+            if res.get("id") == "english_language_detected":
+                text = res["result"].get("message", "")
+                with st.chat_message("assistant"):
+                    st.write(text)
+                st.session_state.messages.append({"role":"assistant","content":text})
+                # save to history sheet
+                if st.session_state.chat_history_sheet:
+                    save_to_chat_history(
+                        st.session_state.chat_history_sheet,
+                        "System", "Switched to English prompt",
+                        text
+                    )
+    else:
+        err = "⚠️ Failed to switch to English prompt."
+        with st.chat_message("assistant"):
+            st.write(err)
+        st.session_state.messages.append({"role":"assistant","content":err})
+
+    # clear the flag
+    st.session_state.english_prompt_pending = False
+    st.session_state.pop("english_prompt_prompt", None)
