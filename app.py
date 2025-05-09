@@ -821,7 +821,7 @@ else:
 
 # Display chat messages
 for message in st.session_state.messages:
-    with st.chat_message(message["role"], avatar=icons.get(message["role"], None)):
+    with st.chat_message(message["role"]):
         if message.get("content"):
             st.write(message["content"])
         if message.get("image_bytes"):
@@ -916,14 +916,14 @@ if should_send:
             user_message_entry["mime"] = image_mime
             st.session_state.reset_uploader = True
         st.session_state.messages.append(user_message_entry)
-        with st.chat_message("user", avatar=icons["user"]):
+        with st.chat_message("user"):
             if prompt:
                 st.write(prompt)
             if image_bytes:
                 st.image(image_bytes)
 
         # Generate response
-        with st.chat_message("assistant", avatar=icons["assistant"]):
+        with st.chat_message("assistant"):
             response_container = st.empty()
             full_response = ""
             
