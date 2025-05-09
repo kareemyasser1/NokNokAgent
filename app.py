@@ -562,7 +562,7 @@ model = "gpt-4o"
 # App title
 title_col1, title_col2 = st.columns([0.6, 5])
 with title_col1:
-    st.image("logo.png", width=200, use_column_width=False)
+    st.image("logo.png", width=200, use_container_width=False)
 with title_col2:
     st.title("AI Assistant 🛒")
     st.markdown('''
