@@ -54,7 +54,7 @@ api_key = st.secrets["OPENAI_API_KEY"]
 # inspired by the Exifa.net theme.
 
 st.set_page_config(
-    page_title="NokNok AI Assistant",
+    page_title="NokNok AI Assistant 🛒",
     page_icon="🛒",
     layout="wide",
 )
@@ -560,7 +560,11 @@ def process_response_variables(response_text, client_id=None):
 model = "gpt-4o"
 
 # App title
-st.title("NokNok AI Assistant")
+title_col1, title_col2 = st.columns([1, 4])
+with title_col1:
+    st.image("logo.png", width=100)
+with title_col2:
+    st.title("NokNok AI Assistant")
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
