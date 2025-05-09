@@ -114,90 +114,12 @@ particles_js = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# Grocery market themed background
-grocery_bg = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    .grocery-bg {
-      position: fixed;
-      width: 100vw;
-      height: 100vh;
-      top: 0;
-      left: 0;
-      z-index: -1;
-      background-color: #f8f9fa;
-      overflow: hidden;
-    }
-    
-    /* Fresh green gradient background */
-    .bg-gradient {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-      opacity: 0.7;
-    }
-    
-    /* Food pattern overlay */
-    .pattern-overlay {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%2381c784' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"),
-                    url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23388e3c' fill-opacity='0.05'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      opacity: 0.8;
-    }
-
-    /* Animated floating icons */
-    .floating-icons {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-    }
-    
-    .icon {
-      position: absolute;
-      opacity: 0.15;
-      font-size: 24px;
-      animation: float 15s infinite ease-in-out;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(5deg); }
-    }
-  </style>
-</head>
-<body>
-  <div class="grocery-bg">
-    <div class="bg-gradient"></div>
-    <div class="pattern-overlay"></div>
-    <div class="floating-icons">
-      <!-- Food emoji that float gently around the screen -->
-      <div class="icon" style="top: 15%; left: 10%; animation-delay: 0s;">🥑</div>
-      <div class="icon" style="top: 25%; left: 20%; animation-delay: 1s;">🍎</div>
-      <div class="icon" style="top: 60%; left: 15%; animation-delay: 2s;">🥕</div>
-      <div class="icon" style="top: 75%; left: 30%; animation-delay: 3s;">🍌</div>
-      <div class="icon" style="top: 35%; left: 85%; animation-delay: 4s;">🥦</div>
-      <div class="icon" style="top: 80%; left: 80%; animation-delay: 5s;">🍇</div>
-      <div class="icon" style="top: 10%; left: 60%; animation-delay: 6s;">🥖</div>
-      <div class="icon" style="top: 45%; left: 70%; animation-delay: 7s;">🧀</div>
-      <div class="icon" style="top: 55%; left: 40%; animation-delay: 8s;">🥛</div>
-      <div class="icon" style="top: 20%; left: 40%; animation-delay: 9s;">🍓</div>
-    </div>
-  </div>
-</body>
-</html>"""
-
-# Render the background only once per session to avoid
-# accumulating duplicate DOM nodes on Streamlit reruns.
-if "grocery_bg_rendered" not in st.session_state:
+# Render the particle background only once per session so that it
+# doesn't accumulate duplicate DOM nodes on Streamlit reruns.
+if "particle_bg_rendered" not in st.session_state:
     # Use a sufficiently tall iframe so the effect covers the visible viewport
-    components.html(grocery_bg, height=600, scrolling=False)
-    st.session_state.grocery_bg_rendered = True
+    components.html(particles_js, height=600, scrolling=False)
+    st.session_state.particle_bg_rendered = True
 
 def init_google_sheets():
     scope = [
