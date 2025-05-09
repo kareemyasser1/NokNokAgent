@@ -878,8 +878,8 @@ st.markdown(
     /* Position send-image button to the RIGHT end of the attachment bar */
     button[id^="send_image_btn"] {
         position: fixed !important;
-        bottom: 96px !important; /* slight offset to vertically centre with bar */
-        left: calc(50% + 46rem/2 - 110px) !important; /* 110-px from bar's right edge */
+        bottom: 96px !important; /* vertically centred with bar */
+        right: calc(50% - 46rem/2 + 12px) !important; /* align with right padding of bar */
         z-index: 10000 !important;
     }
     </style>
