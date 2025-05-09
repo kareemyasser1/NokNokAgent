@@ -376,11 +376,7 @@ def handle_lebanese_prompt_switch(handler, context):
         st.session_state.system_prompt_template = lebanese_prompt
         st.session_state.current_prompt_language = "lebanese"
         
-        return {
-            "type": "prompt_switched",
-            "language": "lebanese",
-            "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
-        }
+
     
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
