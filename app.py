@@ -1799,11 +1799,8 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
 
 # Show current language indicator in sidebar
 current_language = st.session_state.get("current_prompt_language", "english").capitalize()
-language_emoji = "🇱🇧" if current_language.lower() == "lebanese" else "🇬🇧"
-st.sidebar.markdown(f"### Current Language: {language_emoji} {current_language}")
-st.sidebar.markdown("*To change language, ask the assistant for:*")
-st.sidebar.markdown("- 🇱🇧 Lebanese Arabic: `noknok.com/lebanese`")
-st.sidebar.markdown("- 🇬🇧 English: `noknok.com/languages`")
+
+st.sidebar.markdown(f"### Current Prompt: {current_language} Prompt")
 
 # ─────────────────────────────────────────────────────────────
 # Handle queued Lebanese prompt switch
