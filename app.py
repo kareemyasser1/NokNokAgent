@@ -830,8 +830,10 @@ for message in st.session_state.messages:
 
 # Bottom-bar image uploader (appears just above the chat input)
 uploaded_file = st.file_uploader(
+    "",  # No visible label
     type=["png", "jpg", "jpeg"],
-    key=f"image_uploader_{st.session_state.uploader_version}"
+    key=f"image_uploader_{st.session_state.uploader_version}",
+    label_visibility="collapsed"
 )
 if uploaded_file is not None:
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
@@ -873,11 +875,11 @@ if st.session_state.get("attached_image_bytes"):
 st.markdown(
     """
     <style>
-    /* Position button whose id starts with send_image_btn */
+    /* Position send-image button to the RIGHT end of the attachment bar */
     button[id^="send_image_btn"] {
         position: fixed !important;
-        bottom: 96px !important;
-        right: calc(50% - 46rem/2 + 12px) !important; /* align with uploader bar */
+        bottom: 96px !important; /* slight offset to vertically centre with bar */
+        left: calc(50% + 46rem/2 - 110px) !important; /* 110-px from bar's right edge */
         z-index: 10000 !important;
     }
     </style>
