@@ -360,7 +360,7 @@ def check_lebanese_url_in_response(handler, context):
 
 
 def handle_lebanese_prompt_switch(handler, context):
-    """Switch the system prompt to LebanesePrompt.txt"""
+    """Switch the system prompt to LebanesePrompt.txt and reply to the last user message with the new prompt"""
     try:
         # Read the Lebanese prompt file
         try:
@@ -376,13 +376,18 @@ def handle_lebanese_prompt_switch(handler, context):
         st.session_state.system_prompt_template = lebanese_prompt
         st.session_state.current_prompt_language = "lebanese"
         
-        # Get the last user message to reprocess with the new prompt
+        # Get the last user message to respond to
         last_user_message = context.get("last_user_message", "")
         
+        # Set flag to process the message with the new prompt
+        st.session_state.process_with_new_prompt = True
+        st.session_state.new_prompt_user_message = last_user_message
+        
         return {
-            "type": "prompt_switched_reprocess",
+            "type": "prompt_switched",
             "language": "lebanese",
-            "last_user_message": last_user_message
+            "process_new_message": True,
+            "suppress_notification": True
         }
     
     except Exception as e:
@@ -399,7 +404,7 @@ def check_languages_url_in_response(handler, context):
 
 
 def handle_english_prompt_switch(handler, context):
-    """Switch the system prompt to EnglishPrompt.txt"""
+    """Switch the system prompt to EnglishPrompt.txt and reply to the last user message with the new prompt"""
     try:
         # Read the English prompt file
         try:
@@ -415,13 +420,18 @@ def handle_english_prompt_switch(handler, context):
         st.session_state.system_prompt_template = english_prompt
         st.session_state.current_prompt_language = "english"
         
-        # Get the last user message to reprocess with the new prompt
+        # Get the last user message to respond to
         last_user_message = context.get("last_user_message", "")
         
+        # Set flag to process the message with the new prompt
+        st.session_state.process_with_new_prompt = True
+        st.session_state.new_prompt_user_message = last_user_message
+        
         return {
-            "type": "prompt_switched_reprocess",
-            "language": "english", 
-            "last_user_message": last_user_message
+            "type": "prompt_switched",
+            "language": "english",
+            "process_new_message": True,
+            "suppress_notification": True
         }
     
     except Exception as e:

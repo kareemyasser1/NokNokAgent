@@ -1830,70 +1830,77 @@ if st.session_state.get("lebanese_prompt_pending"):
     if results:
         for res in results:
             if res.get("id") == "lebanese_language_detected":
-                if res["result"].get("type") == "prompt_switched_reprocess":
-                    # Reprocess the last user message with the new prompt
-                    last_message = res["result"].get("last_user_message", "")
-                    if last_message:
-                        # Get personalized system prompt with variables replaced
-                        personalized_system_prompt = process_prompt_variables(system_prompt_template, client_id)
-                        
-                        # Create OpenAI client
-                        client = OpenAI(api_key=api_key)
-                        
-                        # Create messages array with just the system prompt and last user message
-                        messages_for_api = [
-                            {"role": "system", "content": personalized_system_prompt},
-                            {"role": "user", "content": last_message}
-                        ]
-                        
-                        print(f"Reprocessing last message with Lebanese prompt: {last_message}")
-                        
-                        with st.chat_message("assistant"):
-                            with st.spinner("Maya is thinking..."):
-                                # Call OpenAI API
-                                response = client.chat.completions.create(
-                                    model=model,
-                                    messages=messages_for_api,
-                                    stream=False  # No streaming
-                                )
+                if res["result"].get("process_new_message", False):
+                    # Don't show a notification, instead process the last message with the new prompt
+                    if "new_prompt_user_message" in st.session_state and st.session_state.new_prompt_user_message:
+                        # Generate a new response with the Lebanese prompt
+                        try:
+                            client = OpenAI(api_key=api_key)
+                            
+                            # Get personalized system prompt with variables replaced
+                            personalized_system_prompt = process_prompt_variables(system_prompt_template, client_id)
+                            
+                            # Prepare messages for API
+                            messages_for_api = [{"role": "system", "content": personalized_system_prompt}]
+                            
+                            # Add context from previous conversation
+                            # Get the last few messages to provide context
+                            last_messages = []
+                            message_count = 0
+                            for m in st.session_state.messages[-6:]:  # Last 6 messages or less
+                                if not contains_condition_trigger(m.get("content", "")):
+                                    last_messages.append(m)
+                                    message_count += 1
+                            
+                            # Add the context messages
+                            for m in last_messages:
+                                messages_for_api.append({"role": m["role"], "content": m["content"]})
+                            
+                            # Ensure the most recent user message is included
+                            user_message_found = False
+                            for m in reversed(messages_for_api):
+                                if m["role"] == "user":
+                                    user_message_found = True
+                                    break
+                            
+                            # If no user message was found in the context, add the last one
+                            if not user_message_found and last_user:
+                                messages_for_api.append({"role": "user", "content": last_user})
+                                print(f"Added missing user message: {last_user}")
                                 
-                                # Get response
-                                new_response = response.choices[0].message.content
-                                
-                                # Check if the new response has condition triggers
-                                if not contains_condition_trigger(new_response):
-                                    # Display the response
-                                    st.write(new_response)
-                                    
-                                    # Add to history
-                                    st.session_state.messages.append({"role": "assistant", "content": new_response})
-                                    
-                                    # Save to chat history
-                                    if st.session_state.chat_history_sheet:
-                                        save_to_chat_history(
-                                            st.session_state.chat_history_sheet,
-                                            "System", f"Prompt switched to Lebanese, responding to: {last_message}",
-                                            new_response
-                                        )
-                                else:
-                                    # If the new response has condition triggers, don't show it
-                                    print("New response contains condition triggers, not displaying")
-                    else:
-                        # No last message to reprocess
-                        text = "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
-                        with st.chat_message("assistant"):
-                            st.write(text)
-                        st.session_state.messages.append({"role":"assistant","content":text})
-                        # save to history sheet
-                        if st.session_state.chat_history_sheet:
-                            save_to_chat_history(
-                                st.session_state.chat_history_sheet,
-                                "System", "Switched to Lebanese prompt",
-                                text
+                            # Call the API with the new prompt and last user message
+                            print("Generating response with Lebanese prompt...")
+                            print(f"Sending messages to API: {messages_for_api}")
+                            response = client.chat.completions.create(
+                                model=model,
+                                messages=messages_for_api,
+                                stream=False
                             )
+                            
+                            # Get the full response
+                            new_response = response.choices[0].message.content
+                            
+                            # Display response
+                            with st.chat_message("assistant"):
+                                st.write(new_response)
+                            st.session_state.messages.append({"role": "assistant", "content": new_response})
+                            
+                            # Save to history sheet
+                            if st.session_state.chat_history_sheet:
+                                save_to_chat_history(
+                                    st.session_state.chat_history_sheet,
+                                    "System", 
+                                    f"Switched to Lebanese prompt and processed: {last_user}",
+                                    new_response
+                                )
+                        except Exception as e:
+                            err = f"Error generating response with new prompt: {str(e)}"
+                            with st.chat_message("assistant"):
+                                st.write(err)
+                            st.session_state.messages.append({"role": "assistant", "content": err})
                 else:
-                    # Fallback to old behavior
-                    text = res["result"].get("message", "Switched to Lebanese prompt")
+                    # Just show the standard language switch notification (fallback to old behavior)
+                    text = res["result"].get("message", "Switched to Lebanese prompt.")
                     with st.chat_message("assistant"):
                         st.write(text)
                     st.session_state.messages.append({"role":"assistant","content":text})
@@ -1910,9 +1917,13 @@ if st.session_state.get("lebanese_prompt_pending"):
             st.write(err)
         st.session_state.messages.append({"role":"assistant","content":err})
 
-    # clear the flag
+    # clear the flags
     st.session_state.lebanese_prompt_pending = False
     st.session_state.pop("lebanese_prompt_prompt", None)
+    if "new_prompt_user_message" in st.session_state:
+        st.session_state.pop("new_prompt_user_message", None)
+    if "process_with_new_prompt" in st.session_state:
+        st.session_state.pop("process_with_new_prompt", None)
 
 # ─────────────────────────────────────────────────────────────
 # Handle queued English prompt switch
@@ -1938,70 +1949,77 @@ if st.session_state.get("english_prompt_pending"):
     if results:
         for res in results:
             if res.get("id") == "english_language_detected":
-                if res["result"].get("type") == "prompt_switched_reprocess":
-                    # Reprocess the last user message with the new prompt
-                    last_message = res["result"].get("last_user_message", "")
-                    if last_message:
-                        # Get personalized system prompt with variables replaced
-                        personalized_system_prompt = process_prompt_variables(system_prompt_template, client_id)
-                        
-                        # Create OpenAI client
-                        client = OpenAI(api_key=api_key)
-                        
-                        # Create messages array with just the system prompt and last user message
-                        messages_for_api = [
-                            {"role": "system", "content": personalized_system_prompt},
-                            {"role": "user", "content": last_message}
-                        ]
-                        
-                        print(f"Reprocessing last message with English prompt: {last_message}")
-                        
-                        with st.chat_message("assistant"):
-                            with st.spinner("Maya is thinking..."):
-                                # Call OpenAI API
-                                response = client.chat.completions.create(
-                                    model=model,
-                                    messages=messages_for_api,
-                                    stream=False  # No streaming
-                                )
+                if res["result"].get("process_new_message", False):
+                    # Don't show a notification, instead process the last message with the new prompt
+                    if "new_prompt_user_message" in st.session_state and st.session_state.new_prompt_user_message:
+                        # Generate a new response with the English prompt
+                        try:
+                            client = OpenAI(api_key=api_key)
+                            
+                            # Get personalized system prompt with variables replaced
+                            personalized_system_prompt = process_prompt_variables(system_prompt_template, client_id)
+                            
+                            # Prepare messages for API
+                            messages_for_api = [{"role": "system", "content": personalized_system_prompt}]
+                            
+                            # Add context from previous conversation
+                            # Get the last few messages to provide context
+                            last_messages = []
+                            message_count = 0
+                            for m in st.session_state.messages[-6:]:  # Last 6 messages or less
+                                if not contains_condition_trigger(m.get("content", "")):
+                                    last_messages.append(m)
+                                    message_count += 1
+                            
+                            # Add the context messages
+                            for m in last_messages:
+                                messages_for_api.append({"role": m["role"], "content": m["content"]})
+                            
+                            # Ensure the most recent user message is included
+                            user_message_found = False
+                            for m in reversed(messages_for_api):
+                                if m["role"] == "user":
+                                    user_message_found = True
+                                    break
+                            
+                            # If no user message was found in the context, add the last one
+                            if not user_message_found and last_user:
+                                messages_for_api.append({"role": "user", "content": last_user})
+                                print(f"Added missing user message: {last_user}")
                                 
-                                # Get response
-                                new_response = response.choices[0].message.content
-                                
-                                # Check if the new response has condition triggers
-                                if not contains_condition_trigger(new_response):
-                                    # Display the response
-                                    st.write(new_response)
-                                    
-                                    # Add to history
-                                    st.session_state.messages.append({"role": "assistant", "content": new_response})
-                                    
-                                    # Save to chat history
-                                    if st.session_state.chat_history_sheet:
-                                        save_to_chat_history(
-                                            st.session_state.chat_history_sheet,
-                                            "System", f"Prompt switched to English, responding to: {last_message}",
-                                            new_response
-                                        )
-                                else:
-                                    # If the new response has condition triggers, don't show it
-                                    print("New response contains condition triggers, not displaying")
-                    else:
-                        # No last message to reprocess
-                        text = "I've switched to English mode. How can I help you today?"
-                        with st.chat_message("assistant"):
-                            st.write(text)
-                        st.session_state.messages.append({"role":"assistant","content":text})
-                        # save to history sheet
-                        if st.session_state.chat_history_sheet:
-                            save_to_chat_history(
-                                st.session_state.chat_history_sheet,
-                                "System", "Switched to English prompt",
-                                text
+                            # Call the API with the new prompt and last user message
+                            print("Generating response with English prompt...")
+                            print(f"Sending messages to API: {messages_for_api}")
+                            response = client.chat.completions.create(
+                                model=model,
+                                messages=messages_for_api,
+                                stream=False
                             )
+                            
+                            # Get the full response
+                            new_response = response.choices[0].message.content
+                            
+                            # Display response
+                            with st.chat_message("assistant"):
+                                st.write(new_response)
+                            st.session_state.messages.append({"role": "assistant", "content": new_response})
+                            
+                            # Save to history sheet
+                            if st.session_state.chat_history_sheet:
+                                save_to_chat_history(
+                                    st.session_state.chat_history_sheet,
+                                    "System", 
+                                    f"Switched to English prompt and processed: {last_user}",
+                                    new_response
+                                )
+                        except Exception as e:
+                            err = f"Error generating response with new prompt: {str(e)}"
+                            with st.chat_message("assistant"):
+                                st.write(err)
+                            st.session_state.messages.append({"role": "assistant", "content": err})
                 else:
-                    # Fallback to old behavior
-                    text = res["result"].get("message", "Switched to English prompt")
+                    # Just show the standard language switch notification (fallback to old behavior)
+                    text = res["result"].get("message", "Switched to English prompt.")
                     with st.chat_message("assistant"):
                         st.write(text)
                     st.session_state.messages.append({"role":"assistant","content":text})
@@ -2018,6 +2036,10 @@ if st.session_state.get("english_prompt_pending"):
             st.write(err)
         st.session_state.messages.append({"role":"assistant","content":err})
 
-    # clear the flag
+    # clear the flags
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+    if "new_prompt_user_message" in st.session_state:
+        st.session_state.pop("new_prompt_user_message", None)
+    if "process_with_new_prompt" in st.session_state:
+        st.session_state.pop("process_with_new_prompt", None)
