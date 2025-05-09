@@ -1,0 +1,7 @@
+[theme]
+base = "dark"
+primaryColor = "#ff6666"          # same red accent as Exifa
+backgroundColor = "#0E1117"      # near-black background
+secondaryBackgroundColor = "#262730"
+textColor = "#FFFFFF"
+font = "monospace" 

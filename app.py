@@ -15,7 +15,7 @@ from conditions import register_all_conditions
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
-import streamlit.components.v1 as components
+import streamlit.components.v1 as components  # For custom HTML (background particles)
 
 # Load environment variables
 load_dotenv()
@@ -23,6 +23,81 @@ load_dotenv()
 # Set up OpenAI API key
 #api_key = st.secrets["OPENAI_API_KEY"]
 api_key = st.secrets["OPENAI_API_KEY"]
+
+# ------------------------------------------------------------
+# 🖌️  Global page configuration & visual theme (from Exifa)
+# ------------------------------------------------------------
+
+# Set up the page before any other Streamlit calls so the settings
+# apply everywhere.  The particle background and other visuals are
+# inspired by the Exifa.net theme.
+
+st.set_page_config(
+    page_title="NokNok AI Assistant",
+    page_icon="🛒",
+    layout="wide",
+)
+
+# Icon images for chat avatars (optional – taken from Exifa assets)
+icons = {
+    "assistant": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/assistant-done.svg",
+    "user": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/user-done.svg",
+}
+
+# Particle-JS animated background (the same snippet used by Exifa)
+particles_js = """<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <style>
+    #particles-js {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      z-index: -1; /* Push behind Streamlit components */
+    }
+  </style>
+</head>
+<body>
+  <div id=\"particles-js\"></div>
+  <script src=\"https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js\"></script>
+  <script>
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 300, density: { enable: true, value_area: 800 } },
+        color:  { value: '#ffffff' },
+        shape:  { type: 'circle' },
+        opacity:{ value: 0.5 },
+        size:   { value: 2, random: true },
+        line_linked: { enable: true, distance: 100, color: '#ffffff', opacity: 0.22, width: 1 },
+        move:   { enable: true, speed: 0.2, out_mode: 'out', bounce: true }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: { enable: true, mode: 'grab' },
+          onclick: { enable: true, mode: 'repulse' },
+          resize: true
+        },
+        modes: {
+          grab:   { distance: 100, line_linked: { opacity: 1 } },
+          repulse:{ distance: 200, duration: 0.4 }
+        }
+      },
+      retina_detect: true
+    });
+  </script>
+</body>
+</html>"""
+
+# Render the particle background only once per session so that it
+# doesn't accumulate duplicate DOM nodes on Streamlit reruns.
+if "particle_bg_rendered" not in st.session_state:
+    components.html(particles_js, height=0, width=0, scrolling=False)
+    st.session_state.particle_bg_rendered = True
 
 def init_google_sheets():
     scope = [
@@ -456,42 +531,6 @@ model = "gpt-4o"
 # App title
 st.title("NokNok AI Assistant")
 
-# Inject animated particle background (from Exifa.net)
-particles_html = """
-<div id=\"particles-js\"></div>
-<style>
-#particles-js {
-    position: fixed;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    z-index: -1;  /* keep behind all Streamlit elements */
-}
-</style>
-<script src=\"https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js\"></script>
-<script>
-particlesJS("particles-js", {
-  particles: {
-    number: { value: 300, density: { enable: true, value_area: 800 } },
-    color: { value: "#ffffff" },
-    shape: { type: "circle" },
-    opacity: { value: 0.5 },
-    size: { value: 2, random: true },
-    line_linked: { enable: true, distance: 100, color: "#ffffff", opacity: 0.22, width: 1 },
-    move: { enable: true, speed: 0.2, direction: "none", out_mode: "out", bounce: true }
-  },
-  interactivity: {
-    events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "repulse" } },
-    modes: { grab: { distance: 100, line_linked: { opacity: 1 } }, repulse: { distance: 200, duration: 0.4 } }
-  },
-  retina_detect: true
-});
-</script>
-"""
-# Render the background HTML once (iframe height large enough to cover viewport)
-components.html(particles_html, height=800, scrolling=False)
-
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
     st.session_state.uploader_version = 0
@@ -782,7 +821,7 @@ else:
 
 # Display chat messages
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar=icons.get(message["role"], None)):
         if message.get("content"):
             st.write(message["content"])
         if message.get("image_bytes"):
@@ -877,14 +916,14 @@ if should_send:
             user_message_entry["mime"] = image_mime
             st.session_state.reset_uploader = True
         st.session_state.messages.append(user_message_entry)
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar=icons["user"]):
             if prompt:
                 st.write(prompt)
             if image_bytes:
                 st.image(image_bytes)
 
         # Generate response
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=icons["assistant"]):
             response_container = st.empty()
             full_response = ""
             
