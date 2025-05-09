@@ -17,6 +17,27 @@ from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
 
+# Add a helper function to check for condition trigger keywords
+def contains_condition_trigger(text):
+    """Check if text contains any keywords that would trigger conditions"""
+    condition_keywords = [
+        "noknok.com/refund",
+        "noknok.com/cancel",
+        "noknok.com/support",
+        "I just added your address information",
+        "noknok.com/items",
+        "noknok.com/calories",
+        "noknok.com/lebanese",
+        "noknok.com/languages"
+    ]
+    
+    if text:
+        for keyword in condition_keywords:
+            if keyword in text:
+                print(f"Condition trigger detected: {keyword}")
+                return True
+    return False
+
 # Load environment variables
 load_dotenv()
 
@@ -975,102 +996,85 @@ if should_send:
                     # Process any variables in the response
                     full_response = process_response_variables(full_response, current_client_id)
                 
-                # Display the complete response at once
-                response_container.write(full_response)
+                # First check for any condition triggers before displaying the response
+                has_condition_trigger = contains_condition_trigger(full_response)
+                
+                # Only display the response if it doesn't contain any condition keywords
+                if not has_condition_trigger:
+                    # Display the complete response at once
+                    response_container.write(full_response)
                 
                 # Print debug info
                 print(f"Response received: '{full_response}'")
-                print(f"Contains noknok.com/support: {'noknok.com/support' in full_response}")
+                print(f"Contains condition trigger: {has_condition_trigger}")
                 
                 # Check if the condition for support URL is triggered
                 should_add_to_history = True
                 
                 # Check for refund URL
-                if "noknok.com/refund" in full_response:
-                    print("Refund URL detected in response, handling with condition")
-                    
-                    # Set up the refund order sequence
-                    st.session_state.refund_order_pending = True
-                    st.session_state.refund_order_prompt = prompt
-                    
-                    # Don't add the original response to history
+                if contains_condition_trigger(full_response):
+                    # Set flag to not add the response to history
                     should_add_to_history = False
                     
-                    # Clear the current response
+                    # Handle specific condition types
+                    if "noknok.com/refund" in full_response:
+                        print("Refund URL detected in response, handling with condition")
+                        # Set up the refund order sequence
+                        st.session_state.refund_order_pending = True
+                        st.session_state.refund_order_prompt = prompt
+                        
+                    # Check for cancel URL
+                    elif "noknok.com/cancel" in full_response:
+                        print("Cancel URL detected in response, handling with condition")
+                        # Set up the cancel order sequence
+                        st.session_state.cancel_order_pending = True
+                        st.session_state.cancel_order_prompt = prompt
+                        
+                    # Check for support URL
+                    elif "noknok.com/support" in full_response:
+                        print("Support URL detected in response, handling with condition")
+                        # Set up the automated response sequence
+                        st.session_state.support_handoff_pending = True
+                        st.session_state.support_handoff_prompt = prompt
+                        
+                    # Check for address update phrase
+                    elif "I just added your address information" in full_response:
+                        print("Address-update phrase detected in response, handling condition")
+                        st.session_state.address_update_pending = True
+                        st.session_state.address_update_prompt = prompt
+                        
+                    # Check for items URL
+                    elif "noknok.com/items" in full_response:
+                        print("Items-URL detected in response, queuing items search")
+                        st.session_state.items_search_pending = True
+                        st.session_state.items_search_response = full_response  
+                        st.session_state.items_search_prompt = prompt
+                        
+                    # Check for calories URL
+                    elif "noknok.com/calories" in full_response:
+                        print("Calories-URL detected in response, queuing calories search")
+                        st.session_state.calories_search_pending = True
+                        st.session_state.calories_search_response = full_response
+                        st.session_state.calories_search_prompt = prompt
+                        
+                    # Check for Lebanese language URL
+                    elif "noknok.com/lebanese" in full_response:
+                        print("Lebanese-URL detected in response, switching to Lebanese prompt")
+                        st.session_state.lebanese_prompt_pending = True
+                        st.session_state.lebanese_prompt_response = full_response
+                        st.session_state.lebanese_prompt_prompt = prompt
+                        
+                    # Check for English language URL
+                    elif "noknok.com/languages" in full_response:
+                        print("Languages-URL detected in response, switching to English prompt")
+                        st.session_state.english_prompt_pending = True
+                        st.session_state.english_prompt_response = full_response
+                        st.session_state.english_prompt_prompt = prompt
+                    
+                    # Clear the current response container
                     response_container.empty()
                     
-                    # Rerun the app to handle the refund from a clean context
-                    st.rerun()
-                
-                # Check for cancel URL
-                elif "noknok.com/cancel" in full_response:
-                    print("Cancel URL detected in response, handling with condition")
-                    
-                    # Set up the cancel order sequence
-                    st.session_state.cancel_order_pending = True
-                    st.session_state.cancel_order_prompt = prompt
-                    
-                    # Don't add the original response to history
-                    should_add_to_history = False
-                    
-                    # Clear the current response
-                    response_container.empty()
-                    
-                    # Rerun the app to handle the cancellation from a clean context
-                    st.rerun()
-                
-                # Check for support URL
-                elif "noknok.com/support" in full_response:
-                    print("Support URL detected in response, handling with condition")
-                    
-                    # Set up the automated response sequence to run *after* the current display
-                    st.session_state.support_handoff_pending = True
-                    st.session_state.support_handoff_prompt = prompt
-                    
-                    # Don't add the original response to history
-                    should_add_to_history = False
-                    
-                    # Clear the current response - this will end this chat message context
-                    response_container.empty()
-                    
-                    # Rerun the app to handle the handoff from a clean context
-                    st.rerun()
-                elif "I just added your address information" in full_response:
-                    print("Address-update phrase detected in response, handling condition")
-                    st.session_state.address_update_pending = True
-                    st.session_state.address_update_prompt = prompt      # keep the user prompt
-                    should_add_to_history = False
-                    #response_container.empty()
-                    st.rerun()
-                # … existing refund/cancel/support branches …
-                elif "noknok.com/items" in full_response:
-                    print("Items-URL detected in response, queuing items search")
-                    st.session_state.items_search_pending = True
-                    st.session_state.items_search_response = full_response  
-                    st.session_state.items_search_prompt = prompt
-                    should_add_to_history = True
-                    #response_container.empty()
-                    st.rerun()
-                elif "noknok.com/calories" in full_response:
-                    print("Calories-URL detected in response, queuing calories search")
-                    st.session_state.calories_search_pending = True
-                    st.session_state.calories_search_response = full_response
-                    st.session_state.calories_search_prompt = prompt
-                    should_add_to_history = True
-                    st.rerun()
-                elif "noknok.com/lebanese" in full_response:
-                    print("Lebanese-URL detected in response, switching to Lebanese prompt")
-                    st.session_state.lebanese_prompt_pending = True
-                    st.session_state.lebanese_prompt_response = full_response
-                    st.session_state.lebanese_prompt_prompt = prompt
-                    should_add_to_history = True
-                    st.rerun()
-                elif "noknok.com/languages" in full_response:
-                    print("Languages-URL detected in response, switching to English prompt")
-                    st.session_state.english_prompt_pending = True
-                    st.session_state.english_prompt_response = full_response
-                    st.session_state.english_prompt_prompt = prompt
-                    should_add_to_history = True
+                    # Rerun the app to handle the condition from a clean context
                     st.rerun()
 
                 # If no condition was triggered or no handler available, add the original response
