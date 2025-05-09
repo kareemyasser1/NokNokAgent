@@ -891,65 +891,6 @@ for message in st.session_state.messages:
         if message.get("image_bytes"):
             st.image(message["image_bytes"])
 
-# Bottom-bar image uploader (appears just above the chat input)
-uploaded_file = st.file_uploader(
-    "",  # No visible label
-    type=["png", "jpg", "jpeg"],
-    key=f"image_uploader_{st.session_state.uploader_version}",
-    label_visibility="collapsed"
-)
-if uploaded_file is not None:
-    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
-    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
-
-# Inject CSS to keep uploader fixed at bottom (just above chat input)
-st.markdown(
-    """
-    <style>
-    /* Pin the file uploader */
-    div[data-testid="stFileUploader"] {
-        position: fixed;
-        bottom: 90px;               /* just above chat_input */
-        left: 50%;                  /* center align */
-        transform: translateX(-50%);
-        width: calc(100% - 3rem);   /* match horizontal padding of main container */
-        max-width: 46rem;           /* equals Streamlit block-container default */
-        padding: 10px 12px 6px 12px;
-        background: var(--background-color);
-        border-top: 1px solid rgba(49,51,63,0.2);
-        z-index: 9999;
-    }
-
-    /* Provide extra bottom padding so messages are not hidden under uploader */
-    section.main > div:first-child {  /* block-container */
-        padding-bottom: 150px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Optional send button to allow sending image without typing text
-send_image_only = False
-if st.session_state.get("attached_image_bytes"):
-    send_image_only = st.button("Send image", key="send_image_btn")
-
-# Additional CSS to position the send-image button within the attachment bar
-st.markdown(
-    """
-    <style>
-    /* Position send-image button to the RIGHT end of the attachment bar */
-    button[id^="send_image_btn"] {
-        position: fixed !important;
-        bottom: 96px !important; /* slight offset to vertically centre with bar */
-        left: calc(50% + 46rem/2 - 110px) !important; /* 110-px from bar's right edge */
-        z-index: 10000 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # -----------------------------------------------
 # Chat input & message sending
 # -----------------------------------------------
@@ -957,7 +898,7 @@ st.markdown(
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
 # Determine if we should send a message this run
-should_send = (prompt_input is not None) or send_image_only
+should_send = (prompt_input is not None) or ("send_image_only" in st.session_state and st.session_state.send_image_only)
 
 if should_send:
     prompt = prompt_input or ""  # allow empty string when image-only
@@ -967,6 +908,8 @@ if should_send:
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
+    send_image_only = st.session_state.pop("send_image_only", False)
+    
     if send_image_only and not image_bytes:
         # Edge-case: send button but no image (shouldn't normally happen)
         send_image_only = False
@@ -1838,6 +1781,50 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
 current_language = st.session_state.get("current_prompt_language", "english").capitalize()
 language_emoji = "🇱🇧" if current_language.lower() == "lebanese" else "🇬🇧"
 st.sidebar.markdown(f"### Current Prompt: {language_emoji} {current_language} Prompt")
+
+# Add custom CSS for sidebar file uploader
+st.sidebar.markdown('''
+<style>
+/* Make the sidebar file uploader more attractive */
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+    width: 100%;
+    border: 1px dashed #4e8cff;
+    border-radius: 4px;
+    background-color: rgba(78, 140, 255, 0.05);
+    margin-top: 0.5rem;
+}
+
+/* Style the send image button */
+[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
+    background-color: #4e8cff !important;
+    color: white !important;
+    border: none !important;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+</style>
+''', unsafe_allow_html=True)
+
+# Add image attachment in sidebar
+st.sidebar.markdown("### Attach Image")
+uploaded_file = st.sidebar.file_uploader(
+    "Upload an image to send",
+    type=["png", "jpg", "jpeg"],
+    key=f"image_uploader_{st.session_state.uploader_version}",
+)
+if uploaded_file is not None:
+    st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
+    st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
+    
+    # Show image preview
+    st.sidebar.image(uploaded_file, caption="Image preview", width=200)
+    
+    # Add send button
+    if st.sidebar.button("Send Image", key="send_image_btn"):
+        st.session_state["send_image_only"] = True
+        st.rerun()
+    else:
+        st.session_state["send_image_only"] = False
 
 # ─────────────────────────────────────────────────────────────
 # Handle queued Lebanese prompt switch
