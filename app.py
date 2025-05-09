@@ -560,7 +560,7 @@ def process_response_variables(response_text, client_id=None):
 model = "gpt-4o"
 
 # App title
-title_col1, title_col2 = st.columns([0.6, 2])
+title_col1, title_col2 = st.columns([0.6, 1])
 with title_col1:
     st.image("logo.png", width=200)
 with title_col2:
