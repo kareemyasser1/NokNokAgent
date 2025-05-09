@@ -96,7 +96,8 @@ particles_js = """<!DOCTYPE html>
 # Render the particle background only once per session so that it
 # doesn't accumulate duplicate DOM nodes on Streamlit reruns.
 if "particle_bg_rendered" not in st.session_state:
-    components.html(particles_js, height=0, width=0, scrolling=False)
+    # Use a sufficiently tall iframe so the effect covers the visible viewport
+    components.html(particles_js, height=600, scrolling=False)
     st.session_state.particle_bg_rendered = True
 
 def init_google_sheets():
