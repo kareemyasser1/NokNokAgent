@@ -998,8 +998,8 @@ if st.session_state.noknok_sheets:
                         client_email = client_data.get('Client Email', 'N/A')
                         client_gender = client_data.get('Client Gender', 'N/A')
                         client_address = client_data.get('Client Address', 'N/A')
-                        client_balance = client_data.get('NokNok USD Wallet', 0)
-                       # client_balance = client_data.get('USD Wallet', client_data.get('NokNok USD Wallet', 0))
+                        #client_balance = client_data.get('NokNok USD Wallet', 0)
+                        client_balance = client_data.get('USD Wallet', client_data.get('NokNok USD Wallet', 0))
                         
                         client_html = f"""
                         <div class="client-details">
