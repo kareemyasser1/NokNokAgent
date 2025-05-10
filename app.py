@@ -562,8 +562,8 @@ model = "gpt-4o"
 # App title
 import base64
 
-# Use session state to track if header has been rendered
-if "header_rendered" not in st.session_state:
+# Function to display logo and title only once
+def display_header():
     # Load the image as base64
     with open("logo.png", "rb") as f:
         logo_base64 = base64.b64encode(f.read()).decode()
@@ -586,19 +586,38 @@ if "header_rendered" not in st.session_state:
         font-size: 2.5rem;
         font-weight: bold;
     }
+    /* Fix header to stay at top */
+    .fixed-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background-color: white;
+        padding: 1rem 1rem 0.5rem 1rem;
+        border-bottom: 1px solid rgba(49,51,63,0.2);
+    }
+    /* Add padding to the content to prevent it from being hidden behind the fixed header */
+    .main .block-container {
+        padding-top: 5rem !important;
+    }
     </style>
     ''', unsafe_allow_html=True)
 
     # Custom layout for logo and title
     st.markdown(f'''
-    <div class="logo-title-container">
-        <img src="data:image/png;base64,{logo_base64}" width="200">
-        <h1 class="title-text">AI Assistant 🛒</h1>
+    <div class="fixed-header">
+        <div class="logo-title-container">
+            <img src="data:image/png;base64,{logo_base64}" width="200">
+            <h1 class="title-text">AI Assistant 🛒</h1>
+        </div>
     </div>
     ''', unsafe_allow_html=True)
-    
-    # Mark as rendered so it won't be duplicated
-    st.session_state.header_rendered = True
+
+# Display header only once
+if "header_displayed" not in st.session_state:
+    display_header()
+    st.session_state.header_displayed = True
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
