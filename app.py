@@ -210,6 +210,73 @@ st.markdown(f"""
     font-size: 2.5rem;
     font-weight: bold;
 }}
+
+body, .stApp {{
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}}
+
+/* Light theme overrides */
+.stats-container {{
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}}
+
+.stats-header {{
+    color: #2a62ca !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}}
+
+.stat-card {{
+    background-color: #f1f6ff !important;
+}}
+
+.stat-value {{
+    color: #2a62ca !important;
+}}
+
+.stat-label {{
+    color: #333333 !important;
+}}
+
+.status-indicator {{
+    background-color: #eaf0ff !important;
+}}
+
+.sidebar-header span {{
+    color: #000000 !important;
+}}
+
+.sheet-button {{
+    background-color: #2a62ca !important;
+    color: #ffffff !important;
+}}
+
+.client-details {{
+    background-color: #f9f9f9 !important;
+    border-left: 3px solid #2a62ca !important;
+}}
+
+.orders-container {{
+    background-color: #ffffff !important;
+    border-left: 3px solid #ffc947 !important;
+}}
+
+.order-item {{
+    border-bottom: 1px dotted #d0d0d0 !important;
+}}
+
+.order-status {{
+    color: #ffffff !important;
+}}
+
+.field-label {{
+    color: #2a62ca !important;
+}}
+
+.field-value {{
+    color: #000000 !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -275,11 +342,11 @@ particles_js = """<!DOCTYPE html>
     particlesJS('particles-js', {
       particles: {
         number: { value: 300, density: { enable: true, value_area: 800 } },
-        color:  { value: '#ffffff' },
+        color:  { value: '#4e8cff' },
         shape:  { type: 'circle' },
         opacity:{ value: 0.5 },
         size:   { value: 2, random: true },
-        line_linked: { enable: true, distance: 100, color: '#ffffff', opacity: 0.22, width: 1 },
+        line_linked: { enable: true, distance: 100, color: '#4e8cff', opacity: 0.22, width: 1 },
         move:   { enable: true, speed: 0.2, out_mode: 'out', bounce: true }
       },
       interactivity: {
@@ -1071,18 +1138,18 @@ if st.session_state.noknok_sheets:
                         st.sidebar.markdown("""
                         <style>
                         .client-details {
-                            background-color: rgba(35, 40, 48, 0.95);
-                            border-left: 3px solid #4e8cff;
+                            background-color: #f9f9f9;
+                            border-left: 3px solid #2a62ca;
                             padding: 15px;
                             border-radius: 5px;
                             margin-top: 10px;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                         }
                         .client-details h3 {
-                            color: #6aa5ff;
+                            color: #2a62ca;
                             font-weight: bold;
                             margin-bottom: 15px;
-                            border-bottom: 1px solid #444;
+                            border-bottom: 1px solid #e0e0e0;
                             padding-bottom: 5px;
                         }
                         .client-field {
@@ -1090,11 +1157,11 @@ if st.session_state.noknok_sheets:
                             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         }
                         .field-label {
-                            color: #aabfe6;
+                            color: #2a62ca !important;
                             font-weight: bold;
                         }
                         .field-value {
-                            color: #fff;
+                            color: #000000 !important;
                             padding-left: 5px;
                             font-weight: 500;
                         }
@@ -1146,34 +1213,34 @@ if st.session_state.noknok_sheets:
                             st.sidebar.markdown("""
                             <style>
                             .orders-container {
-                                background-color: rgba(35, 40, 48, 0.95);
-                                border-left: 3px solid #f8b400;
+                                background-color: #ffffff;
+                                border-left: 3px solid #ffc947;
                                 padding: 15px;
                                 border-radius: 5px;
                                 margin-top: 20px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                             }
                             .orders-container h3 {
-                                color: #ffc947;
+                                color: #2a62ca;
                                 font-weight: bold;
                                 margin-bottom: 15px;
-                                border-bottom: 1px solid #444;
+                                border-bottom: 1px solid #e0e0e0;
                                 padding-bottom: 5px;
                             }
                             .order-item {
                                 margin-bottom: 12px;
                                 padding-bottom: 8px;
-                                border-bottom: 1px dotted #444;
+                                border-bottom: 1px dotted #d0d0d0;
                                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                             }
                             .order-id {
                                 font-weight: bold;
-                                color: #ddd;
+                                color: #000000;
                                 display: block;
                                 margin-bottom: 4px;
                             }
                             .order-amount {
-                                color: #5ed9a7;
+                                color: #2a62ca;
                                 font-weight: bold;
                                 margin-right: 8px;
                             }
@@ -1184,7 +1251,7 @@ if st.session_state.noknok_sheets:
                                 border-radius: 3px;
                                 font-size: 0.85em;
                                 background-color: #e9c46a;
-                                color: #333;
+                                color: #000000;
                             }
                             .status-delivered {
                                 background-color: #8ac926;
