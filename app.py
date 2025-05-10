@@ -1287,7 +1287,7 @@ else:
     stats_html = f"""
     <div class="stats-container">
         <div class="stats-header">
-            <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 45px; margin-right: 8px;"> Database Statistics
+            <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 60px; margin-right: 8px;"> Database Statistics
         </div>
         <div class="stats-grid">
             <div class="stat-card">
