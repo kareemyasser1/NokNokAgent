@@ -833,8 +833,8 @@ if st.session_state.noknok_sheets:
         .sheet-button {
             display: inline-block;
             text-decoration: none;
-            background-color: #2a62ca;
-            color: black;
+            background-color: black;
+            color: white;
             padding: 8px 16px;
             border-radius: 4px;
             font-weight: bold;
@@ -844,7 +844,7 @@ if st.session_state.noknok_sheets:
             transition: background-color 0.2s;
         }
         .sheet-button:hover {
-            background-color: #3372e0;
+            background-color: #333;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -1253,8 +1253,8 @@ else:
     .sheet-button {
         display: inline-block;
         text-decoration: none;
-        background-color: #2a62ca;
-        color: black;
+        background-color: black;
+        color: white;
         padding: 8px 16px;
         border-radius: 4px;
         font-weight: bold;
@@ -1264,7 +1264,7 @@ else:
         transition: background-color 0.2s;
     }
     .sheet-button:hover {
-        background-color: #3372e0;
+        background-color: #333;
     }
     </style>
     """, unsafe_allow_html=True)
