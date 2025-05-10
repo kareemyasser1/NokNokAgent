@@ -289,6 +289,20 @@ body, .stApp {{
 </style>
 """, unsafe_allow_html=True)
 
+# ------------------------------------------------------------------
+# Dynamic dark-theme overrides (apply only if theme_mode == "dark")
+if st.session_state.get("theme_mode") == "dark":
+    st.markdown(
+        """
+        <style>
+            body, .stApp {background:#0E1117!important;color:#FFF!important;}
+            .stats-container {background:rgba(35,40,48,.95)!important;}
+            /* …put the rest of your dark colours here… */
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
     """Check if text contains any keywords that would trigger conditions"""
