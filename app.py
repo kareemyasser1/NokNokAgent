@@ -86,6 +86,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize dark mode preference in session state
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True  # Default to dark mode
+
 # Add dark mode toggle to header
 icon = "🌙" if st.session_state.dark_mode else "☀️"
 dark_mode_html = f"""
