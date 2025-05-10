@@ -49,21 +49,6 @@ from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
 
-# Create .streamlit directory and config.toml for theme
-if not os.path.exists(".streamlit"):
-    os.makedirs(".streamlit")
-
-# Create or update config.toml with light theme
-with open(".streamlit/config.toml", "w") as f:
-    f.write("""
-[theme]
-primaryColor="#1976d2"
-backgroundColor="#ffffff"
-secondaryBackgroundColor="#f0f2f6"
-textColor="#212121"
-font="sans serif"
-    """)
-
 # Load the image as base64 at the very beginning
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
