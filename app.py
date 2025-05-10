@@ -30,46 +30,10 @@ if "theme_mode" not in st.session_state:
     # default to light (the new theme)
     st.session_state.theme_mode = "light"
 
-# Check if theme was toggled and needs a rerun
-if st.session_state.get("theme_toggled", False):
-    st.session_state.theme_toggled = False  # Reset the flag
-    
-    # Update .streamlit/config.toml based on theme mode
-    config_path = ".streamlit/config.toml"
-    theme_config = {}
-    
-    if st.session_state.theme_mode == "dark":
-        theme_config = """
-[theme]
-base = "dark"
-primaryColor = "#2a62ca"       # NokNok blue
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#262730"
-textColor = "#FFFFFF"
-font = "sans serif"
-"""
-    else:  # Light theme
-        theme_config = """
-[theme]
-base = "light"
-primaryColor = "#2a62ca"       # NokNok blue
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f5f8ff"
-textColor = "#000000"
-font = "sans serif"
-"""
-    
-    # Write the config file
-    with open(config_path, "w") as f:
-        f.write(theme_config)
-    
-    st.rerun()  # This rerun is in the main flow, not a callback
-
-# helper to toggle theme and rerun
+# Remove obsolete theme_toggled logic to avoid redundant reruns and crashes
+# helper to toggle theme and rely on Streamlit's automatic rerun after callbacks
 def _toggle_theme():
     st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
-    # Set a rerun flag that will be checked in the main flow
-    st.session_state.theme_toggled = True
 # ------------------------------------------------------------------
 
 # Load the image as base64 at the very beginning
