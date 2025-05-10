@@ -627,6 +627,198 @@ if "messages" not in st.session_state:
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
 
+# Initialize dark mode preference in session state
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True  # Default to dark mode
+
+# Function to toggle dark mode
+def toggle_dark_mode():
+    st.session_state.dark_mode = not st.session_state.dark_mode
+    st.rerun()
+
+# Define light and dark mode CSS 
+light_mode_css = """
+.client-details {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-left: 3px solid #4e8cff;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.client-details h3 {
+    color: #4e8cff;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+.client-field {
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.field-label {
+    color: #333;
+    font-weight: bold;
+}
+.field-value {
+    color: #000;
+    padding-left: 5px;
+    font-weight: 500;
+}
+.balance-value {
+    color: #008060;
+    font-weight: bold;
+}
+.orders-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-left: 3px solid #f8b400;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.orders-container h3 {
+    color: #f8b400;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+.order-item {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.order-id {
+    font-weight: bold;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+}
+.order-amount {
+    color: #008060;
+    font-weight: bold;
+    margin-right: 8px;
+}
+"""
+
+dark_mode_css = """
+.client-details {
+    background-color: rgba(35, 40, 48, 0.95);
+    border-left: 3px solid #4e8cff;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.client-details h3 {
+    color: #6aa5ff;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+.client-field {
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.field-label {
+    color: #aabfe6;
+    font-weight: bold;
+}
+.field-value {
+    color: #fff;
+    padding-left: 5px;
+    font-weight: 500;
+}
+.balance-value {
+    color: #5ed9a7;
+    font-weight: bold;
+}
+.orders-container {
+    background-color: rgba(35, 40, 48, 0.95);
+    border-left: 3px solid #f8b400;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.orders-container h3 {
+    color: #ffc947;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+.order-item {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #444;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.order-id {
+    font-weight: bold;
+    color: #ddd;
+    display: block;
+    margin-bottom: 4px;
+}
+.order-amount {
+    color: #5ed9a7;
+    font-weight: bold;
+    margin-right: 8px;
+}
+"""
+
+# Common CSS for both modes
+common_css = """
+.order-status {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    background-color: #e9c46a;
+    color: #333;
+}
+.status-delivered {
+    background-color: #8ac926;
+    color: white;
+}
+.status-cancelled, .status-canceled {
+    background-color: #ff595e;
+    color: white;
+}
+.status-delivering {
+    background-color: #4361ee;
+    color: white;
+}
+.status-pending {
+    background-color: #e9c46a;
+    color: #333;
+}
+.theme-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #4e8cff;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: none;
+    transition: all 0.3s ease;
+}
+.theme-toggle:hover {
+    background-color: #3a77e8;
+    transform: scale(1.05);
+}
+"""
+
 if "sheets_client" not in st.session_state:
     st.session_state.sheets_client = init_google_sheets()
     
@@ -665,26 +857,39 @@ if "chat_history_sheet" not in st.session_state:
 # Sidebar - Database stats
 st.sidebar.title("NokNok Database")
 
-# Add custom CSS for sidebar file uploader
-st.sidebar.markdown('''
+# Add mode toggle button at the top of the sidebar
+theme_cols = st.sidebar.columns([8, 1, 1])
+with theme_cols[1]:
+    # Display theme toggle button with appropriate icon
+    icon = "🌙" if st.session_state.dark_mode else "☀️"
+    st.button(icon, key="theme_toggle", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode")
+
+# Add custom CSS for sidebar elements
+st.sidebar.markdown(f'''
 <style>
 /* Make the sidebar file uploader more attractive */
-[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {{
     width: 100%;
     border: 1px dashed #4e8cff;
     border-radius: 4px;
     background-color: rgba(78, 140, 255, 0.05);
     margin-top: 0.5rem;
-}
+}}
 
 /* Style the send image button */
-[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
+[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {{
     background-color: #4e8cff !important;
     color: white !important;
     border: none !important;
     width: 100%;
     margin-top: 0.5rem;
-}
+}}
+
+/* Apply the appropriate theme CSS based on dark mode setting */
+{dark_mode_css if st.session_state.dark_mode else light_mode_css}
+
+/* Common CSS for both themes */
+{common_css}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -843,45 +1048,8 @@ if st.session_state.noknok_sheets:
                         last_name = client_data.get('Client Last Name', '')
                         display_name = f"{first_name} {last_name}"
                         
-                        # Add custom CSS for enhanced client details display
-                        st.sidebar.markdown("""
-                        <style>
-                        .client-details {
-                            background-color: rgba(35, 40, 48, 0.95);
-                            border-left: 3px solid #4e8cff;
-                            padding: 15px;
-                            border-radius: 5px;
-                            margin-top: 10px;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-                        }
-                        .client-details h3 {
-                            color: #6aa5ff;
-                            font-weight: bold;
-                            margin-bottom: 15px;
-                            border-bottom: 1px solid #444;
-                            padding-bottom: 5px;
-                        }
-                        .client-field {
-                            margin-bottom: 10px;
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        }
-                        .field-label {
-                            color: #aabfe6;
-                            font-weight: bold;
-                        }
-                        .field-value {
-                            color: #fff;
-                            padding-left: 5px;
-                            font-weight: 500;
-                        }
-                        .balance-value {
-                            color: #5ed9a7;
-                            font-weight: bold;
-                        }
-                        </style>
-                        """, unsafe_allow_html=True)
-                            
-                        # Display client info in the sidebar with enhanced HTML formatting
+                        # Don't need to add CSS here anymore since it's handled globally
+                        # Just display client info with HTML formatting
                         client_email = client_data.get('Client Email', 'N/A')
                         client_gender = client_data.get('Client Gender', 'N/A')
                         client_address = client_data.get('Client Address', 'N/A')
@@ -918,69 +1086,7 @@ if st.session_state.noknok_sheets:
                         # Show client's recent orders if available
                         client_orders = [o for o in orders_data if str(o.get('ClientID', '')) == str(client_id)]
                         if client_orders:
-                            # Add custom CSS for recent orders
-                            st.sidebar.markdown("""
-                            <style>
-                            .orders-container {
-                                background-color: rgba(35, 40, 48, 0.95);
-                                border-left: 3px solid #f8b400;
-                                padding: 15px;
-                                border-radius: 5px;
-                                margin-top: 20px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-                            }
-                            .orders-container h3 {
-                                color: #ffc947;
-                                font-weight: bold;
-                                margin-bottom: 15px;
-                                border-bottom: 1px solid #444;
-                                padding-bottom: 5px;
-                            }
-                            .order-item {
-                                margin-bottom: 12px;
-                                padding-bottom: 8px;
-                                border-bottom: 1px dotted #444;
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            }
-                            .order-id {
-                                font-weight: bold;
-                                color: #ddd;
-                                display: block;
-                                margin-bottom: 4px;
-                            }
-                            .order-amount {
-                                color: #5ed9a7;
-                                font-weight: bold;
-                                margin-right: 8px;
-                            }
-                            .order-status {
-                                display: inline-block;
-                                margin-left: 5px;
-                                padding: 2px 6px;
-                                border-radius: 3px;
-                                font-size: 0.85em;
-                                background-color: #e9c46a;
-                                color: #333;
-                            }
-                            .status-delivered {
-                                background-color: #8ac926;
-                                color: white;
-                            }
-                            .status-cancelled, .status-canceled {
-                                background-color: #ff595e;
-                                color: white;
-                            }
-                            .status-delivering {
-                                background-color: #4361ee;
-                                color: white;
-                            }
-                            .status-pending {
-                                background-color: #e9c46a;
-                                color: #333;
-                            }
-                            </style>
-                            """, unsafe_allow_html=True)
-                            
+                            # Don't need to add CSS here anymore since it's handled globally
                             # Sort by date (most recent first)
                             recent_orders = sorted(client_orders, key=lambda x: x.get('OrderDate', ''), reverse=True)[:3]
                             
