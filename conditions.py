@@ -330,16 +330,16 @@ def handle_calories_request(handler, context):
             except Exception:
                 parsed = {}
 
-        carrefour_lb = parsed.get("carrefourlebanonanswer")
-        carrefour_foreign = parsed.get("carrefourforeignanswer")
-        other = parsed.get("otheranswer")
+        carrefour_lb = parsed.get("carrefourlebanonanswer").lower()
+        carrefour_foreign = parsed.get("carrefourforeignanswer").lower()
+        other = parsed.get("otheranswer").lower()
 
         # Decide which answer to send back
-        if carrefour_lb and carrefour_lb != "Missing":
+        if carrefour_lb and carrefour_lb != "missing":
             final_msg = carrefour_lb
-        elif carrefour_foreign and carrefour_foreign != "Missing":
+        elif carrefour_foreign and carrefour_foreign != "missing":
             final_msg = carrefour_foreign
-        elif other and other != "Missing":
+        elif other and other != "missing":
             final_msg = other
         else:
             final_msg = "We couldn't find the calorie content for this item, can you please describe it again?"
