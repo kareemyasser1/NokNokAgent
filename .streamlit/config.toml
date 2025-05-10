@@ -1,7 +1,7 @@
 [theme]
-base = "dark"
-primaryColor = "#ff6666"          # same red accent as Exifa
-backgroundColor = "#0E1117"      # near-black background
-secondaryBackgroundColor = "#262730"
-textColor = "#FFFFFF"
-font = "monospace" 
+base = "light"
+primaryColor = "#2a62ca"       # NokNok blue
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f8ff"
+textColor = "#000000"
+font = "sans serif" 

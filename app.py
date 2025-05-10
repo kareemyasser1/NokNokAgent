@@ -277,6 +277,11 @@ body, .stApp {{
 .field-value {{
     color: #000000 !important;
 }}
+
+[data-testid="stSidebar"] {{
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
