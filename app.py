@@ -566,43 +566,34 @@ import base64
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
 
-# Inject CSS only once
-if "logo_css_added" not in st.session_state:
-    st.markdown('''
-    <style>
-    .logo-title-container {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-    .logo-title-container img {
-        max-height: none !important;
-        object-fit: contain;
-    }
-    .title-text {
-        margin: 0;
-        padding: 0;
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-    /* Hide duplicate headers that might appear during reruns */
-    .stMarkdown:has(.logo-title-container) + .stMarkdown:has(.logo-title-container) {
-        display: none;
-    }
-    </style>
-    ''', unsafe_allow_html=True)
-    st.session_state.logo_css_added = True
+st.markdown('''
+<style>
+.logo-title-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.logo-title-container img {
+    max-height: none !important;
+    object-fit: contain;
+}
+.title-text {
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+</style>
+''', unsafe_allow_html=True)
 
-# Render the logo + title in a container with a key
-logo_container = st.container()
-with logo_container:
-    st.markdown(f'''
-    <div class="logo-title-container">
-        <img src="data:image/png;base64,{logo_base64}" width="200">
-        <h1 class="title-text">AI Assistant 🛒</h1>
-    </div>
-    ''', unsafe_allow_html=True)
+# Custom layout for logo and title
+st.markdown(f'''
+<div class="logo-title-container">
+    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <h1 class="title-text">AI Assistant 🛒</h1>
+</div>
+''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
