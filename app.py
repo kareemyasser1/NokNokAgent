@@ -1021,6 +1021,10 @@ with top_cols[0]:
                 # Rerun the app to show updated data
                 st.rerun()
 
+with top_cols[2]:
+    theme_icon = "🌙" if st.session_state.get("theme_mode", "light") == "light" else "☀️"
+    st.button(theme_icon, help="Switch Light/Dark Theme", key="theme_toggle_btn", on_click=_toggle_theme)
+
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
@@ -2452,3 +2456,17 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# ------------------------- THEME MODE -----------------------------
+if "theme_mode" not in st.session_state:
+    # default to light (the new theme)
+    st.session_state.theme_mode = "light"
+
+# helper to toggle theme and rerun
+
+def _toggle_theme():
+    st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
+    st.experimental_rerun()
+
+# ------------------------------------------------------------------
++'''
