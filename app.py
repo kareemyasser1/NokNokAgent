@@ -7,54 +7,62 @@ st.set_page_config(
     layout="wide",
 )
 
-# Add fixed header CSS
-st.markdown('''
+# Add CSS for fixed header
+st.markdown("""
 <style>
-.fixed-header {
+/* Fixed header container */
+.sticky-container {
     position: fixed;
     top: 0;
-    left: 18rem;  /* Leave space for sidebar */
+    left: 0;
     right: 0;
+    z-index: 999;
     background-color: white;
-    z-index: 1000;
-    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Logo and title container */
+.sticky-container .logo-title-container {
+    position: relative;
+    background-color: white;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    border-bottom: 1px solid rgba(49, 51, 63, 0.1);
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0;
 }
 
-/* Add padding to main content to prevent overlap with fixed header */
-.main .block-container {
-    padding-top: 7rem !important;
-}
-
-.fixed-header img {
+.sticky-container .logo-title-container img {
     max-height: none !important;
     object-fit: contain;
-    width: 200px;
+    max-width: 120px;
 }
 
-.title-text {
+.sticky-container .title-text {
     margin: 0;
     padding: 0;
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: bold;
 }
+
+/* Make sure header doesn't overlap content */
+.main .block-container {
+    padding-top: 100px !important;
+}
+
+/* Make sure Streamlit elements work with our fixed header */
+[data-testid="stHeader"] {
+    z-index: 998 !important;
+}
+
+/* Fix any elements that might be hidden by our header */
+.stChatFloatingInputContainer {
+    z-index: 997 !important;
+}
 </style>
-''', unsafe_allow_html=True)
-
-# Load the logo image
-with open("logo.png", "rb") as f:
-    logo_base64 = base64.b64encode(f.read()).decode()
-
-# Add the fixed header
-st.markdown(f'''
-<div class="fixed-header">
-    <img src="data:image/png;base64,{logo_base64}" alt="logo">
-    <h1 class="title-text">AI Assistant 🛒</h1>
-</div>
-''', unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 import os
 import pandas as pd
@@ -73,6 +81,933 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
+
+# Load the image as base64 at the very beginning
+with open("logo.png", "rb") as f:
+    logo_base64 = base64.b64encode(f.read()).decode()
+
+# Apply global CSS styling immediately at app startup, before any interactions
+st.markdown(f"""
+<style>
+/* Global layout styles */
+.stats-container {{
+    background-color: rgba(35, 40, 48, 0.95);
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    height: auto;
+    min-height: 300px; /* Fixed minimum height for container */
+}}
+
+.stats-header {{
+    color: #6aa5ff;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70px; /* Fixed height to prevent layout shifts */
+    position: relative; /* Enable positioning */
+    overflow: hidden; /* Prevent overflow */
+}}
+
+.stats-header-text {{
+    margin-left: 0; /* Remove left margin to center properly */
+    white-space: nowrap; /* Keep text on one line */
+    font-size: 1.1rem;
+}}
+
+.stats-header img, .noknok-logo {{
+    height: 60px;
+    width: 60px;
+    position: static; /* Change from absolute to static positioning */
+    margin-right: 10px; /* Add right margin for spacing */
+    object-fit: contain;
+}}
+
+.noknok-logo-small {{
+    height: 30px;
+    width: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    display: inline-block;
+}}
+
+.stats-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    margin-bottom: 15px;
+    height: 80px; /* Fixed height */
+}}
+
+.stat-card {{
+    background-color: rgba(50, 57, 68, 0.7);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    height: 100%; /* Full height of parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}}
+
+.stat-value {{
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5ed9a7;
+    margin-bottom: 5px;
+    line-height: 1;
+}}
+
+.stat-label {{
+    font-size: 0.8rem;
+    color: #aabfe6;
+    line-height: 1;
+}}
+
+.status-indicator {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(50, 57, 68, 0.5);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 10px;
+    height: 40px; /* Fixed height */
+    position: relative;
+}}
+
+.status-connected, .status-disconnected {{
+    font-weight: 500;
+    white-space: nowrap;
+}}
+
+.status-connected {{
+    color: #8ac926;
+}}
+
+.status-disconnected {{
+    color: #ff595e;
+}}
+
+.sheet-button {{
+    display: inline-block;
+    text-decoration: none;
+    background-color: #2a62ca;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    width: 100%;
+    transition: background-color 0.2s;
+    height: 40px; /* Fixed height */
+    line-height: 24px; /* Center text vertically */
+}}
+
+.sheet-button:hover {{
+    background-color: #333;
+}}
+
+/* Custom header at top of sidebar */
+.sidebar-header {{
+    display: flex;
+    align-items: center;
+    margin-top: -40px;
+    margin-bottom: 20px;
+    padding: 0; 
+    height: 90px; /* Increased height to accommodate larger logo */
+    position: relative;
+}}
+
+.sidebar-header img {{
+    position: absolute;
+    left: 0;
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the logo vertically */
+    height: 120px; /* Doubled from 60px */
+    width: 120px; /* Doubled from 60px */
+    object-fit: contain;
+}}
+
+.sidebar-header span {{
+    font-size: 2.6rem;
+    font-weight: bold;
+    color: white;
+    margin-left: 50px; /* Remove this margin since we're using absolute positioning */
+    white-space: nowrap;
+    position: absolute; /* Position absolutely like the logo */
+    left: 80px; /* Reduce the gap between logo and text */
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the text vertically */
+}}
+
+/* General logo styling */
+.logo-title-container {{
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}}
+
+.logo-title-container img {{
+    max-height: none !important;
+    object-fit: contain;
+}}
+
+.title-text {{
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}}
+
+body, .stApp {{
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}}
+
+/* Light theme overrides */
+.stats-container {{
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}}
+
+.stats-header {{
+    color: #2a62ca !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}}
+
+.stat-card {{
+    background-color: #f1f6ff !important;
+}}
+
+.stat-value {{
+    color: #2a62ca !important;
+}}
+
+.stat-label {{
+    color: #333333 !important;
+}}
+
+.status-indicator {{
+    background-color: #eaf0ff !important;
+}}
+
+.sidebar-header span {{
+    color: #000000 !important;
+}}
+
+.sheet-button {{
+    background-color: #2a62ca !important;
+    color: #ffffff !important;
+}}
+
+.client-details {{
+    background-color: #f9f9f9 !important;
+    border-left: 3px solid #2a62ca !important;
+}}
+
+.orders-container {{
+    background-color: #ffffff !important;
+    border-left: 3px solid #ffc947 !important;
+}}
+
+.order-item {{
+    border-bottom: 1px dotted #d0d0d0 !important;
+}}
+
+.order-status {{
+    color: #ffffff !important;
+}}
+
+.field-label {{
+    color: #2a62ca !important;
+}}
+
+.field-value {{
+    color: #000000 !important;
+}}
+
+[data-testid="stSidebar"] {{
+    background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
+    color: #000000 !important;
+}}
+
+/* Remove duplicate logo-title-container styles and define a single clean version */
+.logo-title-container {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+    z-index: 999;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+.logo-title-container img {
+    max-height: none !important;
+    object-fit: contain;
+    max-width: 120px;
+}
+
+.title-text {
+    margin: 0;
+    padding: 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* Add padding to the main content area to prevent overlap with fixed header */
+.main .block-container {
+    padding-top: 0.5rem !important;
+}
+
+/* Restore the logo styles */
+.noknok-logo {
+    height: 60px;
+    margin-right: 8px;
+    object-fit: contain;
+    max-width: 60px;
+}
+
+.noknok-logo-small {
+    height: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    max-width: 30px;
+}
+
+/* Add a class to make Streamlit's default elements work better with our fixed header */
+[data-testid="stHeader"] {
+    z-index: 998 !important;
+}
+
+/* Fix any elements that might be hidden by our header */
+.stChatFloatingInputContainer {
+    z-index: 997 !important;
+}
+
+/* Add a container for the fixed header */
+.sticky-container {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: white;
+    margin-bottom: 1rem;
+}
+
+/* Remove duplicate logo-title-container styles and define a single clean version */
+.logo-title-container {
+    position: relative;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0;
+}
+
+/* General logo styling - original version that gets overridden by our fixed header */
+.original-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.original-logo-container img {
+    max-height: none !important;
+    object-fit: contain;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Add a helper function to check for condition trigger keywords
+def contains_condition_trigger(text):
+    """Check if text contains any keywords that would trigger conditions"""
+    condition_keywords = [
+        "noknok.com/refund",
+        "noknok.com/cancel",
+        "noknok.com/support",
+        "I just added your address information",
+        "noknok.com/items",
+        "noknok.com/calories",
+        "noknok.com/lebanese",
+        "noknok.com/languages"
+    ]
+    
+    if text:
+        for keyword in condition_keywords:
+            if keyword in text:
+                print(f"Condition trigger detected: {keyword}")
+                return True
+    return False
+
+# Load environment variables
+load_dotenv()
+
+# Set up OpenAI API key
+#api_key = st.secrets["OPENAI_API_KEY"]
+api_key = st.secrets["OPENAI_API_KEY"]
+
+# ------------------------------------------------------------
+# 🖌️  Global visual theme (from Exifa)
+# ------------------------------------------------------------
+
+# Icon images for chat avatars (optional – taken from Exifa assets)
+icons = {
+    "assistant": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/assistant-done.svg",
+    "user": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/user-done.svg",
+}
+
+# Particle-JS animated background (the same snippet used by Exifa)
+particles_js = """<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <style>
+    #particles-js {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      z-index: -1; /* Push behind Streamlit components */
+    }
+  </style>
+</head>
+<body>
+  <div id=\"particles-js\"></div>
+  <script src=\"https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js\"></script>
+  <script>
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 300, density: { enable: true, value_area: 800 } },
+        color:  { value: '#4e8cff' },
+        shape:  { type: 'circle' },
+        opacity:{ value: 0.5 },
+        size:   { value: 2, random: true },
+        line_linked: { enable: true, distance: 100, color: '#4e8cff', opacity: 0.22, width: 1 },
+        move:   { enable: true, speed: 0.2, out_mode: 'out', bounce: true }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: { enable: true, mode: 'grab' },
+          onclick: { enable: true, mode: 'repulse' },
+          resize: true
+        },
+        modes: {
+          grab:   { distance: 100, line_linked: { opacity: 1 } },
+          repulse:{ distance: 200, duration: 0.4 }
+        }
+      },
+      retina_detect: true
+    });
+  </script>
+</body>
+</html>"""
+
+# Render the particle background only once per session so that it
+# doesn't accumulate duplicate DOM nodes on Streamlit reruns.
+if "particle_bg_rendered" not in st.session_state:
+    # Use a sufficiently tall iframe so the effect covers the visible viewport
+    components.html(particles_js, height=600, scrolling=False)
+    st.session_state.particle_bg_rendered = True
+
+def init_google_sheets():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    creds_dict = None
+
+    # 1️⃣  Look in Streamlit secrets
+    if "GOOGLE_CREDENTIALS" in st.secrets:
+        raw = st.secrets["GOOGLE_CREDENTIALS"]
+
+        if isinstance(raw, str):
+            # secrets stored as one JSON string
+            creds_dict = json.loads(raw)
+        else:
+            # secrets stored as a TOML table  (what you chose)
+            creds_dict = dict(raw)          # convert ConfigDict → normal dict
+
+    # 2️⃣  Fallback to credentials.json on disk
+    elif os.path.exists("credentials.json"):
+        with open("credentials.json", "r", encoding="utf-8") as f:
+            creds_dict = json.load(f)
+
+    if not creds_dict:
+        st.error(
+            "Google credentials not found. "
+            "Add them to `.streamlit/secrets.toml` or place `credentials.json` "
+            "in the app folder."
+        )
+        return None
+
+    try:
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+            creds_dict, scope
+        )
+        client = gspread.authorize(credentials)
+        return client
+
+    except Exception as e:
+        st.error(f"Failed to initialize Google Sheets: {e}")
+        return None
+
+
+# Get existing sheets - use direct ID instead of name
+def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"):
+    try:
+        # Try to open existing sheet by ID
+        spreadsheet = client.open_by_key(spreadsheet_id)
+        
+        # Try to get all worksheets to print their names for debugging
+        all_worksheets = spreadsheet.worksheets()
+        print(f"Available worksheets: {[ws.title for ws in all_worksheets]}")
+        
+        # Get specific worksheets - try by name first, then by index as fallback
+        try:
+            try:
+                order_sheet = spreadsheet.worksheet("Order")
+                print("Using 'Order' worksheet by name")
+            except gspread.WorksheetNotFound:
+                # If not found by name, use first sheet
+                if len(all_worksheets) >= 1:
+                    order_sheet = all_worksheets[0]  # First sheet
+                    print(f"Using first sheet for order data: {order_sheet.title}")
+                else:
+                    raise Exception("No sheets available for order data")
+        except Exception as e:
+            st.error(f"Error accessing Order sheet: {e}")
+            order_sheet = None
+            
+        try:
+            # Try both "Client" and the second sheet
+            try:
+                client_sheet = spreadsheet.worksheet("Client")
+                print("Using 'Client' worksheet by name")
+            except gspread.WorksheetNotFound:
+                # If "Client" sheet not found, try accessing the second sheet
+                if len(all_worksheets) >= 2:
+                    client_sheet = all_worksheets[1]  # Get the second sheet (index 1)
+                    print(f"Using second sheet for client data: {client_sheet.title}")
+                else:
+                    raise Exception("No second sheet available for client data")
+        except Exception as e:
+            st.error(f"Error accessing Client sheet: {e}")
+            client_sheet = None
+            
+        try:
+            try:
+                items_sheet = spreadsheet.worksheet("Items")
+                print("Using 'Items' worksheet by name")
+            except gspread.WorksheetNotFound:
+                # If "Items" sheet not found, try the third sheet
+                if len(all_worksheets) >= 3:
+                    items_sheet = all_worksheets[2]  # Third sheet
+                    print(f"Using third sheet for items data: {items_sheet.title}")
+                else:
+                    raise Exception("No third sheet available for items data")
+        except Exception as e:
+            st.error(f"Error accessing Items sheet: {e}")
+            items_sheet = None
+        
+        return {
+            "order": order_sheet,
+            "client": client_sheet,
+            "items": items_sheet
+        }
+    except Exception as e:
+        st.error(f"Failed to get sheets: {e}")
+        return None
+
+# Get sheet data with safety checks
+def get_sheet_data(sheets, sheet_type):
+    try:
+        if sheet_type in sheets and sheets[sheet_type] is not None:
+            try:
+                records = sheets[sheet_type].get_all_records()
+                print(f"Retrieved {len(records)} records from {sheet_type} sheet")
+                # Print sample data to debug (first record)
+                if records:
+                    print(f"Sample {sheet_type} record keys: {list(records[0].keys())}")
+                    print(f"Sample {sheet_type} first record: {records[0]}")
+                return records
+            except gspread.exceptions.APIError as api_error:
+                if hasattr(api_error, 'response') and api_error.response.status_code == 429:
+                    st.warning("⚠️ Google Sheets API rate limit exceeded. Please wait a minute before refreshing.")
+                    print(f"Rate limit exceeded: {api_error}")
+                else:
+                    st.error(f"Google Sheets API error: {api_error}")
+                return []
+        print(f"Sheet {sheet_type} not available")
+        return []
+    except Exception as e:
+        st.error(f"Failed to get {sheet_type} data: {e}")
+        print(f"Error details: {e}")
+        return []
+
+# Add a sleep function to prevent rate limiting when loading multiple sheets
+def get_all_sheet_data(noknok_sheets):
+    """Get data from all sheets with delay between requests to avoid rate limiting"""
+    data = {}
+    
+    if noknok_sheets:
+        # Get order data
+        print("Fetching order data...")
+        data['orders'] = get_sheet_data(noknok_sheets, "order")
+        print(f"Order data fetch complete, got {len(data['orders'])} records")
+        time.sleep(1)  # Wait 1 second between requests
+        
+        # Get client data
+        print("Fetching client data...")
+        data['clients'] = get_sheet_data(noknok_sheets, "client")
+        print(f"Client data fetch complete, got {len(data['clients'])} records")
+        time.sleep(1)  # Wait 1 second between requests
+        
+        # Get items data
+        print("Fetching items data...")
+        data['items'] = get_sheet_data(noknok_sheets, "items")
+        print(f"Items data fetch complete, got {len(data['items'])} records")
+    
+    return data
+
+# Initialize chat history sheet
+def get_or_create_chat_history(client, sheet_name="NokNok Chat History"):
+    try:
+        # Try to open existing sheet
+        sheet = client.open(sheet_name)
+    except gspread.SpreadsheetNotFound:
+        # Create new sheet if it doesn't exist
+        sheet = client.create(sheet_name)
+        # Share with anyone who has the link (optional)
+        sheet.share(None, perm_type='anyone', role='reader')
+        
+        # Initialize the worksheet with headers
+        worksheet = sheet.get_worksheet(0)
+        worksheet.append_row(["Timestamp", "User", "Message", "Response"])
+    
+    return sheet.get_worksheet(0)  # Return the first worksheet
+
+# Save conversation to Google Sheets
+def save_to_chat_history(worksheet, user, message, response):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    worksheet.append_row([timestamp, user, message, response])
+
+# Initialize system prompt directly from EnglishPrompt.txt
+try:
+    with open('EnglishPrompt.txt', 'r', encoding='utf-8') as file:
+        system_prompt_template = file.read()
+        print(f"Successfully loaded EnglishPrompt.txt with {len(system_prompt_template)} characters")
+        if len(system_prompt_template) == 0:
+            raise ValueError("Empty system prompt file")
+except Exception as e:
+    print(f"Error loading EnglishPrompt.txt: {e}")
+    # Fallback system prompt
+    system_prompt_template = """
+    You are Maya, a friendly and helpful customer service agent at a Lebanese company called noknok, 
+    that offers groceries and other delivery services in Lebanon. Your role is to kindly assist customers
+    with inquiries about orders, delivery status, and services.
+    
+    Founded in June 2019, noknok is the fastest grocery delivery app in Lebanon & Ghana, 
+    offering supermarket prices with fast 15-minute deliveries, live inventory, and order tracking.
+    
+    Be professional, helpful, and provide accurate information about noknok's services.
+    """
+    print(f"Using fallback system prompt: {system_prompt_template[:50]}...")
+
+# If this is the first time loading the app, initialize the prompt language in session state
+if "current_prompt_language" not in st.session_state:
+    st.session_state.current_prompt_language = "english"
+    st.session_state.system_prompt_template = system_prompt_template
+# If we already have a prompt in session state (from a previous handler condition), use that
+elif "system_prompt_template" in st.session_state:
+    system_prompt_template = st.session_state.system_prompt_template
+    print(f"Using {st.session_state.current_prompt_language} prompt from session state")
+
+# Function to replace prompt variables
+def process_prompt_variables(prompt_template, client_id=None):
+    """Replace variables in prompt template with actual values based on client data and conditions"""
+    # Initialize variables with default values
+    client_name = "valued customer"
+    eta_message = ""
+    order_delay_message = ""
+    technical_message = ""
+    order_eta_message = ""
+    eta_value = None
+    
+    # Determine which language to use
+    current_language = st.session_state.get("current_prompt_language", "english").lower()
+    is_lebanese = current_language == "lebanese"
+    
+    # Set default messages based on language
+    if is_lebanese:
+        # Lebanese defaults
+        default_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+        default_order_delay_message = "L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+        default_technical_message = "Kell shi meche min 3enna. Ra7 7awelak ma3 el tech team la ye2daro yse3douk aktar"
+        default_order_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+    else:
+        # English defaults
+        default_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+        default_order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+        default_technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+        default_order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    
+    # Initialize with defaults
+    eta_message = default_eta_message
+    order_delay_message = default_order_delay_message
+    technical_message = default_technical_message
+    order_eta_message = default_order_eta_message
+    
+    try:
+        if "condition_handler" in st.session_state and st.session_state.condition_handler:
+            handler = st.session_state.condition_handler
+            
+            # Get client data for @clientName@
+            if client_id and handler.client_data:
+                print(f"Looking for client with ID: {client_id}")
+                print(f"Number of clients in data: {len(handler.client_data)}")
+                
+                # First, let's print some sample client IDs to debug
+                sample_ids = [str(c.get('ClientID', 'unknown')) for c in handler.client_data[:5]]
+                print(f"Sample client IDs in data: {sample_ids}")
+                
+                # Let's also print all the keys from the first client record to see field names
+                if handler.client_data and len(handler.client_data) > 0:
+                    first_client_keys = list(handler.client_data[0].keys())
+                    print(f"Available client fields: {first_client_keys}")
+                
+                # Try to find the client - add more logging
+                client = next((c for c in handler.client_data if str(c.get('ClientID', '')) == str(client_id)), None)
+                if client:
+                    print(f"Found client data: {client}")
+                    
+                    # Try different field name variations for first name
+                    name_field_variations = [
+                        'Client First Name', 
+                        'ClientFirstName',
+                        'First Name',
+                        'FirstName',
+                        'Name',
+                        'client first name',  # Case insensitive check
+                        'firstname'
+                    ]
+                    
+                    # Try all field variations with exact match
+                    client_name_found = False
+                    for field in name_field_variations:
+                        # Direct field check
+                        if field in client and client[field]:
+                            client_name = client[field]
+                            print(f"Found client name using field '{field}': {client_name}")
+                            client_name_found = True
+                            break
+                    
+                    # If exact match fails, try case insensitive match
+                    if not client_name_found:
+                        client_fields = list(client.keys())
+                        for field in name_field_variations:
+                            matching_fields = [k for k in client_fields if k.lower() == field.lower()]
+                            if matching_fields:
+                                field_name = matching_fields[0]
+                                if client[field_name]:
+                                    client_name = client[field_name]
+                                    print(f"Found client name using case-insensitive match for '{field}': {client_name}")
+                                    client_name_found = True
+                                    break
+                                
+                    # If still no name found, look for any field that might contain "first" and "name"
+                    if not client_name_found:
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if ('first' in key_lower and 'name' in key_lower) and client[key]:
+                                client_name = client[key]
+                                print(f"Found client name using field name pattern match '{key}': {client_name}")
+                                client_name_found = True
+                                break
+                                
+                    # If we still couldn't find a name, try to use any name-like field
+                    if not client_name_found:
+                        name_pattern_keys = ['name', 'client', 'user']
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if any(pattern in key_lower for pattern in name_pattern_keys) and client[key]:
+                                if not key_lower.endswith('id') and not key_lower.endswith('email'):  # Skip ID and email fields
+                                    client_name = client[key]
+                                    print(f"Found client name using general pattern '{key}': {client_name}")
+                                    client_name_found = True
+                                    break
+                    
+                    # If we couldn't find a name, log that information
+                    if not client_name_found:
+                        print("WARNING: Could not find client first name, using default 'valued customer'")
+                else:
+                    print(f"WARNING: Client with ID {client_id} not found in client data")
+            else:
+                if not client_id:
+                    print("WARNING: No client_id provided to process_prompt_variables function")
+                else:
+                    print(f"WARNING: client_id provided ({client_id}) but no client_data available")
+            
+            # Process order-related variables
+            if client_id and handler.order_data:
+                # Get client orders
+                client_orders = [order for order in handler.order_data if str(order.get("ClientID", "")) == str(client_id)]
+                
+                if client_orders:
+                    # Sort by date to get most recent order
+                    recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
+                    print(f"Found recent order ID: {recent_order.get('OrderID')}")
+                    
+                    # Extract order status - strict field name
+                    order_status = None
+                    if 'OrderStatus' in recent_order:
+                        order_status = recent_order['OrderStatus']
+                        if order_status:
+                            order_status = order_status.lower()
+                            print(f"Found order status: {order_status}")
+                    
+                    # Extract weather conditions - strict field name
+                    weather_conditions = False
+                    if 'Weather Conditions' in recent_order:
+                        value = recent_order['Weather Conditions']
+                        if isinstance(value, bool):
+                            weather_conditions = value
+                        elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
+                            weather_conditions = True
+                        print(f"Weather conditions: {weather_conditions}")
+                    
+                    # Extract technical issues - strict field name
+                    technical_issues = False
+                    if 'Technical Issue' in recent_order:
+                        value = recent_order['Technical Issue']
+                        if isinstance(value, bool):
+                            technical_issues = value
+                        elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
+                            technical_issues = True
+                        print(f"Technical issues: {technical_issues}")
+                    
+                    # Extract ETA - strict field name
+                    if 'ETA' in recent_order:
+                        eta_value = recent_order['ETA']
+                        print(f"Found ETA: {eta_value}")
+                    
+                    # @ETA@ - EXACTLY according to specification
+                    # Check if order is ongoing (not delivered, canceled, etc.)
+                    is_ongoing = order_status and order_status not in ['delivered', 'cancelled', 'canceled', 'refunded']
+                    
+                    if is_ongoing and eta_value:
+                        if is_lebanese:
+                            eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            eta_message = f"You can expect to receive your order by {eta_value}."
+                    else:
+                        eta_message = default_eta_message
+                    
+                    # @OrderETA@ - Similar to @ETA@ but with different wording
+                    if is_ongoing and eta_value:
+                        if is_lebanese:
+                            order_eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            order_eta_message = f"You can expect to receive your order by {eta_value}."
+                    else:
+                        order_eta_message = default_order_eta_message
+                    
+                    # @OrderDelay@ - EXACTLY according to specification
+                    if order_status == "delivered":
+                        if is_lebanese:
+                            order_delay_message = "Mbayan enno wasil l order. Moumken terja3o tshayko? Moumken l driver 3ata l order la hada tene bel ghalat. Khaberne shu la2et w ra7 n7el el meshkle b ser3a. 💙"
+                        else:
+                            order_delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
+                    elif order_status == "driver arrived":
+                        if is_lebanese:
+                            order_delay_message = "Wosel l driver, fik please tet2akad?"
+                        else:
+                            order_delay_message = "The driver has arrived. Could you kindly check?"
+                    elif weather_conditions:
+                        if is_lebanese:
+                            order_delay_message = "Men wara l ta2es, aam nwejeh shwayet mashekel bi touwsil l order taba3ak. Merci 3a saberkon la ken wosel l driver 3al location. Merci le2an khtarto noknok 💙🙏🏻"
+                        else:
+                            order_delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
+                    else:
+                        # Default case
+                        if eta_value:
+                            if is_lebanese:
+                                order_delay_message = f"L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. L order rah yousal ba3ed {eta_value} Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+                            else:
+                                order_delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                        else:
+                            order_delay_message = default_order_delay_message
+                    
+                    # @Technical@ - Based on technical issues flag
+                    if technical_issues:
+                        if is_lebanese:
+                            technical_message = "Hala2 3ena shwe mashekel, bas ra7 nerja3 b wa2et ktir asir. Merci 3a saberkon 💙"
+                        else:
+                            technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
+                    else:
+                        technical_message = default_technical_message
+    except Exception as e:
+        print(f"Error processing prompt variables: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # Replace variables in the prompt template
+    prompt = prompt_template.replace("@clientName@", client_name)
+    prompt = prompt.replace("@Client Name@", client_name)  # Also handle alternative format
+    prompt = prompt.replace("@ETA@", eta_message)
+    prompt = prompt.replace("@OrderDelay@", order_delay_message)
+    prompt = prompt.replace("@Order Delay@", order_delay_message)  # Also handle alternative format
+    prompt = prompt.replace("@Technical@", technical_message)
+    prompt = prompt.replace("@OrderETA@", order_eta_message)
+    
+    return prompt
+
+# Set model to gpt-4o (removed from UI)
+model = "gpt-4o"
+
+# App title
+import base64
+
+# Load the image as base64
+with open("logo.png", "rb") as f:
+    logo_base64 = base64.b64encode(f.read()).decode()
+
+# Custom layout for logo and title - fixed at the top
+st.markdown(f'''
+<div class="sticky-container">
+  <div class="logo-title-container">
+      <img src="data:image/png;base64,{logo_base64}" width="120">
+      <h1 class="title-text">AI Assistant 🛒</h1>
+  </div>
+</div>
+''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
