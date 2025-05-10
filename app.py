@@ -1,4 +1,12 @@
 import streamlit as st
+
+# Set up the page before any other Streamlit calls
+st.set_page_config(
+    page_title="NokNok AI Assistant",
+    page_icon="🛒",
+    layout="wide",
+)
+
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -16,6 +24,270 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
+
+# Load the image as base64 at the very beginning
+with open("logo.png", "rb") as f:
+    logo_base64 = base64.b64encode(f.read()).decode()
+
+# Apply global CSS styling immediately at app startup, before any interactions
+st.markdown(f"""
+<style>
+/* Global layout styles */
+.stats-container {{
+    background-color: rgba(35, 40, 48, 0.95);
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    height: auto;
+    min-height: 300px; /* Fixed minimum height for container */
+}}
+
+.stats-header {{
+    color: #6aa5ff;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70px; /* Fixed height to prevent layout shifts */
+    position: relative; /* Enable positioning */
+    overflow: hidden; /* Prevent overflow */
+}}
+
+.stats-header-text {{
+    margin-left: 0; /* Remove left margin to center properly */
+    white-space: nowrap; /* Keep text on one line */
+    font-size: 1.1rem;
+}}
+
+.stats-header img, .noknok-logo {{
+    height: 60px;
+    width: 60px;
+    position: static; /* Change from absolute to static positioning */
+    margin-right: 10px; /* Add right margin for spacing */
+    object-fit: contain;
+}}
+
+.noknok-logo-small {{
+    height: 30px;
+    width: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    display: inline-block;
+}}
+
+.stats-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    margin-bottom: 15px;
+    height: 80px; /* Fixed height */
+}}
+
+.stat-card {{
+    background-color: rgba(50, 57, 68, 0.7);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    height: 100%; /* Full height of parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}}
+
+.stat-value {{
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #5ed9a7;
+    margin-bottom: 5px;
+    line-height: 1;
+}}
+
+.stat-label {{
+    font-size: 0.8rem;
+    color: #aabfe6;
+    line-height: 1;
+}}
+
+.status-indicator {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(50, 57, 68, 0.5);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 10px;
+    height: 40px; /* Fixed height */
+    position: relative;
+}}
+
+.status-connected, .status-disconnected {{
+    font-weight: 500;
+    white-space: nowrap;
+}}
+
+.status-connected {{
+    color: #8ac926;
+}}
+
+.status-disconnected {{
+    color: #ff595e;
+}}
+
+.sheet-button {{
+    display: inline-block;
+    text-decoration: none;
+    background-color: #2a62ca;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    width: 100%;
+    transition: background-color 0.2s;
+    height: 40px; /* Fixed height */
+    line-height: 24px; /* Center text vertically */
+}}
+
+.sheet-button:hover {{
+    background-color: #333;
+}}
+
+/* Custom header at top of sidebar */
+.sidebar-header {{
+    display: flex;
+    align-items: center;
+    margin-top: -40px;
+    margin-bottom: 20px;
+    padding: 0; 
+    height: 90px; /* Increased height to accommodate larger logo */
+    position: relative;
+}}
+
+.sidebar-header img {{
+    position: absolute;
+    left: 0;
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the logo vertically */
+    height: 120px; /* Doubled from 60px */
+    width: 120px; /* Doubled from 60px */
+    object-fit: contain;
+}}
+
+.sidebar-header span {{
+    font-size: 2.6rem;
+    font-weight: bold;
+    color: white;
+    margin-left: 50px; /* Remove this margin since we're using absolute positioning */
+    white-space: nowrap;
+    position: absolute; /* Position absolutely like the logo */
+    left: 80px; /* Reduce the gap between logo and text */
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the text vertically */
+}}
+
+/* General logo styling */
+.logo-title-container {{
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}}
+
+.logo-title-container img {{
+    max-height: none !important;
+    object-fit: contain;
+}}
+
+.title-text {{
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}}
+
+body, .stApp {{
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}}
+
+/* Light theme overrides */
+.stats-container {{
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}}
+
+.stats-header {{
+    color: #2a62ca !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}}
+
+.stat-card {{
+    background-color: #f1f6ff !important;
+}}
+
+.stat-value {{
+    color: #2a62ca !important;
+}}
+
+.stat-label {{
+    color: #333333 !important;
+}}
+
+.status-indicator {{
+    background-color: #eaf0ff !important;
+}}
+
+.sidebar-header span {{
+    color: #000000 !important;
+}}
+
+.sheet-button {{
+    background-color: #2a62ca !important;
+    color: #ffffff !important;
+}}
+
+.client-details {{
+    background-color: #f9f9f9 !important;
+    border-left: 3px solid #2a62ca !important;
+}}
+
+.orders-container {{
+    background-color: #ffffff !important;
+    border-left: 3px solid #ffc947 !important;
+}}
+
+.order-item {{
+    border-bottom: 1px dotted #d0d0d0 !important;
+}}
+
+.order-status {{
+    color: #ffffff !important;
+}}
+
+.field-label {{
+    color: #2a62ca !important;
+}}
+
+.field-value {{
+    color: #000000 !important;
+}}
+
+[data-testid="stSidebar"] {{
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
@@ -46,18 +318,8 @@ load_dotenv()
 api_key = st.secrets["OPENAI_API_KEY"]
 
 # ------------------------------------------------------------
-# 🖌️  Global page configuration & visual theme (from Exifa)
+# 🖌️  Global visual theme (from Exifa)
 # ------------------------------------------------------------
-
-# Set up the page before any other Streamlit calls so the settings
-# apply everywhere.  The particle background and other visuals are
-# inspired by the Exifa.net theme.
-
-st.set_page_config(
-    page_title="NokNok AI Assistant",
-    page_icon="🛒",
-    layout="wide",
-)
 
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
@@ -89,11 +351,11 @@ particles_js = """<!DOCTYPE html>
     particlesJS('particles-js', {
       particles: {
         number: { value: 300, density: { enable: true, value_area: 800 } },
-        color:  { value: '#ffffff' },
+        color:  { value: '#4e8cff' },
         shape:  { type: 'circle' },
         opacity:{ value: 0.5 },
         size:   { value: 2, random: true },
-        line_linked: { enable: true, distance: 100, color: '#ffffff', opacity: 0.22, width: 1 },
+        line_linked: { enable: true, distance: 100, color: '#4e8cff', opacity: 0.22, width: 1 },
         move:   { enable: true, speed: 0.2, out_mode: 'out', bounce: true }
       },
       interactivity: {
@@ -340,11 +602,35 @@ def process_prompt_variables(prompt_template, client_id=None):
     """Replace variables in prompt template with actual values based on client data and conditions"""
     # Initialize variables with default values
     client_name = "valued customer"
-    eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
-    order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-    technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
-    order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    eta_message = ""
+    order_delay_message = ""
+    technical_message = ""
+    order_eta_message = ""
     eta_value = None
+    
+    # Determine which language to use
+    current_language = st.session_state.get("current_prompt_language", "english").lower()
+    is_lebanese = current_language == "lebanese"
+    
+    # Set default messages based on language
+    if is_lebanese:
+        # Lebanese defaults
+        default_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+        default_order_delay_message = "L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+        default_technical_message = "Kell shi meche min 3enna. Ra7 7awelak ma3 el tech team la ye2daro yse3douk aktar"
+        default_order_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+    else:
+        # English defaults
+        default_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+        default_order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+        default_technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+        default_order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    
+    # Initialize with defaults
+    eta_message = default_eta_message
+    order_delay_message = default_order_delay_message
+    technical_message = default_technical_message
+    order_eta_message = default_order_eta_message
     
     try:
         if "condition_handler" in st.session_state and st.session_state.condition_handler:
@@ -352,12 +638,89 @@ def process_prompt_variables(prompt_template, client_id=None):
             
             # Get client data for @clientName@
             if client_id and handler.client_data:
-                client = next((c for c in handler.client_data if str(c.get('ClientID')) == str(client_id)), None)
+                print(f"Looking for client with ID: {client_id}")
+                print(f"Number of clients in data: {len(handler.client_data)}")
+                
+                # First, let's print some sample client IDs to debug
+                sample_ids = [str(c.get('ClientID', 'unknown')) for c in handler.client_data[:5]]
+                print(f"Sample client IDs in data: {sample_ids}")
+                
+                # Let's also print all the keys from the first client record to see field names
+                if handler.client_data and len(handler.client_data) > 0:
+                    first_client_keys = list(handler.client_data[0].keys())
+                    print(f"Available client fields: {first_client_keys}")
+                
+                # Try to find the client - add more logging
+                client = next((c for c in handler.client_data if str(c.get('ClientID', '')) == str(client_id)), None)
                 if client:
-                    # Try to get client first name with exact field matching
-                    if 'Client First Name' in client and client['Client First Name']:
-                        client_name = client['Client First Name']
-                        print(f"Found client name: {client_name}")
+                    print(f"Found client data: {client}")
+                    
+                    # Try different field name variations for first name
+                    name_field_variations = [
+                        'Client First Name', 
+                        'ClientFirstName',
+                        'First Name',
+                        'FirstName',
+                        'Name',
+                        'client first name',  # Case insensitive check
+                        'firstname'
+                    ]
+                    
+                    # Try all field variations with exact match
+                    client_name_found = False
+                    for field in name_field_variations:
+                        # Direct field check
+                        if field in client and client[field]:
+                            client_name = client[field]
+                            print(f"Found client name using field '{field}': {client_name}")
+                            client_name_found = True
+                            break
+                    
+                    # If exact match fails, try case insensitive match
+                    if not client_name_found:
+                        client_fields = list(client.keys())
+                        for field in name_field_variations:
+                            matching_fields = [k for k in client_fields if k.lower() == field.lower()]
+                            if matching_fields:
+                                field_name = matching_fields[0]
+                                if client[field_name]:
+                                    client_name = client[field_name]
+                                    print(f"Found client name using case-insensitive match for '{field}': {client_name}")
+                                    client_name_found = True
+                                    break
+                                
+                    # If still no name found, look for any field that might contain "first" and "name"
+                    if not client_name_found:
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if ('first' in key_lower and 'name' in key_lower) and client[key]:
+                                client_name = client[key]
+                                print(f"Found client name using field name pattern match '{key}': {client_name}")
+                                client_name_found = True
+                                break
+                                
+                    # If we still couldn't find a name, try to use any name-like field
+                    if not client_name_found:
+                        name_pattern_keys = ['name', 'client', 'user']
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if any(pattern in key_lower for pattern in name_pattern_keys) and client[key]:
+                                if not key_lower.endswith('id') and not key_lower.endswith('email'):  # Skip ID and email fields
+                                    client_name = client[key]
+                                    print(f"Found client name using general pattern '{key}': {client_name}")
+                                    client_name_found = True
+                                    break
+                    
+                    # If we couldn't find a name, log that information
+                    if not client_name_found:
+                        print("WARNING: Could not find client first name, using default 'valued customer'")
+                else:
+                    print(f"WARNING: Client with ID {client_id} not found in client data")
+            else:
+                if not client_id:
+                    print("WARNING: No client_id provided to process_prompt_variables function")
+                else:
+                    print(f"WARNING: client_id provided ({client_id}) but no client_data available")
             
             # Process order-related variables
             if client_id and handler.order_data:
@@ -407,35 +770,56 @@ def process_prompt_variables(prompt_template, client_id=None):
                     is_ongoing = order_status and order_status not in ['delivered', 'cancelled', 'canceled', 'refunded']
                     
                     if is_ongoing and eta_value:
-                        eta_message = f"You can expect to receive your order by {eta_value}."
+                        if is_lebanese:
+                            eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            eta_message = f"You can expect to receive your order by {eta_value}."
                     else:
-                        eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+                        eta_message = default_eta_message
                     
                     # @OrderETA@ - Similar to @ETA@ but with different wording
                     if is_ongoing and eta_value:
-                        order_eta_message = f"You can expect to receive your order by {eta_value}."
+                        if is_lebanese:
+                            order_eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            order_eta_message = f"You can expect to receive your order by {eta_value}."
                     else:
-                        order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+                        order_eta_message = default_order_eta_message
                     
                     # @OrderDelay@ - EXACTLY according to specification
                     if order_status == "delivered":
-                        order_delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
+                        if is_lebanese:
+                            order_delay_message = "Mbayan enno wasil l order. Moumken terja3o tshayko? Moumken l driver 3ata l order la hada tene bel ghalat. Khaberne shu la2et w ra7 n7el el meshkle b ser3a. 💙"
+                        else:
+                            order_delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
                     elif order_status == "driver arrived":
-                        order_delay_message = "The driver has arrived. Could you kindly check?"
+                        if is_lebanese:
+                            order_delay_message = "Wosel l driver, fik please tet2akad?"
+                        else:
+                            order_delay_message = "The driver has arrived. Could you kindly check?"
                     elif weather_conditions:
-                        order_delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
+                        if is_lebanese:
+                            order_delay_message = "Men wara l ta2es, aam nwejeh shwayet mashekel bi touwsil l order taba3ak. Merci 3a saberkon la ken wosel l driver 3al location. Merci le2an khtarto noknok 💙🙏🏻"
+                        else:
+                            order_delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
                     else:
                         # Default case
                         if eta_value:
-                            order_delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                            if is_lebanese:
+                                order_delay_message = f"L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. L order rah yousal ba3ed {eta_value} Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+                            else:
+                                order_delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
                         else:
-                            order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                            order_delay_message = default_order_delay_message
                     
                     # @Technical@ - Based on technical issues flag
                     if technical_issues:
-                        technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
+                        if is_lebanese:
+                            technical_message = "Hala2 3ena shwe mashekel, bas ra7 nerja3 b wa2et ktir asir. Merci 3a saberkon 💙"
+                        else:
+                            technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
                     else:
-                        technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+                        technical_message = default_technical_message
     except Exception as e:
         print(f"Error processing prompt variables: {e}")
         import traceback
@@ -451,110 +835,6 @@ def process_prompt_variables(prompt_template, client_id=None):
     prompt = prompt.replace("@OrderETA@", order_eta_message)
     
     return prompt
-
-# Function to process response and replace condition-based variables
-def process_response_variables(response_text, client_id=None):
-    """Replace variables in the assistant's response based on client data and conditions"""
-    if client_id is None or not response_text:
-        return response_text
-    
-    # Initialize variables with default values
-    eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
-    delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-    technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
-    
-    try:
-        if "@ETA@" in response_text or "@Order Delay@" in response_text or "@Technical@" in response_text:
-            if "condition_handler" in st.session_state and st.session_state.condition_handler:
-                handler = st.session_state.condition_handler
-                
-                # Get order data for active orders
-                if handler.order_data:
-                    # Find client's ongoing orders (not delivered or cancelled)
-                    ongoing_orders = [
-                        o for o in handler.order_data 
-                        if str(o.get('ClientID', '')) == str(client_id) and 
-                        o.get('OrderStatus', '').lower() not in ['delivered', 'cancelled', 'canceled', 'refunded']
-                    ]
-                    
-                    if ongoing_orders:
-                        # Sort to get the most recent order
-                        recent_order = max(ongoing_orders, key=lambda o: o.get('OrderDate', ''))
-                        
-                        # Process ETA variable
-                        if "@ETA@" in response_text:
-                            eta_value = None
-                            for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-                                if field in recent_order and recent_order[field]:
-                                    eta_value = recent_order[field]
-                                    break
-                            
-                            if eta_value:
-                                eta_message = f"You can expect to receive your order by {eta_value}."
-                        
-                        # Process Order Delay variable
-                        if "@Order Delay@" in response_text:
-                            order_status = None
-                            for field in ["OrderStatus", "Status", "Order Status"]:
-                                if field in recent_order and recent_order[field]:
-                                    order_status = recent_order[field].lower()
-                                    break
-                            
-                            weather_conditions = False
-                            for field in ["Weather Conditions", "WeatherConditions", "Weather"]:
-                                if field in recent_order and recent_order[field]:
-                                    # Convert various formats to boolean
-                                    value = recent_order[field]
-                                    if isinstance(value, bool):
-                                        weather_conditions = value
-                                    elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-                                        weather_conditions = True
-                                    break
-                            
-                            if order_status == "delivered":
-                                delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
-                            elif order_status == "driver arrived":
-                                delay_message = "The driver has arrived. Could you kindly check?"
-                            elif weather_conditions:
-                                delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
-                            else:
-                                # Default delay message with ETA if available
-                                eta_value = None
-                                for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-                                    if field in recent_order and recent_order[field]:
-                                        eta_value = recent_order[field]
-                                        break
-                                
-                                if eta_value:
-                                    delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-                        
-                        # Process Technical variable
-                        if "@Technical@" in response_text:
-                            technical_issues = False
-                            for field in ["Technical Issue", "TechnicalIssue", "Technical"]:
-                                if field in recent_order and recent_order[field]:
-                                    # Convert various formats to boolean
-                                    value = recent_order[field]
-                                    if isinstance(value, bool):
-                                        technical_issues = value
-                                    elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-                                        technical_issues = True
-                                    break
-                            
-                            if technical_issues:
-                                technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
-    except Exception as e:
-        print(f"Error processing response variables: {e}")
-        import traceback
-        traceback.print_exc()
-    
-    # Replace variables in the response text
-    processed_response = response_text
-    processed_response = processed_response.replace("@ETA@", eta_message)
-    processed_response = processed_response.replace("@Order Delay@", delay_message)
-    processed_response = processed_response.replace("@Technical@", technical_message)
-    
-    return processed_response
 
 # Set model to gpt-4o (removed from UI)
 model = "gpt-4o"
@@ -583,6 +863,18 @@ st.markdown('''
     padding: 0;
     font-size: 2.5rem;
     font-weight: bold;
+}
+.noknok-logo {
+    height: 60px;
+    margin-right: 8px;
+    object-fit: contain;
+    max-width: 60px;
+}
+.noknok-logo-small {
+    height: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    max-width: 30px;
 }
 </style>
 ''', unsafe_allow_html=True)
@@ -645,7 +937,13 @@ if "chat_history_sheet" not in st.session_state:
         st.session_state.chat_history_sheet = get_or_create_chat_history(st.session_state.sheets_client)
 
 # Sidebar - Database stats
-st.sidebar.title("NokNok Database")
+# Replace standard title with custom HTML for better alignment with top bar
+st.sidebar.markdown(f"""
+<div class="sidebar-header">
+    <img src="data:image/png;base64,{logo_base64}" alt="logo">
+    <span>Database</span>
+</div>
+""", unsafe_allow_html=True)
 
 # Add custom CSS for sidebar file uploader
 st.sidebar.markdown('''
@@ -672,6 +970,14 @@ st.sidebar.markdown('''
 
 # Add image attachment at the top of sidebar
 st.sidebar.markdown("### 📎 Attach")
+
+# Define a function to handle the send image button click
+def send_image_clicked():
+    print("Send image button clicked!")
+    st.session_state["send_image_only"] = True
+    # Force reset of uploader on next rerun
+    st.session_state["reset_uploader"] = True
+
 uploaded_file = st.sidebar.file_uploader(
     "",  # Empty label
     type=["png", "jpg", "jpeg"],
@@ -679,18 +985,15 @@ uploaded_file = st.sidebar.file_uploader(
     label_visibility="collapsed"  # Hide the label completely
 )
 if uploaded_file is not None:
+    # Store image in session state
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
     st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
     
     # Show image preview
     st.sidebar.image(uploaded_file, caption="Image preview", width=200)
     
-    # Add send button
-    if st.sidebar.button("Send Image", key="send_image_btn"):
-        st.session_state["send_image_only"] = True
-        st.rerun()
-    else:
-        st.session_state["send_image_only"] = False
+    # Add send button with direct function call
+    st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
@@ -718,16 +1021,6 @@ with top_cols[0]:
                 # Rerun the app to show updated data
                 st.rerun()
 
-# Add open sheet button as a nice styled button
-with top_cols[2]:
-    st.markdown(f'''
-    <a href="{sheet_url}" target="_blank">
-        <div style="display: flex; justify-content: center; align-items: center;">
-            <span style="font-size: 1.2rem;">📋</span>
-        </div>
-    </a>
-    ''', unsafe_allow_html=True)
-
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
@@ -748,23 +1041,53 @@ if st.session_state.noknok_sheets:
         clients_data = sheet_data.get('clients', [])
         items_data = sheet_data.get('items', [])
         
-        # Display stats
-        st.sidebar.metric("Total Orders", len(orders_data))
-        st.sidebar.metric("Total Clients", len(clients_data))
-        st.sidebar.metric("Products In Stock", sum(1 for item in items_data if item.get("In stock") == "true"))
+        # Create HTML for stats display instead of using st.metric
+        stats_html = f"""
+        <div class="stats-container">
+            <div class="stats-header">
+                <img src="data:image/png;base64,{logo_base64}" alt="logo">
+                <div class="stats-header-text">Database Statistics</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{len(orders_data)}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{len(clients_data)}</div>
+                    <div class="stat-label">Total Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
+                    <div class="stat-label">In Stock</div>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
+            </div>
+            <a href="{sheet_url}" target="_blank" class="sheet-button">
+                📊 Open Google Sheet
+            </a>
+        </div>
+        """
+        
+        # Display the custom stats HTML
+        st.sidebar.markdown(stats_html, unsafe_allow_html=True)
         
         if orders_data or clients_data or items_data:
-            st.sidebar.success("✅ Connected to NokNok Database")
             db_connected = True
             
-            # Add styled Google Sheet button
-            st.sidebar.markdown(f'''
-            <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
-               background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
-               font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
-               📊 Open Google Sheet
-            </a>
-            ''', unsafe_allow_html=True)
+            # Skip the default success message and button since we're using our custom HTML
+            # st.sidebar.success("✅ Connected to NokNok Database")
+            # 
+            # # Add styled Google Sheet button
+            # st.sidebar.markdown(f'''
+            # <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
+            #    background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
+            #    font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
+            #    📊 Open Google Sheet
+            # </a>
+            # ''', unsafe_allow_html=True)
             
             # Add client selection dropdown if clients data is available
             if clients_data:
@@ -819,27 +1142,152 @@ if st.session_state.noknok_sheets:
                         first_name = client_data.get('Client First Name', '')
                         last_name = client_data.get('Client Last Name', '')
                         display_name = f"{first_name} {last_name}"
+                        
+                        # Add custom CSS for enhanced client details display
+                        st.sidebar.markdown("""
+                        <style>
+                        .client-details {
+                            background-color: #f9f9f9;
+                            border-left: 3px solid #2a62ca;
+                            padding: 15px;
+                            border-radius: 5px;
+                            margin-top: 10px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        }
+                        .client-details h3 {
+                            color: #2a62ca;
+                            font-weight: bold;
+                            margin-bottom: 15px;
+                            border-bottom: 1px solid #e0e0e0;
+                            padding-bottom: 5px;
+                        }
+                        .client-field {
+                            margin-bottom: 10px;
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        }
+                        .field-label {
+                            color: #2a62ca !important;
+                            font-weight: bold;
+                        }
+                        .field-value {
+                            color: #000000 !important;
+                            padding-left: 5px;
+                            font-weight: 500;
+                        }
+                        .balance-value {
+                            color: #5ed9a7;
+                            font-weight: bold;
+                        }
+                        </style>
+                        """, unsafe_allow_html=True)
                             
-                        # Display client info in the sidebar
-                        st.sidebar.info(f"""
-                        ### Client Details
-                        **Name:** {display_name}
-                        **Email:** {client_data.get('Client Email', 'N/A')}
-                        **Gender:** {client_data.get('Client Gender', 'N/A')}
-                        **Address:** {client_data.get('Client Address', 'N/A')}
-                        **Balance:** ${client_data.get('NokNok USD Wallet', 0)}
-                        """)
+                        # Display client info in the sidebar with enhanced HTML formatting
+                        client_email = client_data.get('Client Email', 'N/A')
+                        client_gender = client_data.get('Client Gender', 'N/A')
+                        client_address = client_data.get('Client Address', 'N/A')
+                        client_balance = client_data.get('NokNok USD Wallet', 0)
+                        
+                        client_html = f"""
+                        <div class="client-details">
+                            <h3>Client Details</h3>
+                            <div class="client-field">
+                                <span class="field-label">Name:</span>
+                                <span class="field-value">{display_name}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Email:</span>
+                                <span class="field-value">{client_email}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Gender:</span>
+                                <span class="field-value">{client_gender}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Address:</span>
+                                <span class="field-value">{client_address}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Balance:</span>
+                                <span class="balance-value">${client_balance}</span>
+                            </div>
+                        </div>
+                        """
+                        
+                        st.sidebar.markdown(client_html, unsafe_allow_html=True)
                         
                         # Show client's recent orders if available
                         client_orders = [o for o in orders_data if str(o.get('ClientID', '')) == str(client_id)]
                         if client_orders:
+                            # Add custom CSS for recent orders
+                            st.sidebar.markdown("""
+                            <style>
+                            .orders-container {
+                                background-color: #ffffff;
+                                border-left: 3px solid #ffc947;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin-top: 20px;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            }
+                            .orders-container h3 {
+                                color: #2a62ca;
+                                font-weight: bold;
+                                margin-bottom: 15px;
+                                border-bottom: 1px solid #e0e0e0;
+                                padding-bottom: 5px;
+                            }
+                            .order-item {
+                                margin-bottom: 12px;
+                                padding-bottom: 8px;
+                                border-bottom: 1px dotted #d0d0d0;
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            }
+                            .order-id {
+                                font-weight: bold;
+                                color: #000000;
+                                display: block;
+                                margin-bottom: 4px;
+                            }
+                            .order-amount {
+                                color: #2a62ca;
+                                font-weight: bold;
+                                margin-right: 8px;
+                            }
+                            .order-status {
+                                display: inline-block;
+                                margin-left: 5px;
+                                padding: 2px 6px;
+                                border-radius: 3px;
+                                font-size: 0.85em;
+                                background-color: #e9c46a;
+                                color: #000000;
+                            }
+                            .status-delivered {
+                                background-color: #8ac926;
+                                color: white;
+                            }
+                            .status-cancelled, .status-canceled {
+                                background-color: #ff595e;
+                                color: white;
+                            }
+                            .status-delivering {
+                                background-color: #4361ee;
+                                color: white;
+                            }
+                            .status-pending {
+                                background-color: #e9c46a;
+                                color: #333;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+                            
                             # Sort by date (most recent first)
                             recent_orders = sorted(client_orders, key=lambda x: x.get('OrderDate', ''), reverse=True)[:3]
                             
-                            # Create formatted order info with proper amount handling
-                            order_info_items = []
+                            # Create order HTML items with proper styling
+                            order_html_items = []
                             for o in recent_orders:
-                                # Try to get order amount using the same logic as cancellation
+                                # Same logic for getting order amount
                                 order_amount = None
                                 possible_amount_fields = [
                                     "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
@@ -877,20 +1325,17 @@ if st.session_state.noknok_sheets:
                                     else:
                                         amount_display = "(Amount not available)"
                                 except (ValueError, TypeError):
-                                    # If it's not convertible to float, use as is
                                     amount_display = str(order_amount)
                                 
-                                # Try different status field names
+                                # Get order status with improved detection
                                 order_status = None
                                 status_fields = ["OrderStatus", "Status", "Order Status", "State"]
                                 
-                                # Try direct matches
                                 for field in status_fields:
                                     if field in o and o[field]:
                                         order_status = o[field]
                                         break
                                 
-                                # Try case-insensitive
                                 if order_status is None:
                                     order_keys = list(o.keys())
                                     for field in status_fields:
@@ -900,19 +1345,39 @@ if st.session_state.noknok_sheets:
                                             order_status = o[field_key]
                                             break
                                 
-                                # Default if not found
                                 if order_status is None:
-                                    order_status = "Status unknown"
+                                    order_status = "Pending"
                                 
-                                order_info_items.append(
-                                    f"• Order #{o.get('OrderID')}: {amount_display} ({order_status})"
-                                )
+                                # Determine status class for styling
+                                status_class = "status-pending"
+                                status_lower = order_status.lower()
+                                if "deliver" in status_lower:
+                                    status_class = "status-delivering"
+                                elif status_lower in ["delivered", "complete", "completed"]:
+                                    status_class = "status-delivered"
+                                elif status_lower in ["cancelled", "canceled", "refunded"]:
+                                    status_class = "status-cancelled"
+                                
+                                # Create HTML for this order
+                                order_id = o.get('OrderID', 'N/A')
+                                order_html_items.append(f"""
+                                <div class="order-item">
+                                    <span class="order-id">Order #{order_id}</span>
+                                    <span class="order-amount">{amount_display}</span>
+                                    <span class="order-status {status_class}">{order_status}</span>
+                                </div>
+                                """.strip())
                             
-                            order_info = "\n".join(order_info_items)
-                            st.sidebar.info(f"""
-                            ### Recent Orders
-                            {order_info}
-                            """)
+                            # Combine all order items - make sure HTML is properly escaped
+                            orders_html = f"""
+                            <div class="orders-container">
+                                <h3>Recent Orders</h3>
+                                {"".join(order_html_items)}
+                            </div>
+                            """.strip()
+                            
+                            # Display orders HTML
+                            st.sidebar.markdown(orders_html, unsafe_allow_html=True)
                 else:
                     st.session_state.current_client_id = None
         else:
@@ -921,12 +1386,40 @@ if st.session_state.noknok_sheets:
         st.sidebar.error(f"Error loading data: {e}")
         print(f"Detailed error: {e}")
 else:
-    st.sidebar.warning("⚠️ Database connection not available")
-    st.sidebar.info("The application will still work, but without real database access.")
-    # Show empty stats
-    st.sidebar.metric("Total Orders", 0)
-    st.sidebar.metric("Total Clients", 0)
-    st.sidebar.metric("Products In Stock", 0)
+    # No need to redefine CSS as we have global styles
+    
+    # Create HTML for stats display with empty values
+    stats_html = f"""
+    <div class="stats-container">
+        <div class="stats-header">
+            <img src="data:image/png;base64,{logo_base64}" alt="logo">
+            <div class="stats-header-text">Database Statistics</div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">In Stock</div>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
+            The application will still work, but without real database access.
+        </div>
+    </div>
+    """
+    
+    # Display the custom stats HTML
+    st.sidebar.markdown(stats_html, unsafe_allow_html=True)
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -940,23 +1433,42 @@ for message in st.session_state.messages:
 # Chat input & message sending
 # -----------------------------------------------
 
+# Print session state for debugging
+print("Current session state keys:", list(st.session_state.keys()))
+print("send_image_only in session state:", "send_image_only" in st.session_state)
+if "send_image_only" in st.session_state:
+    print("send_image_only value:", st.session_state["send_image_only"])
+print("attached_image_bytes in session state:", "attached_image_bytes" in st.session_state)
+print("reset_uploader in session state:", "reset_uploader" in st.session_state)
+
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
 # Determine if we should send a message this run
-should_send = (prompt_input is not None) or ("send_image_only" in st.session_state and st.session_state.send_image_only)
+should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False)
 
 if should_send:
     prompt = prompt_input or ""  # allow empty string when image-only
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
+    
+    # Debug info
+    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
-    image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
+    image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
+    
+    # Reset the send_image_only flag for next run
     send_image_only = st.session_state.pop("send_image_only", False)
+    
+    # Ensure uploader will be reset on next rerun
+    if image_bytes:
+        st.session_state.reset_uploader = True
+        print(f"Image received, size: {len(image_bytes)} bytes")
     
     if send_image_only and not image_bytes:
         # Edge-case: send button but no image (shouldn't normally happen)
+        print("Warning: Send image requested but no image found")
         send_image_only = False
 
     if not api_key:
@@ -983,6 +1495,11 @@ if should_send:
             try:
                 # Create OpenAI client with minimal parameters to avoid proxies error
                 client = OpenAI(api_key=api_key)
+                
+                # Refresh data to get latest ETA information
+                if "condition_handler" in st.session_state:
+                    print("Refreshing data before chat response to get latest ETA...")
+                    st.session_state.condition_handler.load_data()
                 
                 # Get personalized system prompt with variables replaced
                 current_client_id = st.session_state.current_client_id if "current_client_id" in st.session_state else None
@@ -1015,7 +1532,7 @@ if should_send:
                     full_response = response.choices[0].message.content
                     
                     # Process any variables in the response
-                    full_response = process_response_variables(full_response, current_client_id)
+                    #full_response = process_response_variables(full_response, current_client_id)
                 
                 # First check for any condition triggers before displaying the response
                 has_condition_trigger = contains_condition_trigger(full_response)
@@ -1730,6 +2247,25 @@ if "condition_handler" not in st.session_state:
     # Register all conditions from the conditions module
     registered_count = register_all_conditions(st.session_state.condition_handler)
     print(f"Registered {registered_count} conditions from conditions module")
+    
+    # Automatically load data when app initializes
+    with st.spinner("Loading database..."):
+        data_loaded = st.session_state.condition_handler.load_data()
+        if data_loaded:
+            print("Initial data loaded successfully")
+        else:
+            print("Failed to load initial data")
+
+# Also refresh data when a client is selected
+if "current_client_id" in st.session_state and st.session_state.current_client_id:
+    # Check if we need to refresh data (only if not refreshed in the last 30 seconds)
+    if (
+        "condition_handler" in st.session_state 
+        and (not st.session_state.condition_handler.last_data_refresh 
+             or (datetime.now() - st.session_state.condition_handler.last_data_refresh).total_seconds() > 30)
+    ):
+        print(f"Auto-refreshing data for client ID: {st.session_state.current_client_id}")
+        st.session_state.condition_handler.load_data()
 
 # Add condition controls to sidebar
 with st.sidebar.expander("Condition Controls", expanded=False):
