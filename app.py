@@ -7,63 +7,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Add CSS for fixed header
-st.markdown("""
-<style>
-/* Fixed header container */
-.sticky-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    background-color: white;
-    margin-bottom: 1rem;
-}
-
-/* Logo and title container */
-.sticky-container .logo-title-container {
-    position: relative;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 0;
-}
-
-.sticky-container .logo-title-container img {
-    max-height: none !important;
-    object-fit: contain;
-    max-width: 120px;
-}
-
-.sticky-container .title-text {
-    margin: 0;
-    padding: 0;
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-/* Make sure header doesn't overlap content */
-.main .block-container {
-    padding-top: 100px !important;
-}
-
-/* Make sure Streamlit elements work with our fixed header */
-[data-testid="stHeader"] {
-    z-index: 998 !important;
-}
-
-/* Fix any elements that might be hidden by our header */
-.stChatFloatingInputContainer {
-    z-index: 997 !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -343,102 +286,6 @@ body, .stApp {{
     background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
     color: #000000 !important;
 }}
-
-/* Remove duplicate logo-title-container styles and define a single clean version */
-.logo-title-container {
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem 2rem;
-    z-index: 999;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-top: 0;
-    margin-bottom: 2rem;
-}
-
-.logo-title-container img {
-    max-height: none !important;
-    object-fit: contain;
-    max-width: 120px;
-}
-
-.title-text {
-    margin: 0;
-    padding: 0;
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-/* Add padding to the main content area to prevent overlap with fixed header */
-.main .block-container {
-    padding-top: 0.5rem !important;
-}
-
-/* Restore the logo styles */
-.noknok-logo {
-    height: 60px;
-    margin-right: 8px;
-    object-fit: contain;
-    max-width: 60px;
-}
-
-.noknok-logo-small {
-    height: 30px;
-    vertical-align: middle;
-    object-fit: contain;
-    max-width: 30px;
-}
-
-/* Add a class to make Streamlit's default elements work better with our fixed header */
-[data-testid="stHeader"] {
-    z-index: 998 !important;
-}
-
-/* Fix any elements that might be hidden by our header */
-.stChatFloatingInputContainer {
-    z-index: 997 !important;
-}
-
-/* Add a container for the fixed header */
-.sticky-container {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background-color: white;
-    margin-bottom: 1rem;
-}
-
-/* Remove duplicate logo-title-container styles and define a single clean version */
-.logo-title-container {
-    position: relative;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 0;
-}
-
-/* General logo styling - original version that gets overridden by our fixed header */
-.original-logo-container {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.original-logo-container img {
-    max-height: none !important;
-    object-fit: contain;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -999,13 +846,44 @@ import base64
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
 
-# Custom layout for logo and title - fixed at the top
+st.markdown('''
+<style>
+.logo-title-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.logo-title-container img {
+    max-height: none !important;
+    object-fit: contain;
+}
+.title-text {
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+.noknok-logo {
+    height: 60px;
+    margin-right: 8px;
+    object-fit: contain;
+    max-width: 60px;
+}
+.noknok-logo-small {
+    height: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    max-width: 30px;
+}
+</style>
+''', unsafe_allow_html=True)
+
+# Custom layout for logo and title
 st.markdown(f'''
-<div class="sticky-container">
-  <div class="logo-title-container">
-      <img src="data:image/png;base64,{logo_base64}" width="120">
-      <h1 class="title-text">AI Assistant 🛒</h1>
-  </div>
+<div class="logo-title-container">
+    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
 ''', unsafe_allow_html=True)
 
