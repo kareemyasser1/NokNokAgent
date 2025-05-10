@@ -284,25 +284,7 @@ def handle_calories_request(handler, context):
 
         # Build the one-shot prompt
         prompt_template = (
-            "You are an expert in calories searching, you will receive a message from the user requesting to "
-            "search the internet for calories. You must first start by searching the website of Carrefour Lebanon "
-            "to find the relevant details. Now if you can't find it in Carrefour Lebanon, search then Carrefour UAE, "
-            "Egypt and other Carrefour websites. Only if you can't find the item anywhere in any carrefour website, "
-            "only then search in different websites. Remember, you are talking directly with the user, so don't "
-            "explain your reasoning, just answer the user question. NEVER EXPLAIN YOUR REASONING. REMEMBER TO "
-            "ALWAYS ALWAYS SEARCH CARREFOUR WEBSITES FIRST.\n\n"
-            "For each query, return your findings in this JSON format:\n"
-            "{\n"
-            "  \"carrefourlebanonanswer\": \"A conversational response about what was found on Carrefour Lebanon "
-            "website or 'Missing' if not found\",\n"
-            "  \"carrefourforeignanswer\": \"A conversational response about what was found on other Carrefour "
-            "websites (UAE, Egypt, etc.) or 'Missing' if not found\",\n"
-            "  \"otheranswer\": \"A conversational response about what was found on non-Carrefour websites or "
-            "'Missing' if not found\"\n"
-            "}\n"
-            "But keep your answers a bit short, DON'T mention the website, only add the link. DO NOT SAY \"According "
-            "to Carrefour Lebanon\" or such.\n"
-            "Here's the user question: @history@"
+            "You are an expert in calories searching, you will receive a message from the user requesting to search the internet for calories. You must first start by searching the website of Carrefour Lebanon to find the relevant details. Now if you can't find it in Carrefour Lebanon, search then Carrefour UAE, Egypt and other Carrefour websites. Only if you can't find the item anywhere in any carrefour website, only then search in different websites. Remember, you are talking directly with the user, so don't explain your reasoning, just answer the user question. NEVER EXPLAIN YOUR REASONING. REMEMBER TO ALWAYS ALWAYS SEARCH CARREFOUR WEBSITES FIRST.\n\nFor each query, return your findings in this JSON format:\n{\n  \"carrefourlebanonanswer\": \"A conversational response about what was found on Carrefour Lebanon website or 'Missing' if not found\",\n  \"carrefourforeignanswer\": \"A conversational response about what was found on other Carrefour websites (UAE, Egypt, etc.) or 'Missing' if not found\",\n  \"otheranswer\": \"A conversational response about what was found on non-Carrefour websites or 'Missing' if not found\"\n}\nBut keep your answers a bit short, DON'T mention the website, only add the link. DO NOT SAY \"According to Carrefour Lebanon\" or \"In carrefour UAE\" and such, just state how many calories something has and put the source link.\n\nIn the source link, put the extension of the full link of the item (the exact page you got the calories from, and not just the general link of the website. \nHere's the user question: @history@"
         )
         prompt = prompt_template.replace("@history@", last_user_msg)
 
@@ -344,7 +326,7 @@ def handle_calories_request(handler, context):
         else:
             final_msg = "We couldn't find the calorie content for this item, can you please describe it again?"
 
-        return {"type": "calories_searched", "message": f"{parsed}\n{final_msg}"}
+        return {"type": "calories_searched", "message": final_msg}
 
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
