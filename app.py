@@ -334,6 +334,19 @@ if st.session_state.get("theme_mode") == "dark":
             background-color: #262730 !important;
             border: 1px dashed #4e8cff !important;
         }
+        /* Inner dropzone element that holds the drag-and-drop text */
+        [data-testid="stFileUploader"] div:first-child {
+            background-color: transparent !important;
+            color: #ffffff !important;
+        }
+        /* Selectbox (client selection) control */
+        div[data-baseweb="select"] > div {
+            background-color: #262730 !important;
+            color: #ffffff !important;
+        }
+        div[data-baseweb="select"] input {
+            color: #ffffff !important;
+        }
         /* Generic buttons */
         .stButton > button {
             background-color: #2a62ca !important;
@@ -346,32 +359,6 @@ if st.session_state.get("theme_mode") == "dark":
         /* Toolbar buttons */
         [data-testid="stToolbar"] button {
             color: #4e8cff !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Further dark-mode tweaks (chat rows, selectbox, icon buttons)
-    st.markdown(
-        """
-        <style>
-        /* chat row background transparency */
-        [data-testid="stChatMessage"] {
-            background-color: transparent !important;
-        }
-        /* selectbox (client dropdown) */
-        div[data-testid="stSelectbox"] > div {
-            background-color: #262730 !important;
-            color: #ffffff !important;
-            border: 1px solid #4e8cff !important;
-        }
-        div[data-testid="stSelectbox"] label {
-            color: #ffffff !important;
-        }
-        /* ensure blue buttons keep white text (refresh, theme-toggle, expander buttons) */
-        .stButton > button {
-            color: #ffffff !important;
         }
         </style>
         """,
@@ -2755,23 +2742,36 @@ else:
         unsafe_allow_html=True,
     )
 
-    # Further light-mode tweaks (chat rows, selectbox, icon buttons)
+    # Extra selectors to ensure full light coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
     st.markdown(
         """
         <style>
-        [data-testid="stChatMessage"] {
+        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
+            background-color: #ffffff !important;
+        }
+        .block-container {
             background-color: transparent !important;
         }
-        div[data-testid="stSelectbox"] > div {
+        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
             background-color: #f5f8ff !important;
             color: #000000 !important;
-            border: 1px solid #2a62ca !important;
         }
-        div[data-testid="stSelectbox"] label {
+        [data-testid="stFileUploader"] {
+            background-color: #f5f8ff !important;
+            border: 1px dashed #2a62ca !important;
+        }
+        /* Inner dropzone element */
+        [data-testid="stFileUploader"] div:first-child {
+            background-color: transparent !important;
             color: #000000 !important;
         }
-        .stButton > button {
-            color: #ffffff !important;
+        /* Selectbox control */
+        div[data-baseweb="select"] > div {
+            background-color: #f5f8ff !important;
+            color: #000000 !important;
+        }
+        div[data-baseweb="select"] input {
+            color: #000000 !important;
         }
         </style>
         """,
