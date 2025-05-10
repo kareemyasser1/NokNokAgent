@@ -847,11 +847,12 @@ if st.session_state.noknok_sheets:
                         st.sidebar.markdown("""
                         <style>
                         .client-details {
-                            background-color: rgba(78, 140, 255, 0.1);
+                            background-color: rgba(255, 255, 255, 0.95);
                             border-left: 3px solid #4e8cff;
                             padding: 15px;
                             border-radius: 5px;
                             margin-top: 10px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                         }
                         .client-details h3 {
                             color: #4e8cff;
@@ -865,15 +866,16 @@ if st.session_state.noknok_sheets:
                             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         }
                         .field-label {
-                            color: #555;
+                            color: #333;
                             font-weight: bold;
                         }
                         .field-value {
-                            color: #333;
+                            color: #000;
                             padding-left: 5px;
+                            font-weight: 500;
                         }
                         .balance-value {
-                            color: #2a9d8f;
+                            color: #008060;
                             font-weight: bold;
                         }
                         </style>
@@ -920,11 +922,12 @@ if st.session_state.noknok_sheets:
                             st.sidebar.markdown("""
                             <style>
                             .orders-container {
-                                background-color: rgba(253, 230, 170, 0.2);
+                                background-color: rgba(255, 255, 255, 0.95);
                                 border-left: 3px solid #f8b400;
                                 padding: 15px;
                                 border-radius: 5px;
                                 margin-top: 20px;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                             }
                             .orders-container h3 {
                                 color: #f8b400;
@@ -942,10 +945,13 @@ if st.session_state.noknok_sheets:
                             .order-id {
                                 font-weight: bold;
                                 color: #333;
+                                display: block;
+                                margin-bottom: 4px;
                             }
                             .order-amount {
-                                color: #2a9d8f;
+                                color: #008060;
                                 font-weight: bold;
+                                margin-right: 8px;
                             }
                             .order-status {
                                 display: inline-block;
@@ -1056,19 +1062,19 @@ if st.session_state.noknok_sheets:
                                 order_id = o.get('OrderID', 'N/A')
                                 order_html_items.append(f"""
                                 <div class="order-item">
-                                    <span class="order-id">Order #{order_id}:</span>
+                                    <span class="order-id">Order #{order_id}</span>
                                     <span class="order-amount">{amount_display}</span>
                                     <span class="order-status {status_class}">{order_status}</span>
                                 </div>
-                                """)
+                                """.strip())
                             
-                            # Combine all order items
+                            # Combine all order items - make sure HTML is properly escaped
                             orders_html = f"""
                             <div class="orders-container">
                                 <h3>Recent Orders</h3>
                                 {"".join(order_html_items)}
                             </div>
-                            """
+                            """.strip()
                             
                             # Display orders HTML
                             st.sidebar.markdown(orders_html, unsafe_allow_html=True)
