@@ -833,8 +833,8 @@ if st.session_state.noknok_sheets:
         .sheet-button {
             display: inline-block;
             text-decoration: none;
-            background-color: black;
-            color: white;
+            background-color: #2a62ca;
+            color: black;
             padding: 8px 16px;
             border-radius: 4px;
             font-weight: bold;
