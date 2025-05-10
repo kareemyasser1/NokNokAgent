@@ -287,19 +287,38 @@ body, .stApp {{
     color: #000000 !important;
 }}
 
-.fixed-header {
+/* Global layout styles */
+.logo-title-container {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #ffffff; /* Match the background color */
+    left: 18rem;  /* Leave space for sidebar */
+    right: 0;
+    background-color: white;
     z-index: 1000;
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 1rem 1rem 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 0;
+    border-bottom: 1px solid rgba(49, 51, 63, 0.1);
 }
 
-.stApp {
-    margin-top: 100px; /* Adjust this value based on the height of the fixed header */
+/* Adjust main content to account for fixed header */
+.main > div:has(> .stChatFloatingInputContainer) {
+    padding-top: 7rem !important;  /* Add padding to prevent content from going under header */
+}
+
+.logo-title-container img {
+    max-height: none !important;
+    object-fit: contain;
+    width: 200px;
+}
+
+.title-text {
+    margin: 0;
+    padding: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -861,43 +880,10 @@ import base64
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
 
-st.markdown('''
-<style>
-.logo-title-container {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-.logo-title-container img {
-    max-height: none !important;
-    object-fit: contain;
-}
-.title-text {
-    margin: 0;
-    padding: 0;
-    font-size: 2.5rem;
-    font-weight: bold;
-}
-.noknok-logo {
-    height: 60px;
-    margin-right: 8px;
-    object-fit: contain;
-    max-width: 60px;
-}
-.noknok-logo-small {
-    height: 30px;
-    vertical-align: middle;
-    object-fit: contain;
-    max-width: 30px;
-}
-</style>
-''', unsafe_allow_html=True)
-
 # Custom layout for logo and title
 st.markdown(f'''
 <div class="logo-title-container">
-    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <img src="data:image/png;base64,{logo_base64}" alt="logo">
     <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
 ''', unsafe_allow_html=True)
@@ -2467,30 +2453,3 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
-
-# Add the fixed header CSS and HTML at the beginning of the Streamlit app
-st.markdown('''
-<style>
-.fixed-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #ffffff; /* Match the background color */
-    z-index: 1000;
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.stApp {
-    margin-top: 100px; /* Adjust this value based on the height of the fixed header */
-}
-</style>
-
-<div class="fixed-header">
-    <div class="logo-title-container">
-        <img src="data:image/png;base64,{logo_base64}" width="200">
-        <h1 class="title-text">AI Assistant 🛒</h1>
-    </div>
-</div>
-''', unsafe_allow_html=True)
