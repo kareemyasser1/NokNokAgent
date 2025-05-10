@@ -602,16 +602,44 @@ st.markdown('''
     font-size: 2.5rem;
     font-weight: bold;
 }
+.theme-toggle-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #4e8cff;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: none;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+.theme-toggle-header:hover {
+    background-color: #3a77e8;
+    transform: scale(1.05);
+}
 </style>
 ''', unsafe_allow_html=True)
 
-# Custom layout for logo and title
-st.markdown(f'''
-<div class="logo-title-container">
-    <img src="data:image/png;base64,{logo_base64}" width="200">
-    <h1 class="title-text">AI Assistant 🛒</h1>
-</div>
-''', unsafe_allow_html=True)
+# Custom layout for logo and title with dark mode toggle
+icon = "🌙" if st.session_state.dark_mode else "☀️"
+header_cols = st.columns([6, 1])
+
+with header_cols[0]:
+    st.markdown(f'''
+    <div class="logo-title-container">
+        <img src="data:image/png;base64,{logo_base64}" width="200">
+        <h1 class="title-text">AI Assistant 🛒</h1>
+    </div>
+    ''', unsafe_allow_html=True)
+
+with header_cols[1]:
+    if st.button(icon, key="theme_toggle_header", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode"):
+        pass
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
@@ -856,13 +884,6 @@ if "chat_history_sheet" not in st.session_state:
 
 # Sidebar - Database stats
 st.sidebar.title("NokNok Database")
-
-# Add mode toggle button at the top of the sidebar
-theme_cols = st.sidebar.columns([8, 1, 1])
-with theme_cols[1]:
-    # Display theme toggle button with appropriate icon
-    icon = "🌙" if st.session_state.dark_mode else "☀️"
-    st.button(icon, key="theme_toggle", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode")
 
 # Add custom CSS for sidebar elements
 st.sidebar.markdown(f'''
