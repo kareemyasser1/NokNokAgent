@@ -741,16 +741,6 @@ with top_cols[0]:
                 # Rerun the app to show updated data
                 st.rerun()
 
-# Add open sheet button as a nice styled button
-with top_cols[2]:
-    st.markdown(f'''
-    <a href="{sheet_url}" target="_blank">
-        <div style="display: flex; justify-content: center; align-items: center;">
-            <span style="font-size: 1.2rem;">📋</span>
-        </div>
-    </a>
-    ''', unsafe_allow_html=True)
-
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
