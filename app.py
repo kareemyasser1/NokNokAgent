@@ -602,34 +602,20 @@ st.markdown('''
     font-size: 2.5rem;
     font-weight: bold;
 }
-.theme-toggle-header {
+.menu-container {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #4e8cff;
-    color: white;
-    cursor: pointer;
-    font-size: 18px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    border: none;
-    transition: all 0.3s ease;
-    margin-left: auto;
-}
-.theme-toggle-header:hover {
-    background-color: #3a77e8;
-    transform: scale(1.05);
+    width: 100%;
 }
 </style>
 ''', unsafe_allow_html=True)
 
-# Custom layout for logo and title with dark mode toggle
-icon = "🌙" if st.session_state.dark_mode else "☀️"
-header_cols = st.columns([6, 1])
+# Create a header with menu bar layout
+menu_col1, menu_col2 = st.columns([6, 1])
 
-with header_cols[0]:
+with menu_col1:
+    # Custom layout for logo and title
     st.markdown(f'''
     <div class="logo-title-container">
         <img src="data:image/png;base64,{logo_base64}" width="200">
@@ -637,9 +623,12 @@ with header_cols[0]:
     </div>
     ''', unsafe_allow_html=True)
 
-with header_cols[1]:
-    if st.button(icon, key="theme_toggle_header", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode"):
-        pass
+with menu_col2:
+    # Add dark mode toggle button with icon
+    icon = "🌙" if st.session_state.dark_mode else "☀️"
+    if st.button(icon, key="header_theme_toggle", help="Toggle Dark/Light Mode", use_container_width=True):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
@@ -884,6 +873,12 @@ if "chat_history_sheet" not in st.session_state:
 
 # Sidebar - Database stats
 st.sidebar.title("NokNok Database")
+
+# Add mode toggle button at the top of the sidebar
+theme_cols = st.sidebar.columns([8, 1, 1])
+with theme_cols[1]:
+    # Display theme toggle button with appropriate icon
+    pass  # Removed duplicate dark mode toggle
 
 # Add custom CSS for sidebar elements
 st.sidebar.markdown(f'''
