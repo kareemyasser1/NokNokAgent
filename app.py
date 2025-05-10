@@ -666,8 +666,8 @@ if "chat_history_sheet" not in st.session_state:
 # Replace standard title with custom HTML for better alignment with top bar
 st.sidebar.markdown(f"""
 <div style="display: flex; align-items: center; margin-top: -40px; margin-bottom: 20px; padding: 0;">
-    <img src="data:image/png;base64,{logo_base64}" style="height: 30px; margin-right: 8px;">
-    <span style="font-size: 1.3rem; font-weight: bold; color: white;">Database</span>
+    <img src="data:image/png;base64,{logo_base64}" style="height: 60px; margin-right: 8px;">
+    <span style="font-size: 2.6rem; font-weight: bold; color: white;">Database</span>
 </div>
 """, unsafe_allow_html=True)
 
