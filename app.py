@@ -49,6 +49,10 @@ api_key = st.secrets["OPENAI_API_KEY"]
 # 🖌️  Global page configuration & visual theme (from Exifa)
 # ------------------------------------------------------------
 
+# Initialize dark mode preference in session state
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True  # Default to dark mode
+
 # Set up the page before any other Streamlit calls so the settings
 # apply everywhere.  The particle background and other visuals are
 # inspired by the Exifa.net theme.
@@ -86,10 +90,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize dark mode preference in session state
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True  # Default to dark mode
-
 # Add dark mode toggle to header
 icon = "🌙" if st.session_state.dark_mode else "☀️"
 dark_mode_html = f"""
@@ -105,6 +105,38 @@ function toggle_dark_mode() {{
         value: true,
         key: key
     }}, "*");
+    
+    // Toggle Streamlit's built-in dark mode
+    const doc = window.parent.document;
+    const htmlEl = doc.querySelector('html');
+    
+    if (htmlEl.dataset.theme === 'dark') {{
+        htmlEl.dataset.theme = 'light';
+    }} else {{
+        htmlEl.dataset.theme = 'dark';
+    }}
+    
+    // Also update main content area
+    const mainContent = doc.querySelector('.main');
+    if (mainContent) {{
+        if (htmlEl.dataset.theme === 'dark') {{
+            mainContent.style.backgroundColor = '#0e1117';
+            mainContent.style.color = '#ffffff';
+        }} else {{
+            mainContent.style.backgroundColor = '#ffffff';
+            mainContent.style.color = '#000000';
+        }}
+    }}
+    
+    // Update sidebar
+    const sidebar = doc.querySelector('.css-1d391kg');
+    if (sidebar) {{
+        if (htmlEl.dataset.theme === 'dark') {{
+            sidebar.style.backgroundColor = '#262730';
+        }} else {{
+            sidebar.style.backgroundColor = '#f0f2f6';
+        }}
+    }}
 }}
 </script>
 """
@@ -119,6 +151,40 @@ if st.session_state.theme_toggle_clicked:
     st.session_state.theme_toggle_clicked = False
     # Toggle dark mode without calling rerun
     st.session_state.dark_mode = not st.session_state.dark_mode
+    
+# Also apply theme to the page
+if st.session_state.dark_mode:
+    # Enable dark mode via CSS
+    st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0e1117 !important;
+            color: #ffffff !important;
+        }
+        .stMarkdown, .stText, p, span, label, div {
+            color: #ffffff !important;
+        }
+        div[data-testid="stSidebar"] {
+            background-color: #262730 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    # Enable light mode via CSS
+    st.markdown("""
+        <style>
+        .stApp {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+        .stMarkdown, .stText, p, span, label, div {
+            color: #000000 !important;
+        }
+        div[data-testid="stSidebar"] {
+            background-color: #f0f2f6 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
