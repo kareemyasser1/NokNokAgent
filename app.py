@@ -340,11 +340,35 @@ def process_prompt_variables(prompt_template, client_id=None):
     """Replace variables in prompt template with actual values based on client data and conditions"""
     # Initialize variables with default values
     client_name = "valued customer"
-    eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
-    order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-    technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
-    order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    eta_message = ""
+    order_delay_message = ""
+    technical_message = ""
+    order_eta_message = ""
     eta_value = None
+    
+    # Determine which language to use
+    current_language = st.session_state.get("current_prompt_language", "english").lower()
+    is_lebanese = current_language == "lebanese"
+    
+    # Set default messages based on language
+    if is_lebanese:
+        # Lebanese defaults
+        default_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+        default_order_delay_message = "L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+        default_technical_message = "Kell shi meche min 3enna. Ra7 7awelak ma3 el tech team la ye2daro yse3douk aktar"
+        default_order_eta_message = "NokNok meltezmin b touwsil l order hasab l wa2et l mahtout aa talab l order. L orders byekhdo average 15 di2a la yousalo"
+    else:
+        # English defaults
+        default_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+        default_order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+        default_technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+        default_order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    
+    # Initialize with defaults
+    eta_message = default_eta_message
+    order_delay_message = default_order_delay_message
+    technical_message = default_technical_message
+    order_eta_message = default_order_eta_message
     
     try:
         if "condition_handler" in st.session_state and st.session_state.condition_handler:
@@ -407,35 +431,56 @@ def process_prompt_variables(prompt_template, client_id=None):
                     is_ongoing = order_status and order_status not in ['delivered', 'cancelled', 'canceled', 'refunded']
                     
                     if is_ongoing and eta_value:
-                        eta_message = f"You can expect to receive your order by {eta_value}."
+                        if is_lebanese:
+                            eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            eta_message = f"You can expect to receive your order by {eta_value}."
                     else:
-                        eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+                        eta_message = default_eta_message
                     
                     # @OrderETA@ - Similar to @ETA@ but with different wording
                     if is_ongoing and eta_value:
-                        order_eta_message = f"You can expect to receive your order by {eta_value}."
+                        if is_lebanese:
+                            order_eta_message = f"L order byousal 3a {eta_value}."
+                        else:
+                            order_eta_message = f"You can expect to receive your order by {eta_value}."
                     else:
-                        order_eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+                        order_eta_message = default_order_eta_message
                     
                     # @OrderDelay@ - EXACTLY according to specification
                     if order_status == "delivered":
-                        order_delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
+                        if is_lebanese:
+                            order_delay_message = "Mbayan enno wasil l order. Moumken terja3o tshayko? Moumken l driver 3ata l order la hada tene bel ghalat. Khaberne shu la2et w ra7 n7el el meshkle b ser3a. 💙"
+                        else:
+                            order_delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
                     elif order_status == "driver arrived":
-                        order_delay_message = "The driver has arrived. Could you kindly check?"
+                        if is_lebanese:
+                            order_delay_message = "Wosel l driver, fik please tet2akad?"
+                        else:
+                            order_delay_message = "The driver has arrived. Could you kindly check?"
                     elif weather_conditions:
-                        order_delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
+                        if is_lebanese:
+                            order_delay_message = "Men wara l ta2es, aam nwejeh shwayet mashekel bi touwsil l order taba3ak. Merci 3a saberkon la ken wosel l driver 3al location. Merci le2an khtarto noknok 💙🙏🏻"
+                        else:
+                            order_delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
                     else:
                         # Default case
                         if eta_value:
-                            order_delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                            if is_lebanese:
+                                order_delay_message = f"L order taba3kon t2akhar men wara daghet gher l 3ade bel fere3. L order rah yousal ba3ed {eta_value} Mne3tezer 3al te2khir w mneshkerkon 3a saberkon💙"
+                            else:
+                                order_delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
                         else:
-                            order_delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                            order_delay_message = default_order_delay_message
                     
                     # @Technical@ - Based on technical issues flag
                     if technical_issues:
-                        technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
+                        if is_lebanese:
+                            technical_message = "Hala2 3ena shwe mashekel, bas ra7 nerja3 b wa2et ktir asir. Merci 3a saberkon 💙"
+                        else:
+                            technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
                     else:
-                        technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+                        technical_message = default_technical_message
     except Exception as e:
         print(f"Error processing prompt variables: {e}")
         import traceback
@@ -451,110 +496,6 @@ def process_prompt_variables(prompt_template, client_id=None):
     prompt = prompt.replace("@OrderETA@", order_eta_message)
     
     return prompt
-
-# # Function to process response and replace condition-based variables
-# def process_response_variables(response_text, client_id=None):
-#     """Replace variables in the assistant's response based on client data and conditions"""
-#     if client_id is None or not response_text:
-#         return response_text
-    
-#     # Initialize variables with default values
-#     eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
-#     delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-#     technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
-    
-#     try:
-#         if "@ETA@" in response_text or "@Order Delay@" in response_text or "@Technical@" in response_text:
-#             if "condition_handler" in st.session_state and st.session_state.condition_handler:
-#                 handler = st.session_state.condition_handler
-                
-#                 # Get order data for active orders
-#                 if handler.order_data:
-#                     # Find client's ongoing orders (not delivered or cancelled)
-#                     ongoing_orders = [
-#                         o for o in handler.order_data 
-#                         if str(o.get('ClientID', '')) == str(client_id) and 
-#                         o.get('OrderStatus', '').lower() not in ['delivered', 'cancelled', 'canceled', 'refunded']
-#                     ]
-                    
-#                     if ongoing_orders:
-#                         # Sort to get the most recent order
-#                         recent_order = max(ongoing_orders, key=lambda o: o.get('OrderDate', ''))
-                        
-#                         # Process ETA variable
-#                         if "@ETA@" in response_text:
-#                             eta_value = None
-#                             for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     eta_value = recent_order[field]
-#                                     break
-                            
-#                             if eta_value:
-#                                 eta_message = f"You can expect to receive your order by {eta_value}."
-                        
-#                         # Process Order Delay variable
-#                         if "@Order Delay@" in response_text:
-#                             order_status = None
-#                             for field in ["OrderStatus", "Status", "Order Status"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     order_status = recent_order[field].lower()
-#                                     break
-                            
-#                             weather_conditions = False
-#                             for field in ["Weather Conditions", "WeatherConditions", "Weather"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     # Convert various formats to boolean
-#                                     value = recent_order[field]
-#                                     if isinstance(value, bool):
-#                                         weather_conditions = value
-#                                     elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-#                                         weather_conditions = True
-#                                     break
-                            
-#                             if order_status == "delivered":
-#                                 delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
-#                             elif order_status == "driver arrived":
-#                                 delay_message = "The driver has arrived. Could you kindly check?"
-#                             elif weather_conditions:
-#                                 delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
-#                             else:
-#                                 # Default delay message with ETA if available
-#                                 eta_value = None
-#                                 for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-#                                     if field in recent_order and recent_order[field]:
-#                                         eta_value = recent_order[field]
-#                                         break
-                                
-#                                 if eta_value:
-#                                     delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-                        
-#                         # Process Technical variable
-#                         if "@Technical@" in response_text:
-#                             technical_issues = False
-#                             for field in ["Technical Issue", "TechnicalIssue", "Technical"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     # Convert various formats to boolean
-#                                     value = recent_order[field]
-#                                     if isinstance(value, bool):
-#                                         technical_issues = value
-#                                     elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-#                                         technical_issues = True
-#                                     break
-                            
-#                             if technical_issues:
-#                                 technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
-#     except Exception as e:
-#         print(f"Error processing response variables: {e}")
-#         import traceback
-#         traceback.print_exc()
-    
-#     # Replace variables in the response text
-#     processed_response = response_text
-#     processed_response = processed_response.replace("@ETA@", eta_message)
-#     processed_response = processed_response.replace("@Order Delay@", delay_message)
-#     processed_response = processed_response.replace("@Technical@", technical_message)
-    
-#     return processed_response
 
 # Set model to gpt-4o (removed from UI)
 model = "gpt-4o"
