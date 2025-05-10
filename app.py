@@ -958,7 +958,7 @@ if st.session_state.noknok_sheets:
                         st.sidebar.markdown("""
                         <style>
                         .client-details {
-                            background-color: rgba(35, 40, 48, 0.95);
+                            background-color: rgba(82, 167, 54, 0.95);
                             border-left: 3px solid #4e8cff;
                             padding: 15px;
                             border-radius: 5px;
