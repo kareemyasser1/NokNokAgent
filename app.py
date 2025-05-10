@@ -5,9 +5,31 @@ st.set_page_config(
     page_title="NokNok AI Assistant",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="expanded",
-    theme="light"  # Set theme to light instead of the default dark
+    initial_sidebar_state="expanded"
 )
+
+# Force light theme with CSS overrides
+st.markdown("""
+<style>
+    /* Override Streamlit's default theme to use light mode */
+    html, body, [class*="css"] {
+        color: rgb(33, 33, 33);
+        background-color: #ffffff;
+    }
+    .st-bx {
+        background-color: #f0f2f6;
+    }
+    .st-bq {
+        color: rgb(33, 33, 33);
+    }
+    .css-145kmo2 {
+        color: rgb(33, 33, 33);
+    }
+    .css-1d391kg, .css-12w0qpk {
+        background-color: #f0f2f6;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 import os
 import pandas as pd
@@ -26,6 +48,21 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
+
+# Create .streamlit directory and config.toml for theme
+if not os.path.exists(".streamlit"):
+    os.makedirs(".streamlit")
+
+# Create or update config.toml with light theme
+with open(".streamlit/config.toml", "w") as f:
+    f.write("""
+[theme]
+primaryColor="#1976d2"
+backgroundColor="#ffffff"
+secondaryBackgroundColor="#f0f2f6"
+textColor="#212121"
+font="sans serif"
+    """)
 
 # Load the image as base64 at the very beginning
 with open("logo.png", "rb") as f:
@@ -2139,6 +2176,40 @@ if st.sidebar.button("Clear Chat History"):
     st.session_state.messages = []
     st.rerun()
 
+# Add theme toggle in sidebar
+with st.sidebar.expander("App Settings", expanded=False):
+    if "light_mode" not in st.session_state:
+        st.session_state.light_mode = True
+    
+    # Add toggle for theme
+    if st.checkbox("Dark Mode", value=not st.session_state.light_mode, key="dark_mode_toggle"):
+        st.session_state.light_mode = False
+        # Add dark mode CSS overrides
+        st.markdown("""
+        <style>
+            /* Override to dark mode */
+            html, body, [class*="css"] {
+                color: rgb(250, 250, 250);
+                background-color: rgb(14, 17, 23);
+            }
+            .st-bx {
+                background-color: rgb(25, 32, 48);
+            }
+            .st-bq {
+                color: rgb(250, 250, 250);
+            }
+            .css-145kmo2 {
+                color: rgb(250, 250, 250);
+            }
+            .css-1d391kg, .css-12w0qpk {
+                background-color: rgb(25, 32, 48);
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.session_state.light_mode = True
+        # No need to add light mode CSS again, it's already in the main script
+
 # New section for conditions handling
 class ConditionHandler:
     """Framework for handling various conditions in the application"""
@@ -2485,3 +2556,5 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# Load the image as base64 at the very beginning
