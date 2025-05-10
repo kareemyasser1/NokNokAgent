@@ -586,17 +586,23 @@ if "logo_css_added" not in st.session_state:
         font-size: 2.5rem;
         font-weight: bold;
     }
+    /* Hide duplicate headers that might appear during reruns */
+    .stMarkdown:has(.logo-title-container) + .stMarkdown:has(.logo-title-container) {
+        display: none;
+    }
     </style>
     ''', unsafe_allow_html=True)
     st.session_state.logo_css_added = True
 
-# Render the logo + title with a fixed key so it is not duplicated
-st.markdown(f'''
-<div class="logo-title-container">
-    <img src="data:image/png;base64,{logo_base64}" width="200">
-    <h1 class="title-text">AI Assistant 🛒</h1>
-</div>
-''', unsafe_allow_html=True, key="logo_header")
+# Render the logo + title in a container with a key
+logo_container = st.container()
+with logo_container:
+    st.markdown(f'''
+    <div class="logo-title-container">
+        <img src="data:image/png;base64,{logo_base64}" width="200">
+        <h1 class="title-text">AI Assistant 🛒</h1>
+    </div>
+    ''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
