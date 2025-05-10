@@ -360,6 +360,17 @@ if st.session_state.get("theme_mode") == "dark":
         [data-testid="stToolbar"] button {
             color: #4e8cff !important;
         }
+        /* Footer (area below chat input including Streamlit footer) */
+        footer, footer * {
+            background-color: #0E1117 !important;
+            color: #ffffff !important;
+        }
+        /* Secondary/outline buttons */
+        .stButton > button[kind="secondary"], button[kind="secondary"] {
+            border-color: #4e8cff !important;
+            color: #4e8cff !important;
+            background-color: transparent !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
