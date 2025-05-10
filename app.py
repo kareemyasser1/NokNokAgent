@@ -847,18 +847,18 @@ if st.session_state.noknok_sheets:
                         st.sidebar.markdown("""
                         <style>
                         .client-details {
-                            background-color: rgba(255, 255, 255, 0.95);
+                            background-color: rgba(35, 40, 48, 0.95);
                             border-left: 3px solid #4e8cff;
                             padding: 15px;
                             border-radius: 5px;
                             margin-top: 10px;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
                         }
                         .client-details h3 {
-                            color: #4e8cff;
+                            color: #6aa5ff;
                             font-weight: bold;
                             margin-bottom: 15px;
-                            border-bottom: 1px solid #ccc;
+                            border-bottom: 1px solid #444;
                             padding-bottom: 5px;
                         }
                         .client-field {
@@ -866,16 +866,16 @@ if st.session_state.noknok_sheets:
                             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         }
                         .field-label {
-                            color: #333;
+                            color: #aabfe6;
                             font-weight: bold;
                         }
                         .field-value {
-                            color: #000;
+                            color: #fff;
                             padding-left: 5px;
                             font-weight: 500;
                         }
                         .balance-value {
-                            color: #008060;
+                            color: #5ed9a7;
                             font-weight: bold;
                         }
                         </style>
@@ -922,34 +922,34 @@ if st.session_state.noknok_sheets:
                             st.sidebar.markdown("""
                             <style>
                             .orders-container {
-                                background-color: rgba(255, 255, 255, 0.95);
+                                background-color: rgba(35, 40, 48, 0.95);
                                 border-left: 3px solid #f8b400;
                                 padding: 15px;
                                 border-radius: 5px;
                                 margin-top: 20px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
                             }
                             .orders-container h3 {
-                                color: #f8b400;
+                                color: #ffc947;
                                 font-weight: bold;
                                 margin-bottom: 15px;
-                                border-bottom: 1px solid #ccc;
+                                border-bottom: 1px solid #444;
                                 padding-bottom: 5px;
                             }
                             .order-item {
                                 margin-bottom: 12px;
                                 padding-bottom: 8px;
-                                border-bottom: 1px dotted #eee;
+                                border-bottom: 1px dotted #444;
                                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                             }
                             .order-id {
                                 font-weight: bold;
-                                color: #333;
+                                color: #ddd;
                                 display: block;
                                 margin-bottom: 4px;
                             }
                             .order-amount {
-                                color: #008060;
+                                color: #5ed9a7;
                                 font-weight: bold;
                                 margin-right: 8px;
                             }
