@@ -176,7 +176,8 @@ st.markdown(f"""
 .sidebar-header img {{
     position: absolute;
     left: 0;
-    top: 5px;
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the logo vertically */
     height: 120px; /* Doubled from 60px */
     width: 120px; /* Doubled from 60px */
     object-fit: contain;
@@ -188,6 +189,10 @@ st.markdown(f"""
     color: white;
     margin-left: 140px; /* Increased margin to accommodate larger logo */
     white-space: nowrap;
+    position: absolute; /* Position absolutely like the logo */
+    left: 120px; /* Position after the logo width */
+    top: 50%; /* Position at middle of container */
+    transform: translateY(-50%); /* Center the text vertically */
 }}
 
 /* General logo styling */
