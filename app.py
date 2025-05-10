@@ -8,25 +8,49 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Force light theme with CSS overrides
+# Force light theme with CSS overrides - more comprehensive targeting to ensure light theme
 st.markdown("""
 <style>
-    /* Override Streamlit's default theme to use light mode */
-    html, body, [class*="css"] {
-        color: rgb(33, 33, 33);
-        background-color: #ffffff;
+    /* Strong Streamlit light theme overrides */
+    html, body, [class*="css"], .stApp, div[data-testid="stAppViewContainer"], .main,
+    div[data-testid="stToolbar"], div[data-testid="baseButton-headerNoPadding"], 
+    div[data-testid="stDecoration"], div[data-testid="stStatusWidget"] {
+        color: rgb(33, 33, 33) !important;
+        background-color: #ffffff !important;
     }
+    
+    /* Main content area */
+    .main .block-container {
+        background-color: #ffffff !important;
+    }
+    
+    /* Sidebar background */
+    [data-testid="stSidebar"] {
+        background-color: #f0f2f6 !important;
+    }
+    
+    /* Headers and text */
+    h1, h2, h3, h4, h5, h6, p, .stMarkdown, .stText {
+        color: #212121 !important;
+    }
+    
+    /* Widget backgrounds */
+    .stTextInput, .stSelectbox, .stButton, .stNumberInput {
+        background-color: #f8f9fa !important;
+    }
+    
+    /* Override specific Streamlit components */
     .st-bx {
-        background-color: #f0f2f6;
+        background-color: #f0f2f6 !important;
     }
     .st-bq {
-        color: rgb(33, 33, 33);
+        color: rgb(33, 33, 33) !important;
     }
     .css-145kmo2 {
-        color: rgb(33, 33, 33);
+        color: rgb(33, 33, 33) !important;
     }
     .css-1d391kg, .css-12w0qpk {
-        background-color: #f0f2f6;
+        background-color: #f0f2f6 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -2164,36 +2188,58 @@ if st.sidebar.button("Clear Chat History"):
 # Add theme toggle in sidebar
 with st.sidebar.expander("App Settings", expanded=False):
     if "light_mode" not in st.session_state:
-        st.session_state.light_mode = True
+        st.session_state.light_mode = True  # Default to light mode
     
-    # Add toggle for theme
-    if st.checkbox("Dark Mode", value=not st.session_state.light_mode, key="dark_mode_toggle"):
-        st.session_state.light_mode = False
+    # Add toggle for theme - always starts in light mode
+    use_dark_mode = st.checkbox("Dark Mode", value=False, key="dark_mode_toggle")
+    st.session_state.light_mode = not use_dark_mode
+    
+    if use_dark_mode:
         # Add dark mode CSS overrides
         st.markdown("""
         <style>
-            /* Override to dark mode */
-            html, body, [class*="css"] {
-                color: rgb(250, 250, 250);
-                background-color: rgb(14, 17, 23);
+            /* Dark mode overrides */
+            html, body, [class*="css"], .stApp, div[data-testid="stAppViewContainer"], .main,
+            div[data-testid="stToolbar"], div[data-testid="baseButton-headerNoPadding"], 
+            div[data-testid="stDecoration"], div[data-testid="stStatusWidget"] {
+                color: rgb(250, 250, 250) !important;
+                background-color: rgb(14, 17, 23) !important;
             }
+            
+            /* Main content area */
+            .main .block-container {
+                background-color: rgb(14, 17, 23) !important;
+            }
+            
+            /* Sidebar background */
+            [data-testid="stSidebar"] {
+                background-color: rgb(25, 32, 48) !important;
+            }
+            
+            /* Headers and text */
+            h1, h2, h3, h4, h5, h6, p, .stMarkdown, .stText {
+                color: rgb(250, 250, 250) !important;
+            }
+            
+            /* Widget backgrounds */
+            .stTextInput, .stSelectbox, .stButton, .stNumberInput {
+                background-color: rgb(36, 41, 51) !important;
+            }
+            
             .st-bx {
-                background-color: rgb(25, 32, 48);
+                background-color: rgb(25, 32, 48) !important;
             }
             .st-bq {
-                color: rgb(250, 250, 250);
+                color: rgb(250, 250, 250) !important;
             }
             .css-145kmo2 {
-                color: rgb(250, 250, 250);
+                color: rgb(250, 250, 250) !important;
             }
             .css-1d391kg, .css-12w0qpk {
-                background-color: rgb(25, 32, 48);
+                background-color: rgb(25, 32, 48) !important;
             }
         </style>
         """, unsafe_allow_html=True)
-    else:
-        st.session_state.light_mode = True
-        # No need to add light mode CSS again, it's already in the main script
 
 # New section for conditions handling
 class ConditionHandler:
