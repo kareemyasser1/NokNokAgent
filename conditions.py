@@ -344,7 +344,7 @@ def handle_calories_request(handler, context):
         else:
             final_msg = "We couldn't find the calorie content for this item, can you please describe it again?"
 
-        return {"type": "calories_searched", "message": final_msg}
+        return {"type": "calories_searched", "message": f"{parsed}\n{final_msg}"}
 
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
