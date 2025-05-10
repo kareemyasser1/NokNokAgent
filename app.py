@@ -677,9 +677,9 @@ if "chat_history_sheet" not in st.session_state:
 # Sidebar - Database stats
 # Replace standard title with custom HTML for better alignment with top bar
 st.sidebar.markdown(f"""
-<div style="display: flex; align-items: center; margin-top: -40px; margin-bottom: 20px; padding: 0; height: 70px;">
-    <img src="data:image/png;base64,{logo_base64}" class="noknok-logo">
-    <span style="font-size: 2.6rem; font-weight: bold; color: white;">Database</span>
+<div style="display: flex; align-items: center; margin-top: -40px; margin-bottom: 20px; padding: 0; height: 70px; position: relative;">
+    <img src="data:image/png;base64,{logo_base64}" class="noknok-logo" style="position: absolute; left: 0; top: 5px;">
+    <span style="font-size: 2.6rem; font-weight: bold; color: white; margin-left: 70px; white-space: nowrap;">Database</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -790,6 +790,9 @@ if st.session_state.noknok_sheets:
             margin-bottom: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            height: auto;
+            min-height: 300px; /* Fixed minimum height for container */
         }
         .stats-header {
             color: #6aa5ff;
@@ -803,46 +806,57 @@ if st.session_state.noknok_sheets:
             align-items: center;
             justify-content: center;
             height: 70px; /* Fixed height to prevent layout shifts */
+            position: relative; /* Enable positioning */
+            overflow: hidden; /* Prevent overflow */
         }
-        .stats-header img {
-            height: 60px;
-            margin-right: 8px;
-            object-fit: contain; /* Ensure image maintains aspect ratio */
-            max-width: 60px; /* Prevent image from growing too wide */
+        .stats-header-text {
+            margin-left: 70px; /* Space for logo */
+            white-space: nowrap; /* Keep text on one line */
+            font-size: 1.1rem;
         }
-        .noknok-logo {
+        .stats-header img, .noknok-logo {
             height: 60px;
-            margin-right: 8px;
+            width: 60px;
+            position: absolute;
+            left: 10px;
+            top: 5px;
             object-fit: contain;
-            max-width: 60px;
         }
         .noknok-logo-small {
             height: 30px;
+            width: 30px;
             vertical-align: middle;
             object-fit: contain;
-            max-width: 30px;
+            display: inline-block;
         }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-gap: 10px;
             margin-bottom: 15px;
+            height: 80px; /* Fixed height */
         }
         .stat-card {
             background-color: rgba(50, 57, 68, 0.7);
             border-radius: 4px;
             padding: 10px;
             text-align: center;
+            height: 100%; /* Full height of parent */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .stat-value {
             font-size: 1.5rem;
             font-weight: bold;
             color: #5ed9a7;
             margin-bottom: 5px;
+            line-height: 1;
         }
         .stat-label {
             font-size: 0.8rem;
             color: #aabfe6;
+            line-height: 1;
         }
         .status-indicator {
             display: flex;
@@ -852,14 +866,18 @@ if st.session_state.noknok_sheets:
             border-radius: 4px;
             padding: 8px;
             margin-top: 10px;
+            height: 40px; /* Fixed height */
+            position: relative;
+        }
+        .status-connected, .status-disconnected {
+            font-weight: 500;
+            white-space: nowrap;
         }
         .status-connected {
             color: #8ac926;
-            font-weight: 500;
         }
         .status-disconnected {
             color: #ff595e;
-            font-weight: 500;
         }
         .sheet-button {
             display: inline-block;
@@ -873,6 +891,8 @@ if st.session_state.noknok_sheets:
             margin-top: 10px;
             width: 100%;
             transition: background-color 0.2s;
+            height: 40px; /* Fixed height */
+            line-height: 24px; /* Center text vertically */
         }
         .sheet-button:hover {
             background-color: #333;
@@ -884,7 +904,8 @@ if st.session_state.noknok_sheets:
         stats_html = f"""
         <div class="stats-container">
             <div class="stats-header">
-                <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo"> Database Statistics
+                <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo">
+                <div class="stats-header-text">Database Statistics</div>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -1235,6 +1256,9 @@ else:
         margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        position: relative;
+        height: auto;
+        min-height: 300px; /* Fixed minimum height for container */
     }
     .stats-header {
         color: #6aa5ff;
