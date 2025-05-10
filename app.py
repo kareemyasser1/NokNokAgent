@@ -2561,7 +2561,7 @@ if st.session_state.get("theme_mode") == "dark":
     }
     .sheet-button {
         background-color: #2a62ca !important;
-        color: #ffffff !important;
+        color: black !important;
     }
     .client-details {
         background-color: rgba(35, 40, 48, 0.95) !important;
@@ -2597,37 +2597,7 @@ if st.session_state.get("theme_mode") == "dark":
         color: #5ed9a7 !important;
     }
     .order-status {
-        color: #ffffff !important;
-    }
-    /* Ensure status badges have white text for contrast */
-    .order-status,
-    .order-status.status-cancelled,
-    .order-status.status-canceled,
-    .order-status.status-delivered,
-    .order-status.status-delivering,
-    .order-status.status-pending {
-        color: #ffffff !important;
-    }
-    /* Darken dataframes/tables */
-    table,
-    .dataframe {
-        background-color: #1b1e23 !important;
-        color: #ffffff !important;
-    }
-    th, td {
-        border-color: #333 !important;
-    }
-    /* Expanders/Tabs */
-    .stExpanderHeader,
-    .stTabsHeader,
-    .stTabsHeader button {
-        background-color: #0E1117 !important;
-        color: #ffffff !important;
-    }
-    /* Sidebar icons */
-    [data-testid="stSidebar"] svg {
-        fill: #ffffff !important;
-        color: #ffffff !important;
+        color: #333 !important;
     }
     </style>
     """
