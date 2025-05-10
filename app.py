@@ -1,12 +1,4 @@
 import streamlit as st
-
-# Set up the page before any other Streamlit calls
-st.set_page_config(
-    page_title="NokNok AI Assistant",
-    page_icon="🛒",
-    layout="wide",
-)
-
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -24,270 +16,6 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
-
-# Load the image as base64 at the very beginning
-with open("logo.png", "rb") as f:
-    logo_base64 = base64.b64encode(f.read()).decode()
-
-# Apply global CSS styling immediately at app startup, before any interactions
-st.markdown(f"""
-<style>
-/* Global layout styles */
-.stats-container {{
-    background-color: rgba(35, 40, 48, 0.95);
-    border-radius: 5px;
-    padding: 15px;
-    margin-top: 0;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    position: relative;
-    height: auto;
-    min-height: 300px; /* Fixed minimum height for container */
-}}
-
-.stats-header {{
-    color: #6aa5ff;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    border-bottom: 1px solid #444;
-    padding-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 70px; /* Fixed height to prevent layout shifts */
-    position: relative; /* Enable positioning */
-    overflow: hidden; /* Prevent overflow */
-}}
-
-.stats-header-text {{
-    margin-left: 0; /* Remove left margin to center properly */
-    white-space: nowrap; /* Keep text on one line */
-    font-size: 1.1rem;
-}}
-
-.stats-header img, .noknok-logo {{
-    height: 60px;
-    width: 60px;
-    position: static; /* Change from absolute to static positioning */
-    margin-right: 10px; /* Add right margin for spacing */
-    object-fit: contain;
-}}
-
-.noknok-logo-small {{
-    height: 30px;
-    width: 30px;
-    vertical-align: middle;
-    object-fit: contain;
-    display: inline-block;
-}}
-
-.stats-grid {{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-gap: 10px;
-    margin-bottom: 15px;
-    height: 80px; /* Fixed height */
-}}
-
-.stat-card {{
-    background-color: rgba(50, 57, 68, 0.7);
-    border-radius: 4px;
-    padding: 10px;
-    text-align: center;
-    height: 100%; /* Full height of parent */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}}
-
-.stat-value {{
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #5ed9a7;
-    margin-bottom: 5px;
-    line-height: 1;
-}}
-
-.stat-label {{
-    font-size: 0.8rem;
-    color: #aabfe6;
-    line-height: 1;
-}}
-
-.status-indicator {{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(50, 57, 68, 0.5);
-    border-radius: 4px;
-    padding: 8px;
-    margin-top: 10px;
-    height: 40px; /* Fixed height */
-    position: relative;
-}}
-
-.status-connected, .status-disconnected {{
-    font-weight: 500;
-    white-space: nowrap;
-}}
-
-.status-connected {{
-    color: #8ac926;
-}}
-
-.status-disconnected {{
-    color: #ff595e;
-}}
-
-.sheet-button {{
-    display: inline-block;
-    text-decoration: none;
-    background-color: #2a62ca;
-    color: black;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 10px;
-    width: 100%;
-    transition: background-color 0.2s;
-    height: 40px; /* Fixed height */
-    line-height: 24px; /* Center text vertically */
-}}
-
-.sheet-button:hover {{
-    background-color: #333;
-}}
-
-/* Custom header at top of sidebar */
-.sidebar-header {{
-    display: flex;
-    align-items: center;
-    margin-top: -40px;
-    margin-bottom: 20px;
-    padding: 0; 
-    height: 90px; /* Increased height to accommodate larger logo */
-    position: relative;
-}}
-
-.sidebar-header img {{
-    position: absolute;
-    left: 0;
-    top: 50%; /* Position at middle of container */
-    transform: translateY(-50%); /* Center the logo vertically */
-    height: 120px; /* Doubled from 60px */
-    width: 120px; /* Doubled from 60px */
-    object-fit: contain;
-}}
-
-.sidebar-header span {{
-    font-size: 2.6rem;
-    font-weight: bold;
-    color: white;
-    margin-left: 50px; /* Remove this margin since we're using absolute positioning */
-    white-space: nowrap;
-    position: absolute; /* Position absolutely like the logo */
-    left: 80px; /* Reduce the gap between logo and text */
-    top: 50%; /* Position at middle of container */
-    transform: translateY(-50%); /* Center the text vertically */
-}}
-
-/* General logo styling */
-.logo-title-container {{
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-}}
-
-.logo-title-container img {{
-    max-height: none !important;
-    object-fit: contain;
-}}
-
-.title-text {{
-    margin: 0;
-    padding: 0;
-    font-size: 2.5rem;
-    font-weight: bold;
-}}
-
-body, .stApp {{
-    background-color: #ffffff !important;
-    color: #000000 !important;
-}}
-
-/* Light theme overrides */
-.stats-container {{
-    background-color: #ffffff !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-}}
-
-.stats-header {{
-    color: #2a62ca !important;
-    border-bottom: 1px solid #e0e0e0 !important;
-}}
-
-.stat-card {{
-    background-color: #f1f6ff !important;
-}}
-
-.stat-value {{
-    color: #2a62ca !important;
-}}
-
-.stat-label {{
-    color: #333333 !important;
-}}
-
-.status-indicator {{
-    background-color: #eaf0ff !important;
-}}
-
-.sidebar-header span {{
-    color: #000000 !important;
-}}
-
-.sheet-button {{
-    background-color: #2a62ca !important;
-    color: #ffffff !important;
-}}
-
-.client-details {{
-    background-color: #f9f9f9 !important;
-    border-left: 3px solid #2a62ca !important;
-}}
-
-.orders-container {{
-    background-color: #ffffff !important;
-    border-left: 3px solid #ffc947 !important;
-}}
-
-.order-item {{
-    border-bottom: 1px dotted #d0d0d0 !important;
-}}
-
-.order-status {{
-    color: #ffffff !important;
-}}
-
-.field-label {{
-    color: #2a62ca !important;
-}}
-
-.field-value {{
-    color: #000000 !important;
-}}
-
-[data-testid="stSidebar"] {{
-    background-color: #ffffff !important;
-    color: #000000 !important;
-}}
-</style>
-""", unsafe_allow_html=True)
 
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
@@ -318,8 +46,18 @@ load_dotenv()
 api_key = st.secrets["OPENAI_API_KEY"]
 
 # ------------------------------------------------------------
-# 🖌️  Global visual theme (from Exifa)
+# 🖌️  Global page configuration & visual theme (from Exifa)
 # ------------------------------------------------------------
+
+# Set up the page before any other Streamlit calls so the settings
+# apply everywhere.  The particle background and other visuals are
+# inspired by the Exifa.net theme.
+
+st.set_page_config(
+    page_title="NokNok AI Assistant",
+    page_icon="🛒",
+    layout="wide",
+)
 
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
@@ -351,11 +89,11 @@ particles_js = """<!DOCTYPE html>
     particlesJS('particles-js', {
       particles: {
         number: { value: 300, density: { enable: true, value_area: 800 } },
-        color:  { value: '#4e8cff' },
+        color:  { value: '#ffffff' },
         shape:  { type: 'circle' },
         opacity:{ value: 0.5 },
         size:   { value: 2, random: true },
-        line_linked: { enable: true, distance: 100, color: '#4e8cff', opacity: 0.22, width: 1 },
+        line_linked: { enable: true, distance: 100, color: '#ffffff', opacity: 0.22, width: 1 },
         move:   { enable: true, speed: 0.2, out_mode: 'out', bounce: true }
       },
       interactivity: {
@@ -864,18 +602,6 @@ st.markdown('''
     font-size: 2.5rem;
     font-weight: bold;
 }
-.noknok-logo {
-    height: 60px;
-    margin-right: 8px;
-    object-fit: contain;
-    max-width: 60px;
-}
-.noknok-logo-small {
-    height: 30px;
-    vertical-align: middle;
-    object-fit: contain;
-    max-width: 30px;
-}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -900,6 +626,198 @@ if "messages" not in st.session_state:
     # Track inactivity / idle closing
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
+
+# Initialize dark mode preference in session state
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = True  # Default to dark mode
+
+# Function to toggle dark mode
+def toggle_dark_mode():
+    st.session_state.dark_mode = not st.session_state.dark_mode
+    st.rerun()
+
+# Define light and dark mode CSS 
+light_mode_css = """
+.client-details {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-left: 3px solid #4e8cff;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.client-details h3 {
+    color: #4e8cff;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+.client-field {
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.field-label {
+    color: #333;
+    font-weight: bold;
+}
+.field-value {
+    color: #000;
+    padding-left: 5px;
+    font-weight: 500;
+}
+.balance-value {
+    color: #008060;
+    font-weight: bold;
+}
+.orders-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-left: 3px solid #f8b400;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.orders-container h3 {
+    color: #f8b400;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+.order-item {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.order-id {
+    font-weight: bold;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+}
+.order-amount {
+    color: #008060;
+    font-weight: bold;
+    margin-right: 8px;
+}
+"""
+
+dark_mode_css = """
+.client-details {
+    background-color: rgba(35, 40, 48, 0.95);
+    border-left: 3px solid #4e8cff;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.client-details h3 {
+    color: #6aa5ff;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+.client-field {
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.field-label {
+    color: #aabfe6;
+    font-weight: bold;
+}
+.field-value {
+    color: #fff;
+    padding-left: 5px;
+    font-weight: 500;
+}
+.balance-value {
+    color: #5ed9a7;
+    font-weight: bold;
+}
+.orders-container {
+    background-color: rgba(35, 40, 48, 0.95);
+    border-left: 3px solid #f8b400;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.orders-container h3 {
+    color: #ffc947;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+.order-item {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #444;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.order-id {
+    font-weight: bold;
+    color: #ddd;
+    display: block;
+    margin-bottom: 4px;
+}
+.order-amount {
+    color: #5ed9a7;
+    font-weight: bold;
+    margin-right: 8px;
+}
+"""
+
+# Common CSS for both modes
+common_css = """
+.order-status {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    background-color: #e9c46a;
+    color: #333;
+}
+.status-delivered {
+    background-color: #8ac926;
+    color: white;
+}
+.status-cancelled, .status-canceled {
+    background-color: #ff595e;
+    color: white;
+}
+.status-delivering {
+    background-color: #4361ee;
+    color: white;
+}
+.status-pending {
+    background-color: #e9c46a;
+    color: #333;
+}
+.theme-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #4e8cff;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: none;
+    transition: all 0.3s ease;
+}
+.theme-toggle:hover {
+    background-color: #3a77e8;
+    transform: scale(1.05);
+}
+"""
 
 if "sheets_client" not in st.session_state:
     st.session_state.sheets_client = init_google_sheets()
@@ -937,34 +855,41 @@ if "chat_history_sheet" not in st.session_state:
         st.session_state.chat_history_sheet = get_or_create_chat_history(st.session_state.sheets_client)
 
 # Sidebar - Database stats
-# Replace standard title with custom HTML for better alignment with top bar
-st.sidebar.markdown(f"""
-<div class="sidebar-header">
-    <img src="data:image/png;base64,{logo_base64}" alt="logo">
-    <span>Database</span>
-</div>
-""", unsafe_allow_html=True)
+st.sidebar.title("NokNok Database")
 
-# Add custom CSS for sidebar file uploader
-st.sidebar.markdown('''
+# Add mode toggle button at the top of the sidebar
+theme_cols = st.sidebar.columns([8, 1, 1])
+with theme_cols[1]:
+    # Display theme toggle button with appropriate icon
+    icon = "🌙" if st.session_state.dark_mode else "☀️"
+    st.button(icon, key="theme_toggle", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode")
+
+# Add custom CSS for sidebar elements
+st.sidebar.markdown(f'''
 <style>
 /* Make the sidebar file uploader more attractive */
-[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {{
     width: 100%;
     border: 1px dashed #4e8cff;
     border-radius: 4px;
     background-color: rgba(78, 140, 255, 0.05);
     margin-top: 0.5rem;
-}
+}}
 
 /* Style the send image button */
-[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
+[data-testid="stSidebar"] [data-testid="baseButton-secondary"] {{
     background-color: #4e8cff !important;
     color: white !important;
     border: none !important;
     width: 100%;
     margin-top: 0.5rem;
-}
+}}
+
+/* Apply the appropriate theme CSS based on dark mode setting */
+{dark_mode_css if st.session_state.dark_mode else light_mode_css}
+
+/* Common CSS for both themes */
+{common_css}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -1021,6 +946,16 @@ with top_cols[0]:
                 # Rerun the app to show updated data
                 st.rerun()
 
+# Add open sheet button as a nice styled button
+with top_cols[2]:
+    st.markdown(f'''
+    <a href="{sheet_url}" target="_blank">
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <span style="font-size: 1.2rem;">📋</span>
+        </div>
+    </a>
+    ''', unsafe_allow_html=True)
+
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
@@ -1041,53 +976,23 @@ if st.session_state.noknok_sheets:
         clients_data = sheet_data.get('clients', [])
         items_data = sheet_data.get('items', [])
         
-        # Create HTML for stats display instead of using st.metric
-        stats_html = f"""
-        <div class="stats-container">
-            <div class="stats-header">
-                <img src="data:image/png;base64,{logo_base64}" alt="logo">
-                <div class="stats-header-text">Database Statistics</div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">{len(orders_data)}</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{len(clients_data)}</div>
-                    <div class="stat-label">Total Clients</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
-                    <div class="stat-label">In Stock</div>
-                </div>
-            </div>
-            <div class="status-indicator">
-                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
-            </div>
-            <a href="{sheet_url}" target="_blank" class="sheet-button">
-                📊 Open Google Sheet
-            </a>
-        </div>
-        """
-        
-        # Display the custom stats HTML
-        st.sidebar.markdown(stats_html, unsafe_allow_html=True)
+        # Display stats
+        st.sidebar.metric("Total Orders", len(orders_data))
+        st.sidebar.metric("Total Clients", len(clients_data))
+        st.sidebar.metric("Products In Stock", sum(1 for item in items_data if item.get("In stock") == "true"))
         
         if orders_data or clients_data or items_data:
+            st.sidebar.success("✅ Connected to NokNok Database")
             db_connected = True
             
-            # Skip the default success message and button since we're using our custom HTML
-            # st.sidebar.success("✅ Connected to NokNok Database")
-            # 
-            # # Add styled Google Sheet button
-            # st.sidebar.markdown(f'''
-            # <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
-            #    background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
-            #    font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
-            #    📊 Open Google Sheet
-            # </a>
-            # ''', unsafe_allow_html=True)
+            # Add styled Google Sheet button
+            st.sidebar.markdown(f'''
+            <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
+               background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
+               font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
+               📊 Open Google Sheet
+            </a>
+            ''', unsafe_allow_html=True)
             
             # Add client selection dropdown if clients data is available
             if clients_data:
@@ -1143,45 +1048,8 @@ if st.session_state.noknok_sheets:
                         last_name = client_data.get('Client Last Name', '')
                         display_name = f"{first_name} {last_name}"
                         
-                        # Add custom CSS for enhanced client details display
-                        st.sidebar.markdown("""
-                        <style>
-                        .client-details {
-                            background-color: #f9f9f9;
-                            border-left: 3px solid #2a62ca;
-                            padding: 15px;
-                            border-radius: 5px;
-                            margin-top: 10px;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                        }
-                        .client-details h3 {
-                            color: #2a62ca;
-                            font-weight: bold;
-                            margin-bottom: 15px;
-                            border-bottom: 1px solid #e0e0e0;
-                            padding-bottom: 5px;
-                        }
-                        .client-field {
-                            margin-bottom: 10px;
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        }
-                        .field-label {
-                            color: #2a62ca !important;
-                            font-weight: bold;
-                        }
-                        .field-value {
-                            color: #000000 !important;
-                            padding-left: 5px;
-                            font-weight: 500;
-                        }
-                        .balance-value {
-                            color: #5ed9a7;
-                            font-weight: bold;
-                        }
-                        </style>
-                        """, unsafe_allow_html=True)
-                            
-                        # Display client info in the sidebar with enhanced HTML formatting
+                        # Don't need to add CSS here anymore since it's handled globally
+                        # Just display client info with HTML formatting
                         client_email = client_data.get('Client Email', 'N/A')
                         client_gender = client_data.get('Client Gender', 'N/A')
                         client_address = client_data.get('Client Address', 'N/A')
@@ -1218,69 +1086,7 @@ if st.session_state.noknok_sheets:
                         # Show client's recent orders if available
                         client_orders = [o for o in orders_data if str(o.get('ClientID', '')) == str(client_id)]
                         if client_orders:
-                            # Add custom CSS for recent orders
-                            st.sidebar.markdown("""
-                            <style>
-                            .orders-container {
-                                background-color: #ffffff;
-                                border-left: 3px solid #ffc947;
-                                padding: 15px;
-                                border-radius: 5px;
-                                margin-top: 20px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                            }
-                            .orders-container h3 {
-                                color: #2a62ca;
-                                font-weight: bold;
-                                margin-bottom: 15px;
-                                border-bottom: 1px solid #e0e0e0;
-                                padding-bottom: 5px;
-                            }
-                            .order-item {
-                                margin-bottom: 12px;
-                                padding-bottom: 8px;
-                                border-bottom: 1px dotted #d0d0d0;
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            }
-                            .order-id {
-                                font-weight: bold;
-                                color: #000000;
-                                display: block;
-                                margin-bottom: 4px;
-                            }
-                            .order-amount {
-                                color: #2a62ca;
-                                font-weight: bold;
-                                margin-right: 8px;
-                            }
-                            .order-status {
-                                display: inline-block;
-                                margin-left: 5px;
-                                padding: 2px 6px;
-                                border-radius: 3px;
-                                font-size: 0.85em;
-                                background-color: #e9c46a;
-                                color: #000000;
-                            }
-                            .status-delivered {
-                                background-color: #8ac926;
-                                color: white;
-                            }
-                            .status-cancelled, .status-canceled {
-                                background-color: #ff595e;
-                                color: white;
-                            }
-                            .status-delivering {
-                                background-color: #4361ee;
-                                color: white;
-                            }
-                            .status-pending {
-                                background-color: #e9c46a;
-                                color: #333;
-                            }
-                            </style>
-                            """, unsafe_allow_html=True)
-                            
+                            # Don't need to add CSS here anymore since it's handled globally
                             # Sort by date (most recent first)
                             recent_orders = sorted(client_orders, key=lambda x: x.get('OrderDate', ''), reverse=True)[:3]
                             
@@ -1386,40 +1192,12 @@ if st.session_state.noknok_sheets:
         st.sidebar.error(f"Error loading data: {e}")
         print(f"Detailed error: {e}")
 else:
-    # No need to redefine CSS as we have global styles
-    
-    # Create HTML for stats display with empty values
-    stats_html = f"""
-    <div class="stats-container">
-        <div class="stats-header">
-            <img src="data:image/png;base64,{logo_base64}" alt="logo">
-            <div class="stats-header-text">Database Statistics</div>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Total Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Total Clients</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">In Stock</div>
-            </div>
-        </div>
-        <div class="status-indicator">
-            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
-        </div>
-        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
-            The application will still work, but without real database access.
-        </div>
-    </div>
-    """
-    
-    # Display the custom stats HTML
-    st.sidebar.markdown(stats_html, unsafe_allow_html=True)
+    st.sidebar.warning("⚠️ Database connection not available")
+    st.sidebar.info("The application will still work, but without real database access.")
+    # Show empty stats
+    st.sidebar.metric("Total Orders", 0)
+    st.sidebar.metric("Total Clients", 0)
+    st.sidebar.metric("Products In Stock", 0)
 
 # Display chat messages
 for message in st.session_state.messages:
