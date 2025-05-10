@@ -33,7 +33,7 @@ if "theme_mode" not in st.session_state:
 # helper to toggle theme and rerun
 def _toggle_theme():
     st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
-    st.experimental_rerun()
+    st.rerun()
 # ------------------------------------------------------------------
 
 # Load the image as base64 at the very beginning
