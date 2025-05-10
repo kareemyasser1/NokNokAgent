@@ -286,6 +286,21 @@ body, .stApp {{
     background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
     color: #000000 !important;
 }}
+
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff; /* Match the background color */
+    z-index: 1000;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stApp {
+    margin-top: 100px; /* Adjust this value based on the height of the fixed header */
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -2452,3 +2467,30 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# Add the fixed header CSS and HTML at the beginning of the Streamlit app
+st.markdown('''
+<style>
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff; /* Match the background color */
+    z-index: 1000;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stApp {
+    margin-top: 100px; /* Adjust this value based on the height of the fixed header */
+}
+</style>
+
+<div class="fixed-header">
+    <div class="logo-title-container">
+        <img src="data:image/png;base64,{logo_base64}" width="200">
+        <h1 class="title-text">AI Assistant 🛒</h1>
+    </div>
+</div>
+''', unsafe_allow_html=True)
