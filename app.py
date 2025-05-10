@@ -63,7 +63,7 @@ st.markdown(f"""
 }}
 
 .stats-header-text {{
-    margin-left: 70px; /* Space for logo */
+    margin-left: 0; /* Remove left margin to center properly */
     white-space: nowrap; /* Keep text on one line */
     font-size: 1.1rem;
 }}
@@ -71,9 +71,8 @@ st.markdown(f"""
 .stats-header img, .noknok-logo {{
     height: 60px;
     width: 60px;
-    position: absolute;
-    left: 10px;
-    top: 5px;
+    position: static; /* Change from absolute to static positioning */
+    margin-right: 10px; /* Add right margin for spacing */
     object-fit: contain;
 }}
 
@@ -170,7 +169,7 @@ st.markdown(f"""
     margin-top: -40px;
     margin-bottom: 20px;
     padding: 0; 
-    height: 70px;
+    height: 90px; /* Increased height to accommodate larger logo */
     position: relative;
 }}
 
@@ -178,8 +177,8 @@ st.markdown(f"""
     position: absolute;
     left: 0;
     top: 5px;
-    height: 60px;
-    width: 60px;
+    height: 120px; /* Doubled from 60px */
+    width: 120px; /* Doubled from 60px */
     object-fit: contain;
 }}
 
@@ -187,7 +186,7 @@ st.markdown(f"""
     font-size: 2.6rem;
     font-weight: bold;
     color: white;
-    margin-left: 70px;
+    margin-left: 140px; /* Increased margin to accommodate larger logo */
     white-space: nowrap;
 }}
 
