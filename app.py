@@ -559,10 +559,6 @@ def process_response_variables(response_text, client_id=None):
 # Set model to gpt-4o (removed from UI)
 model = "gpt-4o"
 
-# Store a flag in session state to track if the logo has been rendered
-if "logo_rendered" not in st.session_state:
-    st.session_state.logo_rendered = False
-
 # App title
 import base64
 
@@ -570,55 +566,37 @@ import base64
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
 
-# Add CSS that prevents duplicate logos from appearing
-st.markdown('''
-<style>
-.logo-title-container {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-    /* Ensure only one instance appears */
-    position: relative;
-    z-index: 1000;
-}
-.logo-title-container img {
-    max-height: none !important;
-    object-fit: contain;
-}
-.title-text {
-    margin: 0;
-    padding: 0;
-    font-size: 2.5rem;
-    font-weight: bold;
-}
+# Inject CSS only once
+if "logo_css_added" not in st.session_state:
+    st.markdown('''
+    <style>
+    .logo-title-container {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    .logo-title-container img {
+        max-height: none !important;
+        object-fit: contain;
+    }
+    .title-text {
+        margin: 0;
+        padding: 0;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+    st.session_state.logo_css_added = True
 
-/* Hide any duplicate containers */
-.logo-title-container:not(:first-of-type) {
-    display: none !important;
-}
-
-/* Fix position once messages are present */
-.stChatMessage ~ .logo-title-container {
-    position: sticky !important;
-    top: 0 !important;
-    background-color: white !important;
-    padding: 1rem 0 !important;
-    margin-top: 0 !important;
-    z-index: 1000 !important;
-    border-bottom: 1px solid rgba(49,51,63,0.1) !important;
-}
-</style>
-''', unsafe_allow_html=True)
-
-# Custom layout for logo and title
+# Render the logo + title with a fixed key so it is not duplicated
 st.markdown(f'''
-<div class="logo-title-container" id="main-logo-container">
+<div class="logo-title-container">
     <img src="data:image/png;base64,{logo_base64}" width="200">
     <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
-''', unsafe_allow_html=True)
-st.session_state.logo_rendered = True
+''', unsafe_allow_html=True, key="logo_header")
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
