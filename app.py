@@ -59,6 +59,60 @@ st.set_page_config(
     layout="wide",
 )
 
+# Add custom CSS for dark mode toggle in header
+st.markdown("""
+<style>
+.dark-mode-toggle {
+    position: fixed;
+    top: 0.5rem;
+    right: 1rem;
+    z-index: 9999;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(70, 70, 70, 0.2);
+}
+.dark-mode-toggle:hover {
+    background-color: rgba(70, 70, 70, 0.4);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Add dark mode toggle to header
+icon = "🌙" if st.session_state.dark_mode else "☀️"
+dark_mode_html = f"""
+<button class="dark-mode-toggle" onclick="toggle_dark_mode()" title="Toggle Dark/Light Mode">
+    {icon}
+</button>
+<script>
+function toggle_dark_mode() {{
+    const key = "theme_toggle_clicked";
+    // Store that button was clicked
+    window.parent.postMessage({{
+        type: "streamlit:setComponentValue",
+        value: true,
+        key: key
+    }}, "*");
+}}
+</script>
+"""
+st.markdown(dark_mode_html, unsafe_allow_html=True)
+
+# Handle dark mode toggle click
+if st.session_state.get("theme_toggle_clicked"):
+    # Reset the clicked state
+    st.session_state["theme_toggle_clicked"] = False
+    # Toggle dark mode
+    toggle_dark_mode()
+
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
     "assistant": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/assistant-done.svg",
@@ -602,33 +656,16 @@ st.markdown('''
     font-size: 2.5rem;
     font-weight: bold;
 }
-.menu-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
 </style>
 ''', unsafe_allow_html=True)
 
-# Create a header with menu bar layout
-menu_col1, menu_col2 = st.columns([6, 1])
-
-with menu_col1:
-    # Custom layout for logo and title
-    st.markdown(f'''
-    <div class="logo-title-container">
-        <img src="data:image/png;base64,{logo_base64}" width="200">
-        <h1 class="title-text">AI Assistant 🛒</h1>
-    </div>
-    ''', unsafe_allow_html=True)
-
-with menu_col2:
-    # Add dark mode toggle button with icon
-    icon = "🌙" if st.session_state.dark_mode else "☀️"
-    if st.button(icon, key="header_theme_toggle", help="Toggle Dark/Light Mode", use_container_width=True):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
+# Custom layout for logo and title
+st.markdown(f'''
+<div class="logo-title-container">
+    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <h1 class="title-text">AI Assistant 🛒</h1>
+</div>
+''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
@@ -878,7 +915,8 @@ st.sidebar.title("NokNok Database")
 theme_cols = st.sidebar.columns([8, 1, 1])
 with theme_cols[1]:
     # Display theme toggle button with appropriate icon
-    pass  # Removed duplicate dark mode toggle
+    icon = "🌙" if st.session_state.dark_mode else "☀️"
+    st.button(icon, key="theme_toggle", on_click=toggle_dark_mode, help="Toggle Dark/Light Mode")
 
 # Add custom CSS for sidebar elements
 st.sidebar.markdown(f'''
