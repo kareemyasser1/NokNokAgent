@@ -297,22 +297,6 @@ body, .stApp {{
     background-color: #ffffff !important;
     color: #000000 !important;
 }}
-
-/* Streamlit header (hamburger/menu bar) */
-header[data-testid="stHeader"] {{
-    background-color: #0E1117 !important;
-    color: #FFFFFF !important;
-    border-bottom: 1px solid #262730 !important;
-}}
-
-/* Override Streamlit theme CSS variables so any components that rely on them pick up dark colours */
-html {{
-    --background-color: #0E1117 !important;
-    --secondary-background-color: #262730 !important;
-    --text-color: #FFFFFF !important;
-    --primary-color: #2a62ca !important;
-    --primary-color-light: #2a62ca !important;
-}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -325,6 +309,44 @@ if st.session_state.get("theme_mode") == "dark":
             body, .stApp {background:#0E1117!important;color:#FFF!important;}
             .stats-container {background:rgba(35,40,48,.95)!important;}
             /* …put the rest of your dark colours here… */
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Extra selectors to ensure full dark coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
+    st.markdown(
+        """
+        <style>
+        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
+            background-color: #0E1117 !important;
+        }
+        .block-container {
+            background-color: transparent !important;
+        }
+        /* Chat input container */
+        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
+            background-color: #262730 !important;
+            color: #ffffff !important;
+        }
+        /* File uploader dropzone */
+        [data-testid="stFileUploader"] {
+            background-color: #262730 !important;
+            border: 1px dashed #4e8cff !important;
+        }
+        /* Generic buttons */
+        .stButton > button {
+            background-color: #2a62ca !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+        .stButton > button:hover {
+            background-color: #4e8cff !important;
+        }
+        /* Toolbar buttons */
+        [data-testid="stToolbar"] button {
+            color: #4e8cff !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -2672,3 +2694,37 @@ else:
     </style>
     """
     st.markdown(light_css, unsafe_allow_html=True)
+
+    # Extra selectors to ensure full light coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
+    st.markdown(
+        """
+        <style>
+        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
+            background-color: #ffffff !important;
+        }
+        .block-container {
+            background-color: transparent !important;
+        }
+        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
+            background-color: #f5f8ff !important;
+            color: #000000 !important;
+        }
+        [data-testid="stFileUploader"] {
+            background-color: #f5f8ff !important;
+            border: 1px dashed #2a62ca !important;
+        }
+        .stButton > button {
+            background-color: #2a62ca !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+        .stButton > button:hover {
+            background-color: #1e4ea1 !important;
+        }
+        [data-testid="stToolbar"] button {
+            color: #2a62ca !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
