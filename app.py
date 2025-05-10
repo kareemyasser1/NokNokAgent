@@ -30,9 +30,46 @@ if "theme_mode" not in st.session_state:
     # default to light (the new theme)
     st.session_state.theme_mode = "light"
 
-# helper to toggle theme without rerun
+# Check if theme was toggled and needs a rerun
+if st.session_state.get("theme_toggled", False):
+    st.session_state.theme_toggled = False  # Reset the flag
+    
+    # Update .streamlit/config.toml based on theme mode
+    config_path = ".streamlit/config.toml"
+    theme_config = {}
+    
+    if st.session_state.theme_mode == "dark":
+        theme_config = """
+[theme]
+base = "dark"
+primaryColor = "#2a62ca"       # NokNok blue
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#262730"
+textColor = "#FFFFFF"
+font = "sans serif"
+"""
+    else:  # Light theme
+        theme_config = """
+[theme]
+base = "light"
+primaryColor = "#2a62ca"       # NokNok blue
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f8ff"
+textColor = "#000000"
+font = "sans serif"
+"""
+    
+    # Write the config file
+    with open(config_path, "w") as f:
+        f.write(theme_config)
+    
+    st.rerun()  # This rerun is in the main flow, not a callback
+
+# helper to toggle theme and rerun
 def _toggle_theme():
     st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
+    # Set a rerun flag that will be checked in the main flow
+    st.session_state.theme_toggled = True
 # ------------------------------------------------------------------
 
 # Load the image as base64 at the very beginning
@@ -225,12 +262,12 @@ st.markdown(f"""
     font-weight: bold;
 }}
 
-/* Light theme styling - always present */
 body, .stApp {{
     background-color: #ffffff !important;
     color: #000000 !important;
 }}
 
+/* Light theme overrides */
 .stats-container {{
     background-color: #ffffff !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
@@ -296,177 +333,18 @@ body, .stApp {{
     background-color: #ffffff !important;
     color: #000000 !important;
 }}
-
-/* Chat input and buttons (light) */
-.stTextInput > div > div {{
-    background-color: #f5f8ff !important;
-    color: #000000 !important;
-}}
-.stTextInput input {{
-    color: #000000 !important;
-    background-color: #f5f8ff !important;
-}}
-button[kind="primary"] {{
-    background-color: #2a62ca !important;
-    color: white !important;
-}}
-button[kind="secondary"] {{
-    border-color: #2a62ca !important;
-    color: #2a62ca !important;
-}}
-/* File uploader (light) */
-.stFileUploader {{
-    background-color: #f5f8ff !important;
-}}
-/* Chat message containers (light) */
-[data-testid="stChatMessageContent"] {{
-    background-color: #f5f8ff !important;
-    color: #000000 !important;
-}}
-[data-testid="stChatMessage"][data-testid="user"] > div:first-child {{
-    background-color: #2a62ca !important;
-}}
-/* Chat message avatars (light) */
-.stChatMessageAvatar {{
-    background-color: #f5f8ff !important;
-}}
-/* Bottom toolbar (light) */
-[data-testid="stToolbar"] {{
-    background-color: #ffffff !important;
-    color: #000000 !important;
-}}
-[data-testid="baseButton-headerNoPadding"] {{
-    color: #2a62ca !important;
-}}
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Conditional injection of dark-theme CSS only when needed (reduces overall CSS size)
+# Dynamic dark-theme overrides (apply only if theme_mode == "dark")
 if st.session_state.get("theme_mode") == "dark":
     st.markdown(
         """
         <style>
-        /* Dark theme overrides */
-        body, .stApp {
-            background-color: #0E1117 !important;
-            color: #FFFFFF !important;
-        }
-        /* Stats container */
-        .stats-container {
-            background-color: rgba(35, 40, 48, 0.95) !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-        }
-        .stats-header {
-            color: #6aa5ff !important;
-            border-bottom: 1px solid #444 !important;
-        }
-        .stat-card {
-            background-color: rgba(50, 57, 68, 0.7) !important;
-        }
-        .stat-value {
-            color: #5ed9a7 !important;
-        }
-        .stat-label {
-            color: #aabfe6 !important;
-        }
-        .status-indicator {
-            background-color: rgba(50,57,68,0.5) !important;
-        }
-        
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background-color: #262730 !important;
-            color: #FFFFFF !important;
-        }
-        .sidebar-header span {
-            color: #FFFFFF !important;
-        }
-        .sheet-button {
-            background-color: #2a62ca !important;
-            color: white !important;
-        }
-        .client-details {
-            background-color: rgba(35, 40, 48, 0.95) !important;
-            border-left: 3px solid #4e8cff !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-        }
-        .client-details h3 {
-            color: #6aa5ff !important;
-            border-bottom: 1px solid #444 !important;
-        }
-        .field-label {
-            color: #aabfe6 !important;
-        }
-        .field-value {
-            color: #FFFFFF !important;
-        }
-        
-        /* Orders container */
-        .orders-container {
-            background-color: rgba(35, 40, 48, 0.95) !important;
-            border-left: 3px solid #f8b400 !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-        }
-        .orders-container h3 {
-            color: #ffc947 !important;
-            border-bottom: 1px solid #444 !important;
-        }
-        .order-item {
-            border-bottom: 1px dotted #444 !important;
-        }
-        .order-id {
-            color: #ddd !important;
-        }
-        .order-amount {
-            color: #5ed9a7 !important;
-        }
-        
-        /* Chat input and buttons */
-        .stTextInput > div > div {
-            background-color: #262730 !important;
-            color: white !important;
-        }
-        .stTextInput input {
-            color: white !important;
-            background-color: #262730 !important;
-        }
-        button[kind="primary"] {
-            background-color: #2a62ca !important;
-            color: white !important;
-        }
-        button[kind="secondary"] {
-            border-color: #4e8cff !important;
-            color: #4e8cff !important;
-        }
-        
-        /* File uploader */
-        .stFileUploader {
-            background-color: #262730 !important;
-        }
-        
-        /* Chat message containers */
-        [data-testid="stChatMessageContent"] {
-            background-color: #262730 !important;
-            color: white !important;
-        }
-        [data-testid="stChatMessage"][data-testid="user"] > div:first-child {
-            background-color: #2a62ca !important;
-        }
-        
-        /* Chat message avatars */
-        .stChatMessageAvatar {
-            background-color: #262730 !important;
-        }
-        
-        /* Bottom toolbar */
-        [data-testid="stToolbar"] {
-            background-color: #0E1117 !important;
-            color: white !important;
-        }
-        [data-testid="baseButton-headerNoPadding"] {
-            color: #4e8cff !important;
-        }
+            body, .stApp {background:#0E1117!important;color:#FFF!important;}
+            .stats-container {background:rgba(35,40,48,.95)!important;}
+            /* …put the rest of your dark colours here… */
         </style>
         """,
         unsafe_allow_html=True,
@@ -1207,10 +1085,7 @@ with top_cols[0]:
 
 with top_cols[2]:
     theme_icon = "🌙" if st.session_state.get("theme_mode", "light") == "light" else "☀️"
-    if st.button(theme_icon, help="Switch Light/Dark Theme", key="theme_toggle_btn"):
-        # Toggle theme directly without the callback
-        st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
-        # No rerun needed
+    st.button(theme_icon, help="Switch Light/Dark Theme", key="theme_toggle_btn", on_click=_toggle_theme)
 
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
@@ -2644,3 +2519,176 @@ if st.session_state.get("english_prompt_pending"):
     st.session_state.english_prompt_pending = False
 # ------------------------------------------------------------------
 
+# Inject dark theme CSS overrides when in dark mode
+if st.session_state.get("theme_mode") == "dark":
+    dark_css = """
+    <style>
+    body, .stApp {
+        background-color: #0E1117 !important;
+        color: #FFFFFF !important;
+    }
+    /* Chat input and buttons */
+    .stTextInput > div > div {
+        background-color: #262730 !important;
+        color: white !important;
+    }
+    .stTextInput input {
+        color: white !important;
+        background-color: #262730 !important;
+    }
+    button[kind="primary"] {
+        background-color: #2a62ca !important;
+        color: white !important;
+    }
+    button[kind="secondary"] {
+        border-color: #4e8cff !important;
+        color: #4e8cff !important;
+    }
+    /* File uploader */
+    .stFileUploader {
+        background-color: #262730 !important;
+    }
+    /* Chat message containers */
+    [data-testid="stChatMessageContent"] {
+        background-color: #262730 !important;
+        color: white !important;
+    }
+    [data-testid="stChatMessage"][data-testid="user"] > div:first-child {
+        background-color: #2a62ca !important;
+    }
+    /* Chat message avatars */
+    .stChatMessageAvatar {
+        background-color: #262730 !important;
+    }
+    /* Bottom toolbar */
+    [data-testid="stToolbar"] {
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+    [data-testid="baseButton-headerNoPadding"] {
+        color: #4e8cff !important;
+    }
+    .stats-container {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .stats-header {
+        color: #6aa5ff !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .stat-card {
+        background-color: rgba(50, 57, 68, 0.7) !important;
+    }
+    .stat-value {
+        color: #5ed9a7 !important;
+    }
+    .stat-label {
+        color: #aabfe6 !important;
+    }
+    .status-indicator {
+        background-color: rgba(50,57,68,0.5) !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #262730 !important;
+        color: #FFFFFF !important;
+    }
+    .sidebar-header span {
+        color: #FFFFFF !important;
+    }
+    .sheet-button {
+        background-color: #2a62ca !important;
+        color: black !important;
+    }
+    .client-details {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        border-left: 3px solid #4e8cff !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .client-details h3 {
+        color: #6aa5ff !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .field-label {
+        color: #aabfe6 !important;
+    }
+    .field-value {
+        color: #FFFFFF !important;
+    }
+    .orders-container {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        border-left: 3px solid #f8b400 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .orders-container h3 {
+        color: #ffc947 !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .order-item {
+        border-bottom: 1px dotted #444 !important;
+    }
+    .order-id {
+        color: #ddd !important;
+    }
+    .order-amount {
+        color: #5ed9a7 !important;
+    }
+    .order-status {
+        color: #333 !important;
+    }
+    </style>
+    """
+    st.markdown(dark_css, unsafe_allow_html=True)
+
+# Inject light theme CSS overrides when in light mode
+else:
+    light_css = """
+    <style>
+    /* Light theme styles */
+    body, .stApp {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    /* Chat input and buttons */
+    .stTextInput > div > div {
+        background-color: #f5f8ff !important;
+        color: #000000 !important;
+    }
+    .stTextInput input {
+        color: #000000 !important;
+        background-color: #f5f8ff !important;
+    }
+    button[kind="primary"] {
+        background-color: #2a62ca !important;
+        color: white !important;
+    }
+    button[kind="secondary"] {
+        border-color: #2a62ca !important;
+        color: #2a62ca !important;
+    }
+    /* File uploader */
+    .stFileUploader {
+        background-color: #f5f8ff !important;
+    }
+    /* Chat message containers */
+    [data-testid="stChatMessageContent"] {
+        background-color: #f5f8ff !important;
+        color: #000000 !important;
+    }
+    [data-testid="stChatMessage"][data-testid="user"] > div:first-child {
+        background-color: #2a62ca !important;
+    }
+    /* Chat message avatars */
+    .stChatMessageAvatar {
+        background-color: #f5f8ff !important;
+    }
+    /* Bottom toolbar */
+    [data-testid="stToolbar"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    [data-testid="baseButton-headerNoPadding"] {
+        color: #2a62ca !important;
+    }
+    </style>
+    """
+    st.markdown(light_css, unsafe_allow_html=True)
