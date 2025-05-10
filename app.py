@@ -30,10 +30,46 @@ if "theme_mode" not in st.session_state:
     # default to light (the new theme)
     st.session_state.theme_mode = "light"
 
+# Check if theme was toggled and needs a rerun
+if st.session_state.get("theme_toggled", False):
+    st.session_state.theme_toggled = False  # Reset the flag
+    
+    # Update .streamlit/config.toml based on theme mode
+    config_path = ".streamlit/config.toml"
+    theme_config = {}
+    
+    if st.session_state.theme_mode == "dark":
+        theme_config = """
+[theme]
+base = "dark"
+primaryColor = "#2a62ca"       # NokNok blue
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#262730"
+textColor = "#FFFFFF"
+font = "sans serif"
+"""
+    else:  # Light theme
+        theme_config = """
+[theme]
+base = "light"
+primaryColor = "#2a62ca"       # NokNok blue
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f8ff"
+textColor = "#000000"
+font = "sans serif"
+"""
+    
+    # Write the config file
+    with open(config_path, "w") as f:
+        f.write(theme_config)
+    
+    st.rerun()  # This rerun is in the main flow, not a callback
+
 # helper to toggle theme and rerun
 def _toggle_theme():
     st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
-    st.rerun()
+    # Set a rerun flag that will be checked in the main flow
+    st.session_state.theme_toggled = True
 # ------------------------------------------------------------------
 
 # Load the image as base64 at the very beginning
@@ -2491,6 +2527,47 @@ if st.session_state.get("theme_mode") == "dark":
         background-color: #0E1117 !important;
         color: #FFFFFF !important;
     }
+    /* Chat input and buttons */
+    .stTextInput > div > div {
+        background-color: #262730 !important;
+        color: white !important;
+    }
+    .stTextInput input {
+        color: white !important;
+        background-color: #262730 !important;
+    }
+    button[kind="primary"] {
+        background-color: #2a62ca !important;
+        color: white !important;
+    }
+    button[kind="secondary"] {
+        border-color: #4e8cff !important;
+        color: #4e8cff !important;
+    }
+    /* File uploader */
+    .stFileUploader {
+        background-color: #262730 !important;
+    }
+    /* Chat message containers */
+    [data-testid="stChatMessageContent"] {
+        background-color: #262730 !important;
+        color: white !important;
+    }
+    [data-testid="stChatMessage"][data-testid="user"] > div:first-child {
+        background-color: #2a62ca !important;
+    }
+    /* Chat message avatars */
+    .stChatMessageAvatar {
+        background-color: #262730 !important;
+    }
+    /* Bottom toolbar */
+    [data-testid="stToolbar"] {
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+    [data-testid="baseButton-headerNoPadding"] {
+        color: #4e8cff !important;
+    }
     .stats-container {
         background-color: rgba(35, 40, 48, 0.95) !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
@@ -2561,3 +2638,57 @@ if st.session_state.get("theme_mode") == "dark":
     </style>
     """
     st.markdown(dark_css, unsafe_allow_html=True)
+
+# Inject light theme CSS overrides when in light mode
+else:
+    light_css = """
+    <style>
+    /* Light theme styles */
+    body, .stApp {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    /* Chat input and buttons */
+    .stTextInput > div > div {
+        background-color: #f5f8ff !important;
+        color: #000000 !important;
+    }
+    .stTextInput input {
+        color: #000000 !important;
+        background-color: #f5f8ff !important;
+    }
+    button[kind="primary"] {
+        background-color: #2a62ca !important;
+        color: white !important;
+    }
+    button[kind="secondary"] {
+        border-color: #2a62ca !important;
+        color: #2a62ca !important;
+    }
+    /* File uploader */
+    .stFileUploader {
+        background-color: #f5f8ff !important;
+    }
+    /* Chat message containers */
+    [data-testid="stChatMessageContent"] {
+        background-color: #f5f8ff !important;
+        color: #000000 !important;
+    }
+    [data-testid="stChatMessage"][data-testid="user"] > div:first-child {
+        background-color: #2a62ca !important;
+    }
+    /* Chat message avatars */
+    .stChatMessageAvatar {
+        background-color: #f5f8ff !important;
+    }
+    /* Bottom toolbar */
+    [data-testid="stToolbar"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    [data-testid="baseButton-headerNoPadding"] {
+        color: #2a62ca !important;
+    }
+    </style>
+    """
+    st.markdown(light_css, unsafe_allow_html=True)
