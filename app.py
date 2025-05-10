@@ -453,108 +453,108 @@ def process_prompt_variables(prompt_template, client_id=None):
     return prompt
 
 # Function to process response and replace condition-based variables
-# def process_response_variables(response_text, client_id=None):
-#     """Replace variables in the assistant's response based on client data and conditions"""
-#     if client_id is None or not response_text:
-#         return response_text
+def process_response_variables(response_text, client_id=None):
+    """Replace variables in the assistant's response based on client data and conditions"""
+    if client_id is None or not response_text:
+        return response_text
     
-#     # Initialize variables with default values
-#     eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
-#     delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
-#     technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
+    # Initialize variables with default values
+    eta_message = "noknok is committed to delivering your order within the advised estimated time of delivery mentioned upon placing the order. The average delivery time is 15 mins."
+    delay_message = "Your order has been delayed due to an unusual rush at the branch. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+    technical_message = "Everything seems to be working on our end. I'll connect you to our tech team right away so they can assist you further."
     
-#     try:
-#         if "@ETA@" in response_text or "@Order Delay@" in response_text or "@Technical@" in response_text:
-#             if "condition_handler" in st.session_state and st.session_state.condition_handler:
-#                 handler = st.session_state.condition_handler
+    try:
+        if "@ETA@" in response_text or "@Order Delay@" in response_text or "@Technical@" in response_text:
+            if "condition_handler" in st.session_state and st.session_state.condition_handler:
+                handler = st.session_state.condition_handler
                 
-#                 # Get order data for active orders
-#                 if handler.order_data:
-#                     # Find client's ongoing orders (not delivered or cancelled)
-#                     ongoing_orders = [
-#                         o for o in handler.order_data 
-#                         if str(o.get('ClientID', '')) == str(client_id) and 
-#                         o.get('OrderStatus', '').lower() not in ['delivered', 'cancelled', 'canceled', 'refunded']
-#                     ]
+                # Get order data for active orders
+                if handler.order_data:
+                    # Find client's ongoing orders (not delivered or cancelled)
+                    ongoing_orders = [
+                        o for o in handler.order_data 
+                        if str(o.get('ClientID', '')) == str(client_id) and 
+                        o.get('OrderStatus', '').lower() not in ['delivered', 'cancelled', 'canceled', 'refunded']
+                    ]
                     
-#                     if ongoing_orders:
-#                         # Sort to get the most recent order
-#                         recent_order = max(ongoing_orders, key=lambda o: o.get('OrderDate', ''))
+                    if ongoing_orders:
+                        # Sort to get the most recent order
+                        recent_order = max(ongoing_orders, key=lambda o: o.get('OrderDate', ''))
                         
-#                         # Process ETA variable
-#                         if "@ETA@" in response_text:
-#                             eta_value = None
-#                             for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     eta_value = recent_order[field]
-#                                     break
+                        # Process ETA variable
+                        if "@ETA@" in response_text:
+                            eta_value = None
+                            for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
+                                if field in recent_order and recent_order[field]:
+                                    eta_value = recent_order[field]
+                                    break
                             
-#                             if eta_value:
-#                                 eta_message = f"You can expect to receive your order by {eta_value}."
+                            if eta_value:
+                                eta_message = f"You can expect to receive your order by {eta_value}."
                         
-#                         # Process Order Delay variable
-#                         if "@Order Delay@" in response_text:
-#                             order_status = None
-#                             for field in ["OrderStatus", "Status", "Order Status"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     order_status = recent_order[field].lower()
-#                                     break
+                        # Process Order Delay variable
+                        if "@Order Delay@" in response_text:
+                            order_status = None
+                            for field in ["OrderStatus", "Status", "Order Status"]:
+                                if field in recent_order and recent_order[field]:
+                                    order_status = recent_order[field].lower()
+                                    break
                             
-#                             weather_conditions = False
-#                             for field in ["Weather Conditions", "WeatherConditions", "Weather"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     # Convert various formats to boolean
-#                                     value = recent_order[field]
-#                                     if isinstance(value, bool):
-#                                         weather_conditions = value
-#                                     elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-#                                         weather_conditions = True
-#                                     break
+                            weather_conditions = False
+                            for field in ["Weather Conditions", "WeatherConditions", "Weather"]:
+                                if field in recent_order and recent_order[field]:
+                                    # Convert various formats to boolean
+                                    value = recent_order[field]
+                                    if isinstance(value, bool):
+                                        weather_conditions = value
+                                    elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
+                                        weather_conditions = True
+                                    break
                             
-#                             if order_status == "delivered":
-#                                 delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
-#                             elif order_status == "driver arrived":
-#                                 delay_message = "The driver has arrived. Could you kindly check?"
-#                             elif weather_conditions:
-#                                 delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
-#                             else:
-#                                 # Default delay message with ETA if available
-#                                 eta_value = None
-#                                 for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
-#                                     if field in recent_order and recent_order[field]:
-#                                         eta_value = recent_order[field]
-#                                         break
+                            if order_status == "delivered":
+                                delay_message = "It appears that the order was delivered. Could you please double-check? It's possible the driver may have handed it to someone else by mistake. Let me know what you find and we'll sort it out right away. 💙"
+                            elif order_status == "driver arrived":
+                                delay_message = "The driver has arrived. Could you kindly check?"
+                            elif weather_conditions:
+                                delay_message = "Unfortunately, we are facing some difficulty in delivering your order due to the poor weather conditions. We appreciate your patience until our drivers are able to reach your location successfully. Thank you for choosing noknok! 💙🙏🏻"
+                            else:
+                                # Default delay message with ETA if available
+                                eta_value = None
+                                for field in ["ETA", "eta", "Estimated Time of Arrival", "Delivery Time"]:
+                                    if field in recent_order and recent_order[field]:
+                                        eta_value = recent_order[field]
+                                        break
                                 
-#                                 if eta_value:
-#                                     delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
+                                if eta_value:
+                                    delay_message = f"Your order has been delayed due to an unusual rush at the branch. You can expect to receive your order by {eta_value}. We apologize for the inconvenience caused and thank you for your patience and understanding. 🙏"
                         
-#                         # Process Technical variable
-#                         if "@Technical@" in response_text:
-#                             technical_issues = False
-#                             for field in ["Technical Issue", "TechnicalIssue", "Technical"]:
-#                                 if field in recent_order and recent_order[field]:
-#                                     # Convert various formats to boolean
-#                                     value = recent_order[field]
-#                                     if isinstance(value, bool):
-#                                         technical_issues = value
-#                                     elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
-#                                         technical_issues = True
-#                                     break
+                        # Process Technical variable
+                        if "@Technical@" in response_text:
+                            technical_issues = False
+                            for field in ["Technical Issue", "TechnicalIssue", "Technical"]:
+                                if field in recent_order and recent_order[field]:
+                                    # Convert various formats to boolean
+                                    value = recent_order[field]
+                                    if isinstance(value, bool):
+                                        technical_issues = value
+                                    elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
+                                        technical_issues = True
+                                    break
                             
-#                             if technical_issues:
-#                                 technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
-#     except Exception as e:
-#         print(f"Error processing response variables: {e}")
-#         import traceback
-#         traceback.print_exc()
+                            if technical_issues:
+                                technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
+    except Exception as e:
+        print(f"Error processing response variables: {e}")
+        import traceback
+        traceback.print_exc()
     
-#     # Replace variables in the response text
-#     processed_response = response_text
-#     processed_response = processed_response.replace("@ETA@", eta_message)
-#     processed_response = processed_response.replace("@Order Delay@", delay_message)
-#     processed_response = processed_response.replace("@Technical@", technical_message)
+    # Replace variables in the response text
+    processed_response = response_text
+    processed_response = processed_response.replace("@ETA@", eta_message)
+    processed_response = processed_response.replace("@Order Delay@", delay_message)
+    processed_response = processed_response.replace("@Technical@", technical_message)
     
-#     return processed_response
+    return processed_response
 
 # Set model to gpt-4o (removed from UI)
 model = "gpt-4o"
@@ -1039,7 +1039,7 @@ if should_send:
                     full_response = response.choices[0].message.content
                     
                     # Process any variables in the response
-                    #full_response = process_response_variables(full_response, current_client_id)
+                    full_response = process_response_variables(full_response, current_client_id)
                 
                 # First check for any condition triggers before displaying the response
                 has_condition_trigger = contains_condition_trigger(full_response)
