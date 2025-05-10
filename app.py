@@ -177,16 +177,15 @@ def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr
         
         # Get specific worksheets - try by name first, then by index as fallback
         try:
-            try:
-                order_sheet = spreadsheet.worksheet("Order")
-                print("Using 'Order' worksheet by name")
-            except gspread.WorksheetNotFound:
-                # If not found by name, use first sheet
-                if len(all_worksheets) >= 1:
-                    order_sheet = all_worksheets[0]  # First sheet
-                    print(f"Using first sheet for order data: {order_sheet.title}")
-                else:
-                    raise Exception("No sheets available for order data")
+            order_sheet = spreadsheet.worksheet("Order")
+            print("Using 'Order' worksheet by name")
+        except gspread.WorksheetNotFound:
+            # If not found by name, use first sheet
+            if len(all_worksheets) >= 1:
+                order_sheet = all_worksheets[0]  # First sheet
+                print(f"Using first sheet for order data: {order_sheet.title}")
+            else:
+                raise Exception("No sheets available for order data")
         except Exception as e:
             st.error(f"Error accessing Order sheet: {e}")
             order_sheet = None
@@ -998,7 +997,6 @@ if st.session_state.noknok_sheets:
                         client_email = client_data.get('Client Email', 'N/A')
                         client_gender = client_data.get('Client Gender', 'N/A')
                         client_address = client_data.get('Client Address', 'N/A')
-                        #client_balance = client_data.get('NokNok USD Wallet', 0)
                         client_balance = client_data.get('USD Wallet', client_data.get('NokNok USD Wallet', 0))
                         
                         client_html = f"""
