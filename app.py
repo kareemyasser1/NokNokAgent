@@ -771,23 +771,128 @@ if st.session_state.noknok_sheets:
         clients_data = sheet_data.get('clients', [])
         items_data = sheet_data.get('items', [])
         
-        # Display stats
-        st.sidebar.metric("Total Orders", len(orders_data))
-        st.sidebar.metric("Total Clients", len(clients_data))
-        st.sidebar.metric("Products In Stock", sum(1 for item in items_data if item.get("In stock") == "true"))
+        # Add custom CSS for database stats at the top of the page
+        st.sidebar.markdown("""
+        <style>
+        .stats-container {
+            background-color: rgba(35, 40, 48, 0.95);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .stats-header {
+            color: #6aa5ff;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background-color: rgba(50, 57, 68, 0.7);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #5ed9a7;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #aabfe6;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(50, 57, 68, 0.5);
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 10px;
+        }
+        .status-connected {
+            color: #8ac926;
+            font-weight: 500;
+        }
+        .status-disconnected {
+            color: #ff595e;
+            font-weight: 500;
+        }
+        .sheet-button {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #2a62ca;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        .sheet-button:hover {
+            background-color: #3372e0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Create HTML for stats display instead of using st.metric
+        stats_html = f"""
+        <div class="stats-container">
+            <div class="stats-header">NokNok Database Statistics</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{len(orders_data)}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{len(clients_data)}</div>
+                    <div class="stat-label">Total Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
+                    <div class="stat-label">In Stock</div>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-connected">✅ Connected to NokNok Database</span>
+            </div>
+            <a href="{sheet_url}" target="_blank" class="sheet-button">
+                📊 Open Google Sheet
+            </a>
+        </div>
+        """
+        
+        # Display the custom stats HTML
+        st.sidebar.markdown(stats_html, unsafe_allow_html=True)
         
         if orders_data or clients_data or items_data:
-            st.sidebar.success("✅ Connected to NokNok Database")
             db_connected = True
             
-            # Add styled Google Sheet button
-            st.sidebar.markdown(f'''
-            <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
-               background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
-               font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
-               📊 Open Google Sheet
-            </a>
-            ''', unsafe_allow_html=True)
+            # Skip the default success message and button since we're using our custom HTML
+            # st.sidebar.success("✅ Connected to NokNok Database")
+            # 
+            # # Add styled Google Sheet button
+            # st.sidebar.markdown(f'''
+            # <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
+            #    background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
+            #    font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
+            #    📊 Open Google Sheet
+            # </a>
+            # ''', unsafe_allow_html=True)
             
             # Add client selection dropdown if clients data is available
             if clients_data:
@@ -1086,12 +1191,121 @@ if st.session_state.noknok_sheets:
         st.sidebar.error(f"Error loading data: {e}")
         print(f"Detailed error: {e}")
 else:
-    st.sidebar.warning("⚠️ Database connection not available")
-    st.sidebar.info("The application will still work, but without real database access.")
-    # Show empty stats
-    st.sidebar.metric("Total Orders", 0)
-    st.sidebar.metric("Total Clients", 0)
-    st.sidebar.metric("Products In Stock", 0)
+    # Add custom CSS for database stats (copy from above)
+    st.sidebar.markdown("""
+    <style>
+    .stats-container {
+        background-color: rgba(35, 40, 48, 0.95);
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .stats-header {
+        color: #6aa5ff;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        border-bottom: 1px solid #444;
+        padding-bottom: 8px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10px;
+        margin-bottom: 15px;
+    }
+    .stat-card {
+        background-color: rgba(50, 57, 68, 0.7);
+        border-radius: 4px;
+        padding: 10px;
+        text-align: center;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #5ed9a7;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 0.8rem;
+        color: #aabfe6;
+    }
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(50, 57, 68, 0.5);
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 10px;
+    }
+    .status-connected {
+        color: #8ac926;
+        font-weight: 500;
+    }
+    .status-disconnected {
+        color: #ff595e;
+        font-weight: 500;
+    }
+    .sheet-button {
+        display: inline-block;
+        text-decoration: none;
+        background-color: #2a62ca;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+        width: 100%;
+        transition: background-color 0.2s;
+    }
+    .sheet-button:hover {
+        background-color: #3372e0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create HTML for stats display with empty values
+    stats_html = f"""
+    <div class="stats-container">
+        <div class="stats-header">NokNok Database Statistics</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">In Stock</div>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-disconnected">⚠️ Database connection not available</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
+            The application will still work, but without real database access.
+        </div>
+    </div>
+    """
+    
+    # Display the custom stats HTML
+    st.sidebar.markdown(stats_html, unsafe_allow_html=True)
+    
+    # Remove the old metric and warning messages since we're using our custom HTML
+    # st.sidebar.warning("⚠️ Database connection not available")
+    # st.sidebar.info("The application will still work, but without real database access.")
+    # # Show empty stats
+    # st.sidebar.metric("Total Orders", 0)
+    # st.sidebar.metric("Total Clients", 0)
+    # st.sidebar.metric("Products In Stock", 0)
 
 # Display chat messages
 for message in st.session_state.messages:
