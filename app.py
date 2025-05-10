@@ -297,6 +297,22 @@ body, .stApp {{
     background-color: #ffffff !important;
     color: #000000 !important;
 }}
+
+/* Streamlit header (hamburger/menu bar) */
+header[data-testid="stHeader"] {{
+    background-color: #0E1117 !important;
+    color: #FFFFFF !important;
+    border-bottom: 1px solid #262730 !important;
+}}
+
+/* Override Streamlit theme CSS variables so any components that rely on them pick up dark colours */
+html {{
+    --background-color: #0E1117 !important;
+    --secondary-background-color: #262730 !important;
+    --text-color: #FFFFFF !important;
+    --primary-color: #2a62ca !important;
+    --primary-color-light: #2a62ca !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
