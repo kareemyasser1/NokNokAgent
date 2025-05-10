@@ -352,6 +352,32 @@ if st.session_state.get("theme_mode") == "dark":
         unsafe_allow_html=True,
     )
 
+    # Further dark-mode tweaks (chat rows, selectbox, icon buttons)
+    st.markdown(
+        """
+        <style>
+        /* chat row background transparency */
+        [data-testid="stChatMessage"] {
+            background-color: transparent !important;
+        }
+        /* selectbox (client dropdown) */
+        div[data-testid="stSelectbox"] > div {
+            background-color: #262730 !important;
+            color: #ffffff !important;
+            border: 1px solid #4e8cff !important;
+        }
+        div[data-testid="stSelectbox"] label {
+            color: #ffffff !important;
+        }
+        /* ensure blue buttons keep white text (refresh, theme-toggle, expander buttons) */
+        .stButton > button {
+            color: #ffffff !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
     """Check if text contains any keywords that would trigger conditions"""
@@ -2723,6 +2749,29 @@ else:
         }
         [data-testid="stToolbar"] button {
             color: #2a62ca !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Further light-mode tweaks (chat rows, selectbox, icon buttons)
+    st.markdown(
+        """
+        <style>
+        [data-testid="stChatMessage"] {
+            background-color: transparent !important;
+        }
+        div[data-testid="stSelectbox"] > div {
+            background-color: #f5f8ff !important;
+            color: #000000 !important;
+            border: 1px solid #2a62ca !important;
+        }
+        div[data-testid="stSelectbox"] label {
+            color: #000000 !important;
+        }
+        .stButton > button {
+            color: #ffffff !important;
         }
         </style>
         """,
