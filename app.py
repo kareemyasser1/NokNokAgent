@@ -1,4 +1,12 @@
 import streamlit as st
+
+# Set up the page before any other Streamlit calls
+st.set_page_config(
+    page_title="NokNok AI Assistant",
+    page_icon="🛒",
+    layout="wide",
+)
+
 import os
 import pandas as pd
 from dotenv import load_dotenv
@@ -234,18 +242,8 @@ load_dotenv()
 api_key = st.secrets["OPENAI_API_KEY"]
 
 # ------------------------------------------------------------
-# 🖌️  Global page configuration & visual theme (from Exifa)
+# 🖌️  Global visual theme (from Exifa)
 # ------------------------------------------------------------
-
-# Set up the page before any other Streamlit calls so the settings
-# apply everywhere.  The particle background and other visuals are
-# inspired by the Exifa.net theme.
-
-st.set_page_config(
-    page_title="NokNok AI Assistant",
-    page_icon="🛒",
-    layout="wide",
-)
 
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
