@@ -283,7 +283,7 @@ body, .stApp {{
 }}
 
 [data-testid="stSidebar"] {{
-    background-color: #ffffff !important;
+    background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
     color: #000000 !important;
 }}
 </style>
