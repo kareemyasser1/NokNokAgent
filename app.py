@@ -672,14 +672,6 @@ st.sidebar.markdown('''
 
 # Add image attachment at the top of sidebar
 st.sidebar.markdown("### 📎 Attach")
-
-# Define a function to handle the send image button click
-def send_image_clicked():
-    print("Send image button clicked!")
-    st.session_state["send_image_only"] = True
-    # Force reset of uploader on next rerun
-    st.session_state["reset_uploader"] = True
-
 uploaded_file = st.sidebar.file_uploader(
     "",  # Empty label
     type=["png", "jpg", "jpeg"],
@@ -687,15 +679,18 @@ uploaded_file = st.sidebar.file_uploader(
     label_visibility="collapsed"  # Hide the label completely
 )
 if uploaded_file is not None:
-    # Store image in session state
     st.session_state["attached_image_bytes"] = uploaded_file.getvalue()
     st.session_state["attached_image_mime"] = uploaded_file.type or "image/jpeg"
     
     # Show image preview
     st.sidebar.image(uploaded_file, caption="Image preview", width=200)
     
-    # Add send button with direct function call
-    st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
+    # Add send button
+    if st.sidebar.button("Send Image", key="send_image_btn"):
+        st.session_state["send_image_only"] = True
+        st.rerun()
+    else:
+        st.session_state["send_image_only"] = False
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
@@ -945,42 +940,23 @@ for message in st.session_state.messages:
 # Chat input & message sending
 # -----------------------------------------------
 
-# Print session state for debugging
-print("Current session state keys:", list(st.session_state.keys()))
-print("send_image_only in session state:", "send_image_only" in st.session_state)
-if "send_image_only" in st.session_state:
-    print("send_image_only value:", st.session_state["send_image_only"])
-print("attached_image_bytes in session state:", "attached_image_bytes" in st.session_state)
-print("reset_uploader in session state:", "reset_uploader" in st.session_state)
-
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
 # Determine if we should send a message this run
-should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False)
+should_send = (prompt_input is not None) or ("send_image_only" in st.session_state and st.session_state.send_image_only)
 
 if should_send:
     prompt = prompt_input or ""  # allow empty string when image-only
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
-    
-    # Debug info
-    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
-    image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
-    
-    # Reset the send_image_only flag for next run
+    image_mime  = st.session_state.pop("attached_image_mime", "image/jpeg")
     send_image_only = st.session_state.pop("send_image_only", False)
-    
-    # Ensure uploader will be reset on next rerun
-    if image_bytes:
-        st.session_state.reset_uploader = True
-        print(f"Image received, size: {len(image_bytes)} bytes")
     
     if send_image_only and not image_bytes:
         # Edge-case: send button but no image (shouldn't normally happen)
-        print("Warning: Send image requested but no image found")
         send_image_only = False
 
     if not api_key:
