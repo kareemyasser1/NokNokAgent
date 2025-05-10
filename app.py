@@ -371,26 +371,6 @@ if st.session_state.get("theme_mode") == "dark":
             color: #4e8cff !important;
             background-color: transparent !important;
         }
-        /* Sidebar attach image area */
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] {
-            background-color: #262730 !important;
-            border: 1px dashed #4e8cff !important;
-        }
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] div {
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-        /* Footer area and streamlit attribution */
-        [data-testid="stFooter"], 
-        [data-testid="stFooter"] a, 
-        [data-testid="stFooter"] span,
-        [data-testid="stToolbar"] div,
-        [data-testid="stDecoration"],
-        .streamlit-wide,
-        .block-container::after {
-            background-color: #0E1117 !important;
-            color: #ffffff !important;
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -2685,170 +2665,6 @@ if st.session_state.get("theme_mode") == "dark":
     """
     st.markdown(dark_css, unsafe_allow_html=True)
 
-    # Extra selectors to ensure full dark coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
-    st.markdown(
-        """
-        <style>
-        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
-            background-color: #0E1117 !important;
-        }
-        .block-container {
-            background-color: transparent !important;
-        }
-        /* Chat input container */
-        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
-            background-color: #262730 !important;
-            color: #ffffff !important;
-        }
-        /* File uploader dropzone */
-        [data-testid="stFileUploader"] {
-            background-color: #262730 !important;
-            border: 1px dashed #4e8cff !important;
-        }
-        /* Inner dropzone element that holds the drag-and-drop text */
-        [data-testid="stFileUploader"] div:first-child {
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-        /* Sidebar attach image area */
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] {
-            background-color: #262730 !important;
-            border: 1px dashed #4e8cff !important;
-        }
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] div {
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-        /* Footer area and streamlit attribution */
-        [data-testid="stFooter"], 
-        [data-testid="stFooter"] a, 
-        [data-testid="stFooter"] span,
-        [data-testid="stToolbar"] div,
-        [data-testid="stDecoration"],
-        .streamlit-wide,
-        .block-container::after {
-            background-color: #0E1117 !important;
-            color: #ffffff !important;
-        }
-        /* Selectbox (client selection) control */
-        div[data-baseweb="select"] > div {
-            background-color: #262730 !important;
-            color: #ffffff !important;
-        }
-        div[data-baseweb="select"] input {
-            color: #ffffff !important;
-        }
-        /* Generic buttons */
-        .stButton > button {
-            background-color: #2a62ca !important;
-            color: #ffffff !important;
-            border: none !important;
-        }
-        .stButton > button:hover {
-            background-color: #4e8cff !important;
-        }
-        /* Toolbar buttons */
-        [data-testid="stToolbar"] button {
-            color: #4e8cff !important;
-        }
-        /* Footer (area below chat input including Streamlit footer) */
-        footer, footer * {
-            background-color: #0E1117 !important;
-            color: #ffffff !important;
-        }
-        /* Secondary/outline buttons */
-        .stButton > button[kind="secondary"], button[kind="secondary"] {
-            border-color: #4e8cff !important;
-            color: #4e8cff !important;
-            background-color: transparent !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Extra selectors to ensure full dark coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
-    st.markdown(
-        """
-        <style>
-        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
-            background-color: #0E1117 !important;
-        }
-        .block-container {
-            background-color: transparent !important;
-        }
-        /* Chat input container */
-        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
-            background-color: #262730 !important;
-            color: #ffffff !important;
-        }
-        /* File uploader dropzone */
-        [data-testid="stFileUploader"] {
-            background-color: #262730 !important;
-            border: 1px dashed #4e8cff !important;
-        }
-        /* Inner dropzone element that holds the drag-and-drop text */
-        [data-testid="stFileUploader"] div:first-child {
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-        /* Sidebar attach image area */
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] {
-            background-color: #262730 !important;
-            border: 1px dashed #4e8cff !important;
-        }
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] div {
-            background-color: transparent !important;
-            color: #ffffff !important;
-        }
-        /* Footer area and streamlit attribution */
-        [data-testid="stFooter"], 
-        [data-testid="stFooter"] a, 
-        [data-testid="stFooter"] span,
-        [data-testid="stToolbar"] div,
-        [data-testid="stDecoration"],
-        .streamlit-wide,
-        .block-container::after {
-            background-color: #0E1117 !important;
-            color: #ffffff !important;
-        }
-        /* Selectbox (client selection) control */
-        div[data-baseweb="select"] > div {
-            background-color: #262730 !important;
-            color: #ffffff !important;
-        }
-        div[data-baseweb="select"] input {
-            color: #ffffff !important;
-        }
-        /* Generic buttons */
-        .stButton > button {
-            background-color: #2a62ca !important;
-            color: #ffffff !important;
-            border: none !important;
-        }
-        .stButton > button:hover {
-            background-color: #4e8cff !important;
-        }
-        /* Toolbar buttons */
-        [data-testid="stToolbar"] button {
-            color: #4e8cff !important;
-        }
-        /* Footer (area below chat input including Streamlit footer) */
-        footer, footer * {
-            background-color: #0E1117 !important;
-            color: #ffffff !important;
-        }
-        /* Secondary/outline buttons */
-        .stButton > button[kind="secondary"], button[kind="secondary"] {
-            border-color: #4e8cff !important;
-            color: #4e8cff !important;
-            background-color: transparent !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
 # Inject light theme CSS overrides when in light mode
 else:
     light_css = """
@@ -2921,14 +2737,39 @@ else:
             background-color: #f5f8ff !important;
             border: 1px dashed #2a62ca !important;
         }
-        /* Sidebar attach image area */
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] {
+        .stButton > button {
+            background-color: #2a62ca !important;
+            color: #ffffff !important;
+            border: none !important;
+        }
+        .stButton > button:hover {
+            background-color: #1e4ea1 !important;
+        }
+        [data-testid="stToolbar"] button {
+            color: #2a62ca !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Extra selectors to ensure full light coverage (backgrounds, chat input, sidebar uploader, toolbar buttons)
+    st.markdown(
+        """
+        <style>
+        html, body, .stApp, [data-testid="stAppViewContainer"], .main, header, footer {
+            background-color: #ffffff !important;
+        }
+        .block-container {
+            background-color: transparent !important;
+        }
+        div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
+            background-color: #f5f8ff !important;
+            color: #000000 !important;
+        }
+        [data-testid="stFileUploader"] {
             background-color: #f5f8ff !important;
             border: 1px dashed #2a62ca !important;
-        }
-        [data-testid="stSidebar"] [data-testid="stFileUploader"] div {
-            background-color: transparent !important;
-            color: #000000 !important;
         }
         /* Inner dropzone element */
         [data-testid="stFileUploader"] div:first-child {
@@ -2942,39 +2783,6 @@ else:
         }
         div[data-baseweb="select"] input {
             color: #000000 !important;
-        }
-        /* Footer area and streamlit attribution */
-        [data-testid="stFooter"], 
-        [data-testid="stFooter"] a, 
-        [data-testid="stFooter"] span,
-        [data-testid="stToolbar"] div,
-        [data-testid="stDecoration"],
-        .streamlit-wide,
-        .block-container::after {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-        }
-        .stButton > button {
-            background-color: #2a62ca !important;
-            color: #ffffff !important;
-            border: none !important;
-        }
-        .stButton > button:hover {
-            background-color: #1e4ea1 !important;
-        }
-        [data-testid="stToolbar"] button {
-            color: #2a62ca !important;
-        }
-        /* Footer (area below chat input including Streamlit footer) */
-        footer, footer * {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-        }
-        /* Secondary/outline buttons */
-        .stButton > button[kind="secondary"], button[kind="secondary"] {
-            border-color: #2a62ca !important;
-            color: #2a62ca !important;
-            background-color: transparent !important;
         }
         </style>
         """,
