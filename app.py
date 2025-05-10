@@ -559,16 +559,15 @@ def process_response_variables(response_text, client_id=None):
 # Set model to gpt-4o (removed from UI)
 model = "gpt-4o"
 
-# -------------------------
-# App title with logo - only render once
-# -------------------------
-if "logo_title_rendered" not in st.session_state:
-    import base64
-    
+# App title
+import base64
+
+# Use session state to track if header has been rendered
+if "header_rendered" not in st.session_state:
     # Load the image as base64
     with open("logo.png", "rb") as f:
         logo_base64 = base64.b64encode(f.read()).decode()
-    
+
     st.markdown('''
     <style>
     .logo-title-container {
@@ -576,7 +575,6 @@ if "logo_title_rendered" not in st.session_state:
         align-items: center;
         gap: 1.5rem;
         margin-top: 2rem;
-        margin-bottom: 2rem;
     }
     .logo-title-container img {
         max-height: none !important;
@@ -590,7 +588,7 @@ if "logo_title_rendered" not in st.session_state:
     }
     </style>
     ''', unsafe_allow_html=True)
-    
+
     # Custom layout for logo and title
     st.markdown(f'''
     <div class="logo-title-container">
@@ -599,8 +597,8 @@ if "logo_title_rendered" not in st.session_state:
     </div>
     ''', unsafe_allow_html=True)
     
-    # Mark as rendered
-    st.session_state.logo_title_rendered = True
+    # Mark as rendered so it won't be duplicated
+    st.session_state.header_rendered = True
 
 # Increment version if prior run requested reset
 if "uploader_version" not in st.session_state:
