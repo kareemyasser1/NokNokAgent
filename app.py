@@ -1008,6 +1008,11 @@ if should_send:
                 # Create OpenAI client with minimal parameters to avoid proxies error
                 client = OpenAI(api_key=api_key)
                 
+                # Refresh data to get latest ETA information
+                if "condition_handler" in st.session_state:
+                    print("Refreshing data before chat response to get latest ETA...")
+                    st.session_state.condition_handler.load_data()
+                
                 # Get personalized system prompt with variables replaced
                 current_client_id = st.session_state.current_client_id if "current_client_id" in st.session_state else None
                 personalized_system_prompt = process_prompt_variables(system_prompt_template, current_client_id)
@@ -1754,6 +1759,25 @@ if "condition_handler" not in st.session_state:
     # Register all conditions from the conditions module
     registered_count = register_all_conditions(st.session_state.condition_handler)
     print(f"Registered {registered_count} conditions from conditions module")
+    
+    # Automatically load data when app initializes
+    with st.spinner("Loading database..."):
+        data_loaded = st.session_state.condition_handler.load_data()
+        if data_loaded:
+            print("Initial data loaded successfully")
+        else:
+            print("Failed to load initial data")
+
+# Also refresh data when a client is selected
+if "current_client_id" in st.session_state and st.session_state.current_client_id:
+    # Check if we need to refresh data (only if not refreshed in the last 30 seconds)
+    if (
+        "condition_handler" in st.session_state 
+        and (not st.session_state.condition_handler.last_data_refresh 
+             or (datetime.now() - st.session_state.condition_handler.last_data_refresh).total_seconds() > 30)
+    ):
+        print(f"Auto-refreshing data for client ID: {st.session_state.current_client_id}")
+        st.session_state.condition_handler.load_data()
 
 # Add condition controls to sidebar
 with st.sidebar.expander("Condition Controls", expanded=False):
