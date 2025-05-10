@@ -59,6 +59,16 @@ st.set_page_config(
     layout="wide",
 )
 
+# Hide logo in all spinner components
+st.markdown("""
+<style>
+/* Hide the logo in spinners throughout the app */
+div[data-testid="stSpinner"] svg {
+    display: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
     "assistant": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/assistant-done.svg",
@@ -177,15 +187,16 @@ def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr
         
         # Get specific worksheets - try by name first, then by index as fallback
         try:
-            order_sheet = spreadsheet.worksheet("Order")
-            print("Using 'Order' worksheet by name")
-        except gspread.WorksheetNotFound:
-            # If not found by name, use first sheet
-            if len(all_worksheets) >= 1:
-                order_sheet = all_worksheets[0]  # First sheet
-                print(f"Using first sheet for order data: {order_sheet.title}")
-            else:
-                raise Exception("No sheets available for order data")
+            try:
+                order_sheet = spreadsheet.worksheet("Order")
+                print("Using 'Order' worksheet by name")
+            except gspread.WorksheetNotFound:
+                # If not found by name, use first sheet
+                if len(all_worksheets) >= 1:
+                    order_sheet = all_worksheets[0]  # First sheet
+                    print(f"Using first sheet for order data: {order_sheet.title}")
+                else:
+                    raise Exception("No sheets available for order data")
         except Exception as e:
             st.error(f"Error accessing Order sheet: {e}")
             order_sheet = None
@@ -970,8 +981,6 @@ if st.session_state.noknok_sheets:
                             margin-bottom: 15px;
                             border-bottom: 1px solid #444;
                             padding-bottom: 5px;
-                            /* Ensure no images or logos appear */
-                            background-image: none;
                         }
                         .client-field {
                             margin-bottom: 10px;
@@ -997,7 +1006,7 @@ if st.session_state.noknok_sheets:
                         client_email = client_data.get('Client Email', 'N/A')
                         client_gender = client_data.get('Client Gender', 'N/A')
                         client_address = client_data.get('Client Address', 'N/A')
-                        client_balance = client_data.get('USD Wallet', client_data.get('NokNok USD Wallet', 0))
+                        client_balance = client_data.get('NokNok USD Wallet', 0)
                         
                         client_html = f"""
                         <div class="client-details">
@@ -1047,8 +1056,6 @@ if st.session_state.noknok_sheets:
                                 margin-bottom: 15px;
                                 border-bottom: 1px solid #444;
                                 padding-bottom: 5px;
-                                /* Ensure no images or logos appear */
-                                background-image: none;
                             }
                             .order-item {
                                 margin-bottom: 12px;
@@ -2170,6 +2177,7 @@ if "current_client_id" in st.session_state and st.session_state.current_client_i
              or (datetime.now() - st.session_state.condition_handler.last_data_refresh).total_seconds() > 30)
     ):
         print(f"Auto-refreshing data for client ID: {st.session_state.current_client_id}")
+        # Load data silently without displaying a spinner
         st.session_state.condition_handler.load_data()
 
 # Add condition controls to sidebar
