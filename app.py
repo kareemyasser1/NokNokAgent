@@ -834,7 +834,7 @@ if st.session_state.noknok_sheets:
             display: inline-block;
             text-decoration: none;
             background-color: #2a62ca;
-            color: white;
+            color: black;
             padding: 8px 16px;
             border-radius: 4px;
             font-weight: bold;
@@ -870,6 +870,9 @@ if st.session_state.noknok_sheets:
             <div class="status-indicator">
                 <span class="status-connected">✅ Connected to NokNok Database</span>
             </div>
+            <a href="{sheet_url}" target="_blank" class="sheet-button">
+                📊 Open Google Sheet
+            </a>
         </div>
         """
         
@@ -1246,6 +1249,22 @@ else:
     .status-disconnected {
         color: #ff595e;
         font-weight: 500;
+    }
+    .sheet-button {
+        display: inline-block;
+        text-decoration: none;
+        background-color: #2a62ca;
+        color: black;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+        width: 100%;
+        transition: background-color 0.2s;
+    }
+    .sheet-button:hover {
+        background-color: #3372e0;
     }
     </style>
     """, unsafe_allow_html=True)
