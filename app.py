@@ -36,12 +36,12 @@ st.markdown(f"""
 <style>
 /* Global layout styles */
 .stats-container {{
-    background-color: rgba(35, 40, 48, 0.95);
+    background-color: #f0f2f6;
     border-radius: 5px;
     padding: 15px;
     margin-top: 0;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
     height: auto;
@@ -49,12 +49,12 @@ st.markdown(f"""
 }}
 
 .stats-header {{
-    color: #6aa5ff;
+    color: #1e88e5;
     font-weight: bold;
     text-align: center;
     margin-bottom: 10px;
     font-size: 1.1rem;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #ddd;
     padding-bottom: 8px;
     display: flex;
     align-items: center;
@@ -96,7 +96,7 @@ st.markdown(f"""
 }}
 
 .stat-card {{
-    background-color: rgba(50, 57, 68, 0.7);
+    background-color: #e1f5fe;
     border-radius: 4px;
     padding: 10px;
     text-align: center;
@@ -109,14 +109,14 @@ st.markdown(f"""
 .stat-value {{
     font-size: 1.5rem;
     font-weight: bold;
-    color: #5ed9a7;
+    color: #00897b;
     margin-bottom: 5px;
     line-height: 1;
 }}
 
 .stat-label {{
     font-size: 0.8rem;
-    color: #aabfe6;
+    color: #546e7a;
     line-height: 1;
 }}
 
@@ -124,7 +124,7 @@ st.markdown(f"""
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(50, 57, 68, 0.5);
+    background-color: #e3f2fd;
     border-radius: 4px;
     padding: 8px;
     margin-top: 10px;
@@ -138,18 +138,18 @@ st.markdown(f"""
 }}
 
 .status-connected {{
-    color: #8ac926;
+    color: #2e7d32;
 }}
 
 .status-disconnected {{
-    color: #ff595e;
+    color: #d32f2f;
 }}
 
 .sheet-button {{
     display: inline-block;
     text-decoration: none;
-    background-color: #2a62ca;
-    color: black;
+    background-color: #1976d2;
+    color: white;
     padding: 8px 16px;
     border-radius: 4px;
     font-weight: bold;
@@ -162,7 +162,7 @@ st.markdown(f"""
 }}
 
 .sheet-button:hover {{
-    background-color: #333;
+    background-color: #0d47a1;
 }}
 
 /* Custom header at top of sidebar */
@@ -188,7 +188,7 @@ st.markdown(f"""
 .sidebar-header span {{
     font-size: 2.6rem;
     font-weight: bold;
-    color: white;
+    color: #1976d2;
     margin-left: 70px;
     white-space: nowrap;
 }}
@@ -211,6 +211,113 @@ st.markdown(f"""
     padding: 0;
     font-size: 2.5rem;
     font-weight: bold;
+}}
+
+/* Client details in light theme */
+.client-details {{
+    background-color: #f0f2f6;
+    border-left: 3px solid #1976d2;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}}
+
+.client-details h3 {{
+    color: #1976d2;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}}
+
+.client-field {{
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}}
+
+.field-label {{
+    color: #546e7a;
+    font-weight: bold;
+}}
+
+.field-value {{
+    color: #212121;
+    padding-left: 5px;
+    font-weight: 500;
+}}
+
+.balance-value {{
+    color: #00897b;
+    font-weight: bold;
+}}
+
+/* Orders container in light theme */
+.orders-container {{
+    background-color: #f0f2f6;
+    border-left: 3px solid #fb8c00;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}}
+
+.orders-container h3 {{
+    color: #e65100;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}}
+
+.order-item {{
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dotted #ddd;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}}
+
+.order-id {{
+    font-weight: bold;
+    color: #455a64;
+    display: block;
+    margin-bottom: 4px;
+}}
+
+.order-amount {{
+    color: #00897b;
+    font-weight: bold;
+    margin-right: 8px;
+}}
+
+.order-status {{
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    background-color: #ffd54f;
+    color: #212121;
+}}
+
+.status-delivered {{
+    background-color: #66bb6a;
+    color: white;
+}}
+
+.status-cancelled, .status-canceled {{
+    background-color: #ef5350;
+    color: white;
+}}
+
+.status-delivering {{
+    background-color: #42a5f5;
+    color: white;
+}}
+
+.status-pending {{
+    background-color: #ffb74d;
+    color: #212121;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -877,15 +984,15 @@ st.sidebar.markdown('''
 /* Make the sidebar file uploader more attractive */
 [data-testid="stSidebar"] [data-testid="stFileUploader"] {
     width: 100%;
-    border: 1px dashed #4e8cff;
+    border: 1px dashed #1976d2;
     border-radius: 4px;
-    background-color: rgba(78, 140, 255, 0.05);
+    background-color: rgba(25, 118, 210, 0.05);
     margin-top: 0.5rem;
 }
 
 /* Style the send image button */
 [data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
-    background-color: #4e8cff !important;
+    background-color: #1976d2 !important;
     color: white !important;
     border: none !important;
     width: 100%;
@@ -1338,7 +1445,7 @@ else:
         <div class="status-indicator">
             <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
         </div>
-        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
+        <div style="margin-top: 10px; font-size: 0.85rem; color: #546e7a; text-align: center;">
             The application will still work, but without real database access.
         </div>
     </div>
