@@ -768,6 +768,7 @@ if st.session_state.noknok_sheets:
             background-color: rgba(35, 40, 48, 0.95);
             border-radius: 5px;
             padding: 15px;
+            margin-top: 0;
             margin-bottom: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -780,6 +781,13 @@ if st.session_state.noknok_sheets:
             font-size: 1.1rem;
             border-bottom: 1px solid #444;
             padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stats-header img {
+            height: 30px;
+            margin-right: 8px;
         }
         .stats-grid {
             display: grid;
@@ -842,7 +850,9 @@ if st.session_state.noknok_sheets:
         # Create HTML for stats display instead of using st.metric
         stats_html = f"""
         <div class="stats-container">
-            <div class="stats-header">NokNok Database Statistics</div>
+            <div class="stats-header">
+                <img src="data:image/png;base64,{logo_base64}" alt="logo"> Database Statistics
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value">{len(orders_data)}</div>
@@ -858,7 +868,7 @@ if st.session_state.noknok_sheets:
                 </div>
             </div>
             <div class="status-indicator">
-                <span class="status-connected">✅ Connected to NokNok Database</span>
+                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 15px; vertical-align: middle;"> Database</span>
             </div>
             <a href="{sheet_url}" target="_blank" class="sheet-button">
                 📊 Open Google Sheet
@@ -1188,6 +1198,7 @@ else:
         background-color: rgba(35, 40, 48, 0.95);
         border-radius: 5px;
         padding: 15px;
+        margin-top: 0;
         margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1200,6 +1211,13 @@ else:
         font-size: 1.1rem;
         border-bottom: 1px solid #444;
         padding-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .stats-header img {
+        height: 30px;
+        margin-right: 8px;
     }
     .stats-grid {
         display: grid;
@@ -1243,8 +1261,8 @@ else:
     .sheet-button {
         display: inline-block;
         text-decoration: none;
-        background-color: black;
-        color: white;
+        background-color: #2a62ca;
+        color: black;
         padding: 8px 16px;
         border-radius: 4px;
         font-weight: bold;
@@ -1262,7 +1280,9 @@ else:
     # Create HTML for stats display with empty values
     stats_html = f"""
     <div class="stats-container">
-        <div class="stats-header">NokNok Database Statistics</div>
+        <div class="stats-header">
+            <img src="data:image/png;base64,{logo_base64}" alt="logo"> Database Statistics
+        </div>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value">0</div>
@@ -1278,7 +1298,7 @@ else:
             </div>
         </div>
         <div class="status-indicator">
-            <span class="status-disconnected">⚠️ Database connection not available</span>
+            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 15px; vertical-align: middle;"> Database connection not available</span>
         </div>
         <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
             The application will still work, but without real database access.
