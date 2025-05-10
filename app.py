@@ -842,27 +842,146 @@ if st.session_state.noknok_sheets:
                         first_name = client_data.get('Client First Name', '')
                         last_name = client_data.get('Client Last Name', '')
                         display_name = f"{first_name} {last_name}"
+                        
+                        # Add custom CSS for enhanced client details display
+                        st.sidebar.markdown("""
+                        <style>
+                        .client-details {
+                            background-color: rgba(78, 140, 255, 0.1);
+                            border-left: 3px solid #4e8cff;
+                            padding: 15px;
+                            border-radius: 5px;
+                            margin-top: 10px;
+                        }
+                        .client-details h3 {
+                            color: #4e8cff;
+                            font-weight: bold;
+                            margin-bottom: 15px;
+                            border-bottom: 1px solid #ccc;
+                            padding-bottom: 5px;
+                        }
+                        .client-field {
+                            margin-bottom: 10px;
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        }
+                        .field-label {
+                            color: #555;
+                            font-weight: bold;
+                        }
+                        .field-value {
+                            color: #333;
+                            padding-left: 5px;
+                        }
+                        .balance-value {
+                            color: #2a9d8f;
+                            font-weight: bold;
+                        }
+                        </style>
+                        """, unsafe_allow_html=True)
                             
-                        # Display client info in the sidebar
-                        st.sidebar.info(f"""
-                        ### Client Details
-                        **Name:** {display_name}
-                        **Email:** {client_data.get('Client Email', 'N/A')}
-                        **Gender:** {client_data.get('Client Gender', 'N/A')}
-                        **Address:** {client_data.get('Client Address', 'N/A')}
-                        **Balance:** ${client_data.get('NokNok USD Wallet', 0)}
-                        """)
+                        # Display client info in the sidebar with enhanced HTML formatting
+                        client_email = client_data.get('Client Email', 'N/A')
+                        client_gender = client_data.get('Client Gender', 'N/A')
+                        client_address = client_data.get('Client Address', 'N/A')
+                        client_balance = client_data.get('NokNok USD Wallet', 0)
+                        
+                        client_html = f"""
+                        <div class="client-details">
+                            <h3>Client Details</h3>
+                            <div class="client-field">
+                                <span class="field-label">Name:</span>
+                                <span class="field-value">{display_name}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Email:</span>
+                                <span class="field-value">{client_email}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Gender:</span>
+                                <span class="field-value">{client_gender}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Address:</span>
+                                <span class="field-value">{client_address}</span>
+                            </div>
+                            <div class="client-field">
+                                <span class="field-label">Balance:</span>
+                                <span class="balance-value">${client_balance}</span>
+                            </div>
+                        </div>
+                        """
+                        
+                        st.sidebar.markdown(client_html, unsafe_allow_html=True)
                         
                         # Show client's recent orders if available
                         client_orders = [o for o in orders_data if str(o.get('ClientID', '')) == str(client_id)]
                         if client_orders:
+                            # Add custom CSS for recent orders
+                            st.sidebar.markdown("""
+                            <style>
+                            .orders-container {
+                                background-color: rgba(253, 230, 170, 0.2);
+                                border-left: 3px solid #f8b400;
+                                padding: 15px;
+                                border-radius: 5px;
+                                margin-top: 20px;
+                            }
+                            .orders-container h3 {
+                                color: #f8b400;
+                                font-weight: bold;
+                                margin-bottom: 15px;
+                                border-bottom: 1px solid #ccc;
+                                padding-bottom: 5px;
+                            }
+                            .order-item {
+                                margin-bottom: 12px;
+                                padding-bottom: 8px;
+                                border-bottom: 1px dotted #eee;
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            }
+                            .order-id {
+                                font-weight: bold;
+                                color: #333;
+                            }
+                            .order-amount {
+                                color: #2a9d8f;
+                                font-weight: bold;
+                            }
+                            .order-status {
+                                display: inline-block;
+                                margin-left: 5px;
+                                padding: 2px 6px;
+                                border-radius: 3px;
+                                font-size: 0.85em;
+                                background-color: #e9c46a;
+                                color: #333;
+                            }
+                            .status-delivered {
+                                background-color: #8ac926;
+                                color: white;
+                            }
+                            .status-cancelled, .status-canceled {
+                                background-color: #ff595e;
+                                color: white;
+                            }
+                            .status-delivering {
+                                background-color: #4361ee;
+                                color: white;
+                            }
+                            .status-pending {
+                                background-color: #e9c46a;
+                                color: #333;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+                            
                             # Sort by date (most recent first)
                             recent_orders = sorted(client_orders, key=lambda x: x.get('OrderDate', ''), reverse=True)[:3]
                             
-                            # Create formatted order info with proper amount handling
-                            order_info_items = []
+                            # Create order HTML items with proper styling
+                            order_html_items = []
                             for o in recent_orders:
-                                # Try to get order amount using the same logic as cancellation
+                                # Same logic for getting order amount
                                 order_amount = None
                                 possible_amount_fields = [
                                     "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
@@ -900,20 +1019,17 @@ if st.session_state.noknok_sheets:
                                     else:
                                         amount_display = "(Amount not available)"
                                 except (ValueError, TypeError):
-                                    # If it's not convertible to float, use as is
                                     amount_display = str(order_amount)
                                 
-                                # Try different status field names
+                                # Get order status with improved detection
                                 order_status = None
                                 status_fields = ["OrderStatus", "Status", "Order Status", "State"]
                                 
-                                # Try direct matches
                                 for field in status_fields:
                                     if field in o and o[field]:
                                         order_status = o[field]
                                         break
                                 
-                                # Try case-insensitive
                                 if order_status is None:
                                     order_keys = list(o.keys())
                                     for field in status_fields:
@@ -923,19 +1039,39 @@ if st.session_state.noknok_sheets:
                                             order_status = o[field_key]
                                             break
                                 
-                                # Default if not found
                                 if order_status is None:
-                                    order_status = "Status unknown"
+                                    order_status = "Pending"
                                 
-                                order_info_items.append(
-                                    f"• Order #{o.get('OrderID')}: {amount_display} ({order_status})"
-                                )
+                                # Determine status class for styling
+                                status_class = "status-pending"
+                                status_lower = order_status.lower()
+                                if "deliver" in status_lower:
+                                    status_class = "status-delivering"
+                                elif status_lower in ["delivered", "complete", "completed"]:
+                                    status_class = "status-delivered"
+                                elif status_lower in ["cancelled", "canceled", "refunded"]:
+                                    status_class = "status-cancelled"
+                                
+                                # Create HTML for this order
+                                order_id = o.get('OrderID', 'N/A')
+                                order_html_items.append(f"""
+                                <div class="order-item">
+                                    <span class="order-id">Order #{order_id}:</span>
+                                    <span class="order-amount">{amount_display}</span>
+                                    <span class="order-status {status_class}">{order_status}</span>
+                                </div>
+                                """)
                             
-                            order_info = "\n".join(order_info_items)
-                            st.sidebar.info(f"""
-                            ### Recent Orders
-                            {order_info}
-                            """)
+                            # Combine all order items
+                            orders_html = f"""
+                            <div class="orders-container">
+                                <h3>Recent Orders</h3>
+                                {"".join(order_html_items)}
+                            </div>
+                            """
+                            
+                            # Display orders HTML
+                            st.sidebar.markdown(orders_html, unsafe_allow_html=True)
                 else:
                     st.session_state.current_client_id = None
         else:
