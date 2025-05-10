@@ -111,11 +111,14 @@ function toggle_dark_mode() {{
 st.markdown(dark_mode_html, unsafe_allow_html=True)
 
 # Handle dark mode toggle click
-if st.session_state.get("theme_toggle_clicked"):
+if "theme_toggle_clicked" not in st.session_state:
+    st.session_state.theme_toggle_clicked = False
+    
+if st.session_state.theme_toggle_clicked:
     # Reset the clicked state
-    st.session_state["theme_toggle_clicked"] = False
-    # Toggle dark mode
-    toggle_dark_mode()
+    st.session_state.theme_toggle_clicked = False
+    # Toggle dark mode without calling rerun
+    st.session_state.dark_mode = not st.session_state.dark_mode
 
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
@@ -692,7 +695,6 @@ if "dark_mode" not in st.session_state:
 # Function to toggle dark mode
 def toggle_dark_mode():
     st.session_state.dark_mode = not st.session_state.dark_mode
-    st.rerun()
 
 # Define light and dark mode CSS 
 light_mode_css = """
