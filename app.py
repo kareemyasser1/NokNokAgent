@@ -5,31 +5,7 @@ st.set_page_config(
     page_title="NokNok AI Assistant",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="expanded"
 )
-
-# Force light theme with CSS overrides
-st.markdown("""
-<style>
-    /* Override Streamlit's default theme to use light mode */
-    html, body, [class*="css"] {
-        color: rgb(33, 33, 33);
-        background-color: #ffffff;
-    }
-    .st-bx {
-        background-color: #f0f2f6;
-    }
-    .st-bq {
-        color: rgb(33, 33, 33);
-    }
-    .css-145kmo2 {
-        color: rgb(33, 33, 33);
-    }
-    .css-1d391kg, .css-12w0qpk {
-        background-color: #f0f2f6;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 import os
 import pandas as pd
@@ -49,21 +25,6 @@ from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
 
-# Create .streamlit directory and config.toml for theme
-if not os.path.exists(".streamlit"):
-    os.makedirs(".streamlit")
-
-# Create or update config.toml with light theme
-with open(".streamlit/config.toml", "w") as f:
-    f.write("""
-[theme]
-primaryColor="#1976d2"
-backgroundColor="#ffffff"
-secondaryBackgroundColor="#f0f2f6"
-textColor="#212121"
-font="sans serif"
-    """)
-
 # Load the image as base64 at the very beginning
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
@@ -73,12 +34,12 @@ st.markdown(f"""
 <style>
 /* Global layout styles */
 .stats-container {{
-    background-color: #f0f2f6;
+    background-color: rgba(35, 40, 48, 0.95);
     border-radius: 5px;
     padding: 15px;
     margin-top: 0;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
     height: auto;
@@ -86,12 +47,12 @@ st.markdown(f"""
 }}
 
 .stats-header {{
-    color: #1e88e5;
+    color: #6aa5ff;
     font-weight: bold;
     text-align: center;
     margin-bottom: 10px;
     font-size: 1.1rem;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #444;
     padding-bottom: 8px;
     display: flex;
     align-items: center;
@@ -133,7 +94,7 @@ st.markdown(f"""
 }}
 
 .stat-card {{
-    background-color: #e1f5fe;
+    background-color: rgba(50, 57, 68, 0.7);
     border-radius: 4px;
     padding: 10px;
     text-align: center;
@@ -146,14 +107,14 @@ st.markdown(f"""
 .stat-value {{
     font-size: 1.5rem;
     font-weight: bold;
-    color: #00897b;
+    color: #5ed9a7;
     margin-bottom: 5px;
     line-height: 1;
 }}
 
 .stat-label {{
     font-size: 0.8rem;
-    color: #546e7a;
+    color: #aabfe6;
     line-height: 1;
 }}
 
@@ -161,7 +122,7 @@ st.markdown(f"""
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #e3f2fd;
+    background-color: rgba(50, 57, 68, 0.5);
     border-radius: 4px;
     padding: 8px;
     margin-top: 10px;
@@ -175,18 +136,18 @@ st.markdown(f"""
 }}
 
 .status-connected {{
-    color: #2e7d32;
+    color: #8ac926;
 }}
 
 .status-disconnected {{
-    color: #d32f2f;
+    color: #ff595e;
 }}
 
 .sheet-button {{
     display: inline-block;
     text-decoration: none;
-    background-color: #1976d2;
-    color: white;
+    background-color: #2a62ca;
+    color: black;
     padding: 8px 16px;
     border-radius: 4px;
     font-weight: bold;
@@ -199,7 +160,7 @@ st.markdown(f"""
 }}
 
 .sheet-button:hover {{
-    background-color: #0d47a1;
+    background-color: #333;
 }}
 
 /* Custom header at top of sidebar */
@@ -225,7 +186,7 @@ st.markdown(f"""
 .sidebar-header span {{
     font-size: 2.6rem;
     font-weight: bold;
-    color: #1976d2;
+    color: white;
     margin-left: 70px;
     white-space: nowrap;
 }}
@@ -248,113 +209,6 @@ st.markdown(f"""
     padding: 0;
     font-size: 2.5rem;
     font-weight: bold;
-}}
-
-/* Client details in light theme */
-.client-details {{
-    background-color: #f0f2f6;
-    border-left: 3px solid #1976d2;
-    padding: 15px;
-    border-radius: 5px;
-    margin-top: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}}
-
-.client-details h3 {{
-    color: #1976d2;
-    font-weight: bold;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-}}
-
-.client-field {{
-    margin-bottom: 10px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}}
-
-.field-label {{
-    color: #546e7a;
-    font-weight: bold;
-}}
-
-.field-value {{
-    color: #212121;
-    padding-left: 5px;
-    font-weight: 500;
-}}
-
-.balance-value {{
-    color: #00897b;
-    font-weight: bold;
-}}
-
-/* Orders container in light theme */
-.orders-container {{
-    background-color: #f0f2f6;
-    border-left: 3px solid #fb8c00;
-    padding: 15px;
-    border-radius: 5px;
-    margin-top: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}}
-
-.orders-container h3 {{
-    color: #e65100;
-    font-weight: bold;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-}}
-
-.order-item {{
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px dotted #ddd;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}}
-
-.order-id {{
-    font-weight: bold;
-    color: #455a64;
-    display: block;
-    margin-bottom: 4px;
-}}
-
-.order-amount {{
-    color: #00897b;
-    font-weight: bold;
-    margin-right: 8px;
-}}
-
-.order-status {{
-    display: inline-block;
-    margin-left: 5px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 0.85em;
-    background-color: #ffd54f;
-    color: #212121;
-}}
-
-.status-delivered {{
-    background-color: #66bb6a;
-    color: white;
-}}
-
-.status-cancelled, .status-canceled {{
-    background-color: #ef5350;
-    color: white;
-}}
-
-.status-delivering {{
-    background-color: #42a5f5;
-    color: white;
-}}
-
-.status-pending {{
-    background-color: #ffb74d;
-    color: #212121;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -1021,15 +875,15 @@ st.sidebar.markdown('''
 /* Make the sidebar file uploader more attractive */
 [data-testid="stSidebar"] [data-testid="stFileUploader"] {
     width: 100%;
-    border: 1px dashed #1976d2;
+    border: 1px dashed #4e8cff;
     border-radius: 4px;
-    background-color: rgba(25, 118, 210, 0.05);
+    background-color: rgba(78, 140, 255, 0.05);
     margin-top: 0.5rem;
 }
 
 /* Style the send image button */
 [data-testid="stSidebar"] [data-testid="baseButton-secondary"] {
-    background-color: #1976d2 !important;
+    background-color: #4e8cff !important;
     color: white !important;
     border: none !important;
     width: 100%;
@@ -1482,7 +1336,7 @@ else:
         <div class="status-indicator">
             <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
         </div>
-        <div style="margin-top: 10px; font-size: 0.85rem; color: #546e7a; text-align: center;">
+        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
             The application will still work, but without real database access.
         </div>
     </div>
@@ -2176,40 +2030,6 @@ if st.sidebar.button("Clear Chat History"):
     st.session_state.messages = []
     st.rerun()
 
-# Add theme toggle in sidebar
-with st.sidebar.expander("App Settings", expanded=False):
-    if "light_mode" not in st.session_state:
-        st.session_state.light_mode = True
-    
-    # Add toggle for theme
-    if st.checkbox("Dark Mode", value=not st.session_state.light_mode, key="dark_mode_toggle"):
-        st.session_state.light_mode = False
-        # Add dark mode CSS overrides
-        st.markdown("""
-        <style>
-            /* Override to dark mode */
-            html, body, [class*="css"] {
-                color: rgb(250, 250, 250);
-                background-color: rgb(14, 17, 23);
-            }
-            .st-bx {
-                background-color: rgb(25, 32, 48);
-            }
-            .st-bq {
-                color: rgb(250, 250, 250);
-            }
-            .css-145kmo2 {
-                color: rgb(250, 250, 250);
-            }
-            .css-1d391kg, .css-12w0qpk {
-                background-color: rgb(25, 32, 48);
-            }
-        </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.session_state.light_mode = True
-        # No need to add light mode CSS again, it's already in the main script
-
 # New section for conditions handling
 class ConditionHandler:
     """Framework for handling various conditions in the application"""
@@ -2556,5 +2376,3 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
-
-# Load the image as base64 at the very beginning
