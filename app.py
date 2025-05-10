@@ -322,7 +322,11 @@ if st.session_state.get("theme_mode") == "dark":
             background-color: #0E1117 !important;
         }
         .block-container {
-            background-color: transparent !important;
+            background-color: #0E1117 !important;
+        }
+        /* Ensure any nested elements use dark background */
+        .block-container * {
+            background-color: inherit !important;
         }
         /* Chat input container */
         div[data-testid="stChatInput"] input, div[data-testid="stChatInput"] div {
@@ -334,8 +338,16 @@ if st.session_state.get("theme_mode") == "dark":
             background-color: #262730 !important;
             border: 1px dashed #4e8cff !important;
         }
+        [data-testid="stSidebar"] [data-testid="stFileUploader"] {
+            background-color: #262730 !important;
+            border: 1px dashed #4e8cff !important;
+        }
         /* Inner dropzone element that holds the drag-and-drop text */
         [data-testid="stFileUploader"] div:first-child {
+            background-color: transparent !important;
+            color: #ffffff !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stFileUploader"] div:first-child {
             background-color: transparent !important;
             color: #ffffff !important;
         }
@@ -2783,6 +2795,13 @@ else:
         }
         div[data-baseweb="select"] input {
             color: #000000 !important;
+        }
+        /* Sidebar uploader container */
+        [data-testid="stSidebar"] [data-testid="stFileUploader"],
+        [data-testid="stSidebar"] [data-testid="stFileUploader"] div:first-child {
+            background-color: #f5f8ff !important;
+            color: #000000 !important;
+            border: 1px dashed #2a62ca !important;
         }
         </style>
         """,
