@@ -2483,4 +2483,82 @@ def _toggle_theme():
     st.experimental_rerun()
 
 # ------------------------------------------------------------------
-+'''
+
+# Inject dark theme CSS overrides when in dark mode
+if st.session_state.get("theme_mode") == "dark":
+    dark_css = """
+    <style>
+    body, .stApp {
+        background-color: #0E1117 !important;
+        color: #FFFFFF !important;
+    }
+    .stats-container {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .stats-header {
+        color: #6aa5ff !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .stat-card {
+        background-color: rgba(50, 57, 68, 0.7) !important;
+    }
+    .stat-value {
+        color: #5ed9a7 !important;
+    }
+    .stat-label {
+        color: #aabfe6 !important;
+    }
+    .status-indicator {
+        background-color: rgba(50,57,68,0.5) !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #262730 !important;
+        color: #FFFFFF !important;
+    }
+    .sidebar-header span {
+        color: #FFFFFF !important;
+    }
+    .sheet-button {
+        background-color: #2a62ca !important;
+        color: black !important;
+    }
+    .client-details {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        border-left: 3px solid #4e8cff !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .client-details h3 {
+        color: #6aa5ff !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .field-label {
+        color: #aabfe6 !important;
+    }
+    .field-value {
+        color: #FFFFFF !important;
+    }
+    .orders-container {
+        background-color: rgba(35, 40, 48, 0.95) !important;
+        border-left: 3px solid #f8b400 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+    .orders-container h3 {
+        color: #ffc947 !important;
+        border-bottom: 1px solid #444 !important;
+    }
+    .order-item {
+        border-bottom: 1px dotted #444 !important;
+    }
+    .order-id {
+        color: #ddd !important;
+    }
+    .order-amount {
+        color: #5ed9a7 !important;
+    }
+    .order-status {
+        color: #333 !important;
+    }
+    </style>
+    """
+    st.markdown(dark_css, unsafe_allow_html=True)
