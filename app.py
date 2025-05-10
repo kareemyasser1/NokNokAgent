@@ -860,72 +860,14 @@ if "chat_history_sheet" not in st.session_state:
     if st.session_state.sheets_client:
         st.session_state.chat_history_sheet = get_or_create_chat_history(st.session_state.sheets_client)
 
-# Fixed function to always display database stats at top of sidebar
-def display_database_stats(orders_data, clients_data, items_data, logo_base64, sheet_url, is_connected=True):
-    """Display database stats in a consistent way regardless of client selection"""
-    if is_connected:
-        # Connected version
-        stats_html = f"""
-        <div class="stats-container">
-            <div class="stats-header">
-                <img src="data:image/png;base64,{logo_base64}" alt="logo">
-                <div class="stats-header-text">Database Statistics</div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">{len(orders_data)}</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{len(clients_data)}</div>
-                    <div class="stat-label">Total Clients</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
-                    <div class="stat-label">In Stock</div>
-                </div>
-            </div>
-            <div class="status-indicator">
-                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
-            </div>
-            <a href="{sheet_url}" target="_blank" class="sheet-button">
-                📊 Open Google Sheet
-            </a>
-        </div>
-        """
-    else:
-        # Disconnected version
-        stats_html = f"""
-        <div class="stats-container">
-            <div class="stats-header">
-                <img src="data:image/png;base64,{logo_base64}" alt="logo">
-                <div class="stats-header-text">Database Statistics</div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Total Clients</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">In Stock</div>
-                </div>
-            </div>
-            <div class="status-indicator">
-                <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
-            </div>
-            <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
-                The application will still work, but without real database access.
-            </div>
-        </div>
-        """
-    
-    # Display the custom stats HTML
-    st.sidebar.markdown(stats_html, unsafe_allow_html=True)
+# Sidebar - Database stats
+# Replace standard title with custom HTML for better alignment with top bar
+st.sidebar.markdown(f"""
+<div class="sidebar-header">
+    <img src="data:image/png;base64,{logo_base64}" alt="logo">
+    <span>Database</span>
+</div>
+""", unsafe_allow_html=True)
 
 # Add custom CSS for sidebar file uploader
 st.sidebar.markdown('''
@@ -1014,16 +956,6 @@ if "current_client_id" not in st.session_state:
 
 # Check database connection 
 db_connected = False
-sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
-
-# Sidebar - Database title with logo
-st.sidebar.markdown(f"""
-<div class="sidebar-header">
-    <img src="data:image/png;base64,{logo_base64}" alt="logo">
-    <span>Database</span>
-</div>
-""", unsafe_allow_html=True)
-
 if st.session_state.noknok_sheets:
     # Try to get a small amount of data to verify connection
     try:
@@ -1033,11 +965,53 @@ if st.session_state.noknok_sheets:
         clients_data = sheet_data.get('clients', [])
         items_data = sheet_data.get('items', [])
         
-        # Display database stats at the top of sidebar
-        display_database_stats(orders_data, clients_data, items_data, logo_base64, sheet_url, True)
+        # Create HTML for stats display instead of using st.metric
+        stats_html = f"""
+        <div class="stats-container">
+            <div class="stats-header">
+                <img src="data:image/png;base64,{logo_base64}" alt="logo">
+                <div class="stats-header-text">Database Statistics</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{len(orders_data)}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{len(clients_data)}</div>
+                    <div class="stat-label">Total Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
+                    <div class="stat-label">In Stock</div>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
+            </div>
+            <a href="{sheet_url}" target="_blank" class="sheet-button">
+                📊 Open Google Sheet
+            </a>
+        </div>
+        """
+        
+        # Display the custom stats HTML
+        st.sidebar.markdown(stats_html, unsafe_allow_html=True)
         
         if orders_data or clients_data or items_data:
             db_connected = True
+            
+            # Skip the default success message and button since we're using our custom HTML
+            # st.sidebar.success("✅ Connected to NokNok Database")
+            # 
+            # # Add styled Google Sheet button
+            # st.sidebar.markdown(f'''
+            # <a href="{sheet_url}" target="_blank" style="display: inline-block; text-decoration: none; 
+            #    background-color: #4285F4; color: white; padding: 8px 16px; border-radius: 4px;
+            #    font-weight: bold; text-align: center; margin: 8px 0px; width: 100%;">
+            #    📊 Open Google Sheet
+            # </a>
+            # ''', unsafe_allow_html=True)
             
             # Add client selection dropdown if clients data is available
             if clients_data:
@@ -1338,8 +1312,38 @@ if st.session_state.noknok_sheets:
 else:
     # No need to redefine CSS as we have global styles
     
-    # Display database stats for disconnected state
-    display_database_stats([], [], [], logo_base64, sheet_url, False)
+    # Create HTML for stats display with empty values
+    stats_html = f"""
+    <div class="stats-container">
+        <div class="stats-header">
+            <img src="data:image/png;base64,{logo_base64}" alt="logo">
+            <div class="stats-header-text">Database Statistics</div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">In Stock</div>
+            </div>
+        </div>
+        <div class="status-indicator">
+            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
+            The application will still work, but without real database access.
+        </div>
+    </div>
+    """
+    
+    # Display the custom stats HTML
+    st.sidebar.markdown(stats_html, unsafe_allow_html=True)
 
 # Display chat messages
 for message in st.session_state.messages:
