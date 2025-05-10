@@ -59,16 +59,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Hide logo in all spinner components
-st.markdown("""
-<style>
-/* Hide the logo in spinners throughout the app */
-div[data-testid="stSpinner"] svg {
-    display: none !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # Icon images for chat avatars (optional – taken from Exifa assets)
 icons = {
     "assistant": "https://raw.githubusercontent.com/sahirmaharaj/exifa/2f685de7dffb583f2b2a89cb8ee8bc27bf5b1a40/img/assistant-done.svg",
@@ -612,6 +602,18 @@ st.markdown('''
     font-size: 2.5rem;
     font-weight: bold;
 }
+.noknok-logo {
+    height: 60px;
+    margin-right: 8px;
+    object-fit: contain;
+    max-width: 60px;
+}
+.noknok-logo-small {
+    height: 30px;
+    vertical-align: middle;
+    object-fit: contain;
+    max-width: 30px;
+}
 </style>
 ''', unsafe_allow_html=True)
 
@@ -675,8 +677,8 @@ if "chat_history_sheet" not in st.session_state:
 # Sidebar - Database stats
 # Replace standard title with custom HTML for better alignment with top bar
 st.sidebar.markdown(f"""
-<div style="display: flex; align-items: center; margin-top: -40px; margin-bottom: 20px; padding: 0;">
-    <img src="data:image/png;base64,{logo_base64}" style="height: 60px; margin-right: 8px;">
+<div style="display: flex; align-items: center; margin-top: -40px; margin-bottom: 20px; padding: 0; height: 70px;">
+    <img src="data:image/png;base64,{logo_base64}" class="noknok-logo">
     <span style="font-size: 2.6rem; font-weight: bold; color: white;">Database</span>
 </div>
 """, unsafe_allow_html=True)
@@ -800,10 +802,25 @@ if st.session_state.noknok_sheets:
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 70px; /* Fixed height to prevent layout shifts */
         }
         .stats-header img {
-            height: 30px;
+            height: 60px;
             margin-right: 8px;
+            object-fit: contain; /* Ensure image maintains aspect ratio */
+            max-width: 60px; /* Prevent image from growing too wide */
+        }
+        .noknok-logo {
+            height: 60px;
+            margin-right: 8px;
+            object-fit: contain;
+            max-width: 60px;
+        }
+        .noknok-logo-small {
+            height: 30px;
+            vertical-align: middle;
+            object-fit: contain;
+            max-width: 30px;
         }
         .stats-grid {
             display: grid;
@@ -867,7 +884,7 @@ if st.session_state.noknok_sheets:
         stats_html = f"""
         <div class="stats-container">
             <div class="stats-header">
-                <img src="data:image/png;base64,{logo_base64}" alt="logo"> Database Statistics
+                <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo"> Database Statistics
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -884,7 +901,7 @@ if st.session_state.noknok_sheets:
                 </div>
             </div>
             <div class="status-indicator">
-                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 30px; vertical-align: middle;"> Database</span>
+                <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
             </div>
             <a href="{sheet_url}" target="_blank" class="sheet-button">
                 📊 Open Google Sheet
@@ -1297,7 +1314,7 @@ else:
     stats_html = f"""
     <div class="stats-container">
         <div class="stats-header">
-            <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 60px; margin-right: 8px;"> Database Statistics
+            <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo"> Database Statistics
         </div>
         <div class="stats-grid">
             <div class="stat-card">
@@ -1314,7 +1331,7 @@ else:
             </div>
         </div>
         <div class="status-indicator">
-            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" style="height: 15px; vertical-align: middle;"> Database connection not available</span>
+            <span class="status-disconnected">⚠️ <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database connection not available</span>
         </div>
         <div style="margin-top: 10px; font-size: 0.85rem; color: #aabfe6; text-align: center;">
             The application will still work, but without real database access.
@@ -2177,7 +2194,6 @@ if "current_client_id" in st.session_state and st.session_state.current_client_i
              or (datetime.now() - st.session_state.condition_handler.last_data_refresh).total_seconds() > 30)
     ):
         print(f"Auto-refreshing data for client ID: {st.session_state.current_client_id}")
-        # Load data silently without displaying a spinner
         st.session_state.condition_handler.load_data()
 
 # Add condition controls to sidebar
