@@ -5,6 +5,8 @@ st.set_page_config(
     page_title="NokNok AI Assistant",
     page_icon="🛒",
     layout="wide",
+    initial_sidebar_state="expanded",
+    theme="light"  # Set theme to light instead of the default dark
 )
 
 import os
