@@ -376,12 +376,89 @@ def process_prompt_variables(prompt_template, client_id=None):
             
             # Get client data for @clientName@
             if client_id and handler.client_data:
-                client = next((c for c in handler.client_data if str(c.get('ClientID')) == str(client_id)), None)
+                print(f"Looking for client with ID: {client_id}")
+                print(f"Number of clients in data: {len(handler.client_data)}")
+                
+                # First, let's print some sample client IDs to debug
+                sample_ids = [str(c.get('ClientID', 'unknown')) for c in handler.client_data[:5]]
+                print(f"Sample client IDs in data: {sample_ids}")
+                
+                # Let's also print all the keys from the first client record to see field names
+                if handler.client_data and len(handler.client_data) > 0:
+                    first_client_keys = list(handler.client_data[0].keys())
+                    print(f"Available client fields: {first_client_keys}")
+                
+                # Try to find the client - add more logging
+                client = next((c for c in handler.client_data if str(c.get('ClientID', '')) == str(client_id)), None)
                 if client:
-                    # Try to get client first name with exact field matching
-                    if 'Client First Name' in client and client['Client First Name']:
-                        client_name = client['Client First Name']
-                        print(f"Found client name: {client_name}")
+                    print(f"Found client data: {client}")
+                    
+                    # Try different field name variations for first name
+                    name_field_variations = [
+                        'Client First Name', 
+                        'ClientFirstName',
+                        'First Name',
+                        'FirstName',
+                        'Name',
+                        'client first name',  # Case insensitive check
+                        'firstname'
+                    ]
+                    
+                    # Try all field variations with exact match
+                    client_name_found = False
+                    for field in name_field_variations:
+                        # Direct field check
+                        if field in client and client[field]:
+                            client_name = client[field]
+                            print(f"Found client name using field '{field}': {client_name}")
+                            client_name_found = True
+                            break
+                    
+                    # If exact match fails, try case insensitive match
+                    if not client_name_found:
+                        client_fields = list(client.keys())
+                        for field in name_field_variations:
+                            matching_fields = [k for k in client_fields if k.lower() == field.lower()]
+                            if matching_fields:
+                                field_name = matching_fields[0]
+                                if client[field_name]:
+                                    client_name = client[field_name]
+                                    print(f"Found client name using case-insensitive match for '{field}': {client_name}")
+                                    client_name_found = True
+                                    break
+                                
+                    # If still no name found, look for any field that might contain "first" and "name"
+                    if not client_name_found:
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if ('first' in key_lower and 'name' in key_lower) and client[key]:
+                                client_name = client[key]
+                                print(f"Found client name using field name pattern match '{key}': {client_name}")
+                                client_name_found = True
+                                break
+                                
+                    # If we still couldn't find a name, try to use any name-like field
+                    if not client_name_found:
+                        name_pattern_keys = ['name', 'client', 'user']
+                        for key in client.keys():
+                            key_lower = key.lower()
+                            if any(pattern in key_lower for pattern in name_pattern_keys) and client[key]:
+                                if not key_lower.endswith('id') and not key_lower.endswith('email'):  # Skip ID and email fields
+                                    client_name = client[key]
+                                    print(f"Found client name using general pattern '{key}': {client_name}")
+                                    client_name_found = True
+                                    break
+                    
+                    # If we couldn't find a name, log that information
+                    if not client_name_found:
+                        print("WARNING: Could not find client first name, using default 'valued customer'")
+                else:
+                    print(f"WARNING: Client with ID {client_id} not found in client data")
+            else:
+                if not client_id:
+                    print("WARNING: No client_id provided to process_prompt_variables function")
+                else:
+                    print(f"WARNING: client_id provided ({client_id}) but no client_data available")
             
             # Process order-related variables
             if client_id and handler.order_data:
