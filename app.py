@@ -676,9 +676,13 @@ st.sidebar.markdown("### 📎 Attach")
 # Define a function to handle the send image button click
 def send_image_clicked():
     print("Send image button clicked!")
-    st.session_state["send_image_only"] = True
-    # Force reset of uploader on next rerun
-    st.session_state["reset_uploader"] = True
+    # Only set send_image_only flag if we actually have an image
+    if "attached_image_bytes" in st.session_state:
+        st.session_state["send_image_only"] = True
+        print("send_image_only set to True")
+    else:
+        print("No image attached, not setting send_image_only")
+    # We don't reset the uploader here - will do that after successful send
 
 uploaded_file = st.sidebar.file_uploader(
     "",  # Empty label
@@ -966,19 +970,25 @@ if should_send:
     # Debug info
     print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
 
-    # Read and consume any attached image
-    image_bytes = st.session_state.pop("attached_image_bytes", None)
-    image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
+    # Check if we have an image to send
+    has_image = "attached_image_bytes" in st.session_state
+    image_was_sent = False
+    
+    # Only get the image if we're actually going to send it (with text or image-only mode)
+    if has_image:
+        # Read the attached image but don't pop it yet
+        image_bytes = st.session_state["attached_image_bytes"]
+        image_mime = st.session_state.get("attached_image_mime", "image/jpeg")
+        print(f"Image ready to send, size: {len(image_bytes)} bytes")
+    else:
+        image_bytes = None
+        image_mime = None
+        print("No image to send")
     
     # Reset the send_image_only flag for next run
     send_image_only = st.session_state.pop("send_image_only", False)
     
-    # Ensure uploader will be reset on next rerun
-    if image_bytes:
-        st.session_state.reset_uploader = True
-        print(f"Image received, size: {len(image_bytes)} bytes")
-    
-    if send_image_only and not image_bytes:
+    if send_image_only and not has_image:
         # Edge-case: send button but no image (shouldn't normally happen)
         print("Warning: Send image requested but no image found")
         send_image_only = False
@@ -988,15 +998,31 @@ if should_send:
     else:
         # Add user message (with optional image) to chat history
         user_message_entry = {"role": "user", "content": prompt}
-        if image_bytes:
+        
+        # Only include image if we have one
+        if has_image:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
-            st.session_state.reset_uploader = True
+            image_was_sent = True
+            print("Image added to message")
+            
+            # Now we can clear the image from session state as it's been sent
+            if "attached_image_bytes" in st.session_state:
+                st.session_state.pop("attached_image_bytes")
+            if "attached_image_mime" in st.session_state:
+                st.session_state.pop("attached_image_mime")
+            print("Image cleared from session state after sending")
+            
+        # Always reset the uploader after sending any message (text-only or with image)
+        # This ensures clean state for the next message
+        st.session_state.reset_uploader = True
+        print(f"Message sent - text: {bool(prompt)}, image: {image_was_sent}, scheduling uploader reset")
+
         st.session_state.messages.append(user_message_entry)
         with st.chat_message("user"):
             if prompt:
                 st.write(prompt)
-            if image_bytes:
+            if image_was_sent:
                 st.image(image_bytes)
 
         # Generate response
@@ -1130,6 +1156,11 @@ if should_send:
                     # Save conversation to chat history sheet
                     if st.session_state.chat_history_sheet:
                         save_to_chat_history(st.session_state.chat_history_sheet, "User", prompt, full_response)
+                    
+                    # Always schedule uploader reset after any successful message exchange
+                    # This ensures clean state for the next message
+                    st.session_state.reset_uploader = True
+                    print("File uploader reset scheduled after successful message exchange")
             except Exception as e:
                 full_response = f"Error: {str(e)}"
                 response_container.write(full_response)
@@ -1940,3 +1971,5 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+print(f"Message sent - text: {bool(prompt)}, image: {image_was_sent}, scheduling uploader reset")
