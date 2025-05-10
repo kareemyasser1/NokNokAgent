@@ -25,6 +25,17 @@ from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
 
+# ------------------------- THEME MODE -----------------------------
+if "theme_mode" not in st.session_state:
+    # default to light (the new theme)
+    st.session_state.theme_mode = "light"
+
+# helper to toggle theme and rerun
+def _toggle_theme():
+    st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
+    st.experimental_rerun()
+# ------------------------------------------------------------------
+
 # Load the image as base64 at the very beginning
 with open("logo.png", "rb") as f:
     logo_base64 = base64.b64encode(f.read()).decode()
@@ -773,6 +784,7 @@ def process_prompt_variables(prompt_template, client_id=None):
                         elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
                             technical_issues = True
                         print(f"Technical issues: {technical_issues}")
+                    
                     
                     # Extract ETA - strict field name
                     if 'ETA' in recent_order:
@@ -2469,19 +2481,6 @@ if st.session_state.get("english_prompt_pending"):
 
     # clear the flag
     st.session_state.english_prompt_pending = False
-    st.session_state.pop("english_prompt_prompt", None)
-
-# ------------------------- THEME MODE -----------------------------
-if "theme_mode" not in st.session_state:
-    # default to light (the new theme)
-    st.session_state.theme_mode = "light"
-
-# helper to toggle theme and rerun
-
-def _toggle_theme():
-    st.session_state.theme_mode = "dark" if st.session_state.theme_mode == "light" else "light"
-    st.experimental_rerun()
-
 # ------------------------------------------------------------------
 
 # Inject dark theme CSS overrides when in dark mode
