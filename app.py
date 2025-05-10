@@ -187,7 +187,7 @@ st.markdown(f"""
     font-size: 2.6rem;
     font-weight: bold;
     color: white;
-    margin-left: 0; /* Remove this margin since we're using absolute positioning */
+    margin-left: 50px; /* Remove this margin since we're using absolute positioning */
     white-space: nowrap;
     position: absolute; /* Position absolutely like the logo */
     left: 80px; /* Reduce the gap between logo and text */
