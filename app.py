@@ -248,7 +248,7 @@ body, .stApp {{
 }}
 
 .sidebar-header span {{
-    color: #000500 !important;
+    color: #000000 !important;
 }}
 
 .sheet-button {{
