@@ -1091,9 +1091,13 @@ if st.session_state.get("show_refresh_success", False):
     </div>
     """, unsafe_allow_html=True)
     
-    # Clear the flag after 3 seconds (will be removed on next rerun)
-    time.sleep(0.1)  # Small delay to ensure UI updates
+    # Create a placeholder for auto-dismissal counter
+    message_counter = st.sidebar.empty()
+    
+    # Wait for 1 second then clear the flag
+    time.sleep(1)
     st.session_state.show_refresh_success = False
+    st.rerun()  # Force rerun to remove the message
 
 # Add last updated timestamp
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
