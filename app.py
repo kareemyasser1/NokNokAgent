@@ -1119,11 +1119,12 @@ with st.sidebar:
         icon_size="2x",
         key="voice_recorder",
     )
-    # Playback preview & store in session for processing on same run
+    # Store bytes in session state without playback preview
     if voice_audio_bytes:
-        st.audio(voice_audio_bytes, format="audio/wav")
-        # Store bytes in session state so the main chat loop can pick them up once
+        # Skip audio playback preview, only store for processing
         st.session_state["voice_audio_bytes"] = voice_audio_bytes
+        # Optional status indicator for better UX
+        st.success("Voice recorded! Processing...", icon="🎙️")
 
 # Client selection dropdown
 if "current_client_id" not in st.session_state:
@@ -1550,7 +1551,7 @@ if voice_bytes_pending:
         audio_file = io.BytesIO(voice_bytes_pending)
         audio_file.name = "voice.wav"
         transcription_response = client.audio.transcriptions.create(
-            model="whisper-1",  # GPT-4o transcription (fallback to Whisper-1)
+            model="gpt-4o-transcribe",  # Using GPT-4o's advanced transcription
             file=audio_file,
         )
         transcript_text = (
