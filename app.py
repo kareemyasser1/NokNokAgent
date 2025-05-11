@@ -1039,8 +1039,36 @@ if uploaded_file is not None:
 
 st.sidebar.markdown("### 🎙️ Voice Message")
 
+# Add extra CSS to ensure audio recorder stays in sidebar
+st.sidebar.markdown("""
+<style>
+/* Ensure audio recorder container stays within sidebar bounds */
+[data-testid="stSidebar"] .audio-recorder {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+/* Make sure record button styling is contained */
+[data-testid="stSidebar"] .audio-recorder button {
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* Audio playback should stay in sidebar */
+[data-testid="stSidebar"] audio {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Create a container specifically for the recorder to help with containment
+recorder_container = st.sidebar.container()
+
 # Use the audio_recorder component to capture audio
-audio_bytes_sidebar = audio_recorder(
+audio_bytes_sidebar = recorder_container.audio_recorder(
     text="",
     recording_color="#ff4b4b",
     neutral_color="#2a62ca",
