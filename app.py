@@ -1540,6 +1540,9 @@ print("reset_uploader in session state:", "reset_uploader" in st.session_state)
 # Audio recorder has been moved to the sidebar entirely
 # No recorder should appear in the main window
 
+# Initialize audio_input_bytes before use
+audio_input_bytes = None
+
 # Standard chat text input for typing messages
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
