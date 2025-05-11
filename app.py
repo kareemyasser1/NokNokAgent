@@ -1111,36 +1111,42 @@ if "condition_handler" in st.session_state and st.session_state.condition_handle
 # ───────────────────────────────────────────────
 st.sidebar.markdown("### 🎙️ Voice Message")
 with st.sidebar:
-    # Initialize a flag to track if recording has been processed
-    if "voice_processed" not in st.session_state:
-        st.session_state["voice_processed"] = False
+    # Initialize persistent state to track recording stages
+    if "recording_state" not in st.session_state:
+        st.session_state["recording_state"] = "ready"  # States: ready, processing
+    
+    # Create a container for audio recorder to keep UI stable
+    recorder_container = st.container()
+    
+    with recorder_container:
+        # Only show recorder if we're not currently processing
+        voice_audio_bytes = audio_recorder(
+            text="",
+            recording_color="#ff4d4d",
+            neutral_color="#2a62ca",
+            icon_name="microphone",
+            icon_size="2x",
+            key="voice_recorder",
+            # Use auto_stop with high pause threshold to avoid interruptions
+            energy_threshold=(-1.0, -1.0),  # Very sensitive to detect speech
+            pause_threshold=2.0  # 2 second pause to auto-stop
+        )
+    
+    # Handle the recording states
+    if voice_audio_bytes and st.session_state["recording_state"] == "ready":
+        # We have new audio and we're ready to process it (not already processing)
+        st.session_state["recording_state"] = "processing"
         
-    voice_audio_bytes = audio_recorder(
-        text="",
-        recording_color="#ff4d4d",
-        neutral_color="#2a62ca",
-        icon_name="microphone",
-        icon_size="2x",
-        key="voice_recorder",
-    )
-    # Only process if we have new audio and haven't processed it yet
-    if voice_audio_bytes and not st.session_state["voice_processed"]:
-        # Mark as processed to prevent duplicate sends
-        st.session_state["voice_processed"] = True
-        
-        # Store bytes in session state along with unique timestamp
+        # Store bytes directly in session state for transcription on next cycle
         st.session_state["voice_audio_bytes"] = voice_audio_bytes
-        st.session_state["voice_timestamp"] = datetime.now().timestamp()
         
-        # Optional status indicator for better UX
+        # Show processing status
         st.success("Voice recorded! Processing...", icon="🎙️")
-        
-        # Force a rerun to process the voice message
-        st.rerun()
-    # If no audio bytes but we still have the processed flag set, clear it
-    elif not voice_audio_bytes and st.session_state["voice_processed"]:
-        # Recorder was reset, so we can reset the processed flag
-        st.session_state["voice_processed"] = False
+    
+    # Add a status indicator when processing
+    if st.session_state["recording_state"] == "processing" and not voice_audio_bytes:
+        # Reset state once processing is complete and recorder is cleared
+        st.session_state["recording_state"] = "ready"
 
 # Client selection dropdown
 if "current_client_id" not in st.session_state:
