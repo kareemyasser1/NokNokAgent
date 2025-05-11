@@ -24,14 +24,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
 import streamlit.components.v1 as components  # For custom HTML (background particles)
-# Import the audio recorder component
-try:
-    from audio_recorder_streamlit import audio_recorder
-except ImportError:
-    import subprocess
-    import sys
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "audio-recorder-streamlit"])
-    from audio_recorder_streamlit import audio_recorder
+from audio_recorder_streamlit import audio_recorder  # 🎙️ Voice recorder component
+import io  # For in-memory audio file handling
 
 # Load the image as base64 at the very beginning
 with open("logo.png", "rb") as f:
@@ -1032,145 +1026,6 @@ if uploaded_file is not None:
     # Add send button with direct function call
     st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
 
-# Add voice message recorder to sidebar
-st.sidebar.markdown("### 🎤 Voice Message")
-
-# Add custom CSS for the voice recorder
-st.sidebar.markdown("""
-<style>
-.voice-recorder-container {
-    background-color: rgba(35, 40, 48, 0.05);
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 1px dashed #4e8cff;
-}
-.recording-status {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: #666;
-    text-align: center;
-}
-.transcription-box {
-    margin-top: 10px;
-    padding: 8px;
-    background-color: #f0f7ff;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    width: 100%;
-    word-wrap: break-word;
-}
-.voice-action-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    width: 100%;
-    justify-content: center;
-}
-.voice-action-buttons button {
-    flex: 1;
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-    .voice-recorder-container {
-        padding: 10px;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-with st.sidebar.container():
-    st.markdown('<div class="voice-recorder-container">', unsafe_allow_html=True)
-    
-    # Audio recorder with custom styling
-    audio_bytes = audio_recorder(
-        text="",
-        recording_color="#e74c3c",  # Red when recording
-        neutral_color="#4e8cff",    # Blue when idle
-        icon_name="microphone",
-        icon_size="3x",
-        pause_threshold=2.0
-    )
-    
-    if "transcribing" not in st.session_state:
-        st.session_state.transcribing = False
-    
-    if "transcribed_text" not in st.session_state:
-        st.session_state.transcribed_text = None
-        
-    if audio_bytes and not st.session_state.transcribing:
-        st.session_state.transcribing = True
-        
-        # Show transcribing spinner
-        with st.spinner("Transcribing voice message..."):
-            try:
-                # Save audio to a temporary file
-                temp_audio_file = "temp_audio.wav"
-                with open(temp_audio_file, "wb") as f:
-                    f.write(audio_bytes)
-                
-                # Create OpenAI client
-                client = OpenAI(api_key=api_key)
-                
-                # Transcribe the audio using OpenAI's model
-                with open(temp_audio_file, "rb") as audio_file:
-                    # Use the correct audio transcription model
-                    transcript = client.audio.transcriptions.create(
-                        model="whisper-1",  # Current available model for audio transcriptions
-                        file=audio_file,
-                        response_format="text"
-                    )
-                
-                # Delete the temporary file
-                if os.path.exists(temp_audio_file):
-                    os.remove(temp_audio_file)
-                
-                # Store transcribed text in session state
-                transcribed_text = transcript
-                st.session_state.voice_message_text = transcribed_text
-                st.session_state.transcribed_text = transcribed_text
-                st.session_state.send_voice_message = True
-                st.session_state.transcribing = False
-                
-                print(f"Successfully transcribed: '{transcribed_text}'")
-                
-                # Force rerun to process the transcribed message
-                st.rerun()
-                
-            except Exception as e:
-                st.error(f"Error transcribing audio: {e}")
-                print(f"Transcription error details: {str(e)}")
-                st.session_state.transcribing = False
-    
-    # If transcribed text exists, show it 
-    if st.session_state.transcribed_text and not st.session_state.transcribing:
-        st.markdown(f"""
-        <div class="transcription-box">
-            <strong>Last transcription:</strong><br/>
-            "{st.session_state.transcribed_text}"
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Add action buttons in a flex container
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Send Again", key="send_transcription_again"):
-                st.session_state.voice_message_text = st.session_state.transcribed_text
-                st.session_state.send_voice_message = True
-                st.rerun()
-        with col2:
-            if st.button("Clear", key="clear_transcription"):
-                st.session_state.transcribed_text = None
-                st.rerun()
-    
-    st.markdown('<div class="recording-status">Click to record, click again to stop</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
@@ -1250,6 +1105,23 @@ if st.session_state.get("show_refresh_success", False):
 if "condition_handler" in st.session_state and st.session_state.condition_handler.last_data_refresh:
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
     st.sidebar.caption(f"Last updated: {last_update}")
+
+# ───────────────────────────────────────────────
+# 🎙️  Voice message recorder (sidebar)
+# ───────────────────────────────────────────────
+voice_audio_bytes = audio_recorder(
+    text="",
+    recording_color="#ff4d4d",
+    neutral_color="#2a62ca",
+    icon_name="microphone",
+    icon_size="2x",
+    key="voice_recorder",
+)
+# Playback preview & store in session for processing on same run
+if voice_audio_bytes:
+    st.sidebar.audio(voice_audio_bytes, format="audio/wav")
+    # Store bytes in session state so the main chat loop can pick them up once
+    st.session_state["voice_audio_bytes"] = voice_audio_bytes
 
 # Client selection dropdown
 if "current_client_id" not in st.session_state:
@@ -1665,31 +1537,46 @@ if "send_image_only" in st.session_state:
     print("send_image_only value:", st.session_state["send_image_only"])
 print("attached_image_bytes in session state:", "attached_image_bytes" in st.session_state)
 print("reset_uploader in session state:", "reset_uploader" in st.session_state)
-print("send_voice_message in session state:", "send_voice_message" in st.session_state)
 
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
-# Determine if we should send a message this run
-should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False) or st.session_state.get("send_voice_message", False)
+# If there's a new voice recording queued, transcribe it now to text
+voice_bytes_pending = st.session_state.pop("voice_audio_bytes", None)
+if voice_bytes_pending:
+    try:
+        client = OpenAI(api_key=api_key)
+        audio_file = io.BytesIO(voice_bytes_pending)
+        audio_file.name = "voice.wav"
+        transcription_response = client.audio.transcriptions.create(
+            model="whisper-1",  # GPT-4o transcription (fallback to Whisper-1)
+            file=audio_file,
+        )
+        transcript_text = (
+            transcription_response.text
+            if hasattr(transcription_response, "text") else str(transcription_response)
+        )
+        # Inject the transcript as the prompt input so it flows naturally into the existing chat pipeline
+        prompt_input = transcript_text.strip()
+    except Exception as e:
+        st.sidebar.error(f"Audio transcription failed: {e}")
+
+# Determine if we should send a message this run (text, image-only, or voice)
+should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False)
 
 if should_send:
-    # Get text from either typed input or voice message
-    prompt = prompt_input or st.session_state.get("voice_message_text", "") or ""
+    prompt = prompt_input or ""  # allow empty string when image-only
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
     
     # Debug info
-    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}, send_voice_message: {st.session_state.get('send_voice_message', False)}")
+    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
     
-    # Reset the send flags for next run
+    # Reset the send_image_only flag for next run
     send_image_only = st.session_state.pop("send_image_only", False)
-    send_voice_message = st.session_state.pop("send_voice_message", False)
-    if "voice_message_text" in st.session_state:
-        del st.session_state["voice_message_text"]
     
     # Ensure uploader will be reset on next rerun
     if image_bytes:
@@ -1700,11 +1587,6 @@ if should_send:
         # Edge-case: send button but no image (shouldn't normally happen)
         print("Warning: Send image requested but no image found")
         send_image_only = False
-        
-    if send_voice_message:
-        print("Processing voice message")
-        # Add a note that this came from voice
-        prompt = f"{prompt} (via voice message)"
 
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
