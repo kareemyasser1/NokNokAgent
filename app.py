@@ -18,6 +18,7 @@ from openai import OpenAI, OpenAIError
 import time
 import threading
 import re
+import io
 # Import our conditions module
 from conditions import register_all_conditions
 from datetime import datetime, timedelta
@@ -1024,6 +1025,36 @@ if uploaded_file is not None:
     # Add send button with direct function call
     st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
 
+# ➖➖➖➖➖ VOICE MESSAGE SUPPORT ➖➖➖➖➖
+# Add audio attachment at the top of sidebar, right below the image attachment
+st.sidebar.markdown("### 🎤 Voice Message")
+
+# Define a function to handle the send audio button click
+def send_audio_clicked():
+    print("Send audio button clicked!")
+    st.session_state["send_audio_only"] = True
+    # Force reset of uploader on next rerun so previously selected audio is cleared
+    st.session_state["reset_uploader"] = True
+
+# Audio uploader (accept common audio types)
+audio_file = st.sidebar.file_uploader(
+    "",  # Empty label
+    type=["wav", "mp3", "m4a", "webm", "ogg"],
+    key=f"audio_uploader_{st.session_state.uploader_version}",
+    label_visibility="collapsed"
+)
+
+if audio_file is not None:
+    # Store audio in session state so we can access it after rerun
+    st.session_state["attached_audio_bytes"] = audio_file.getvalue()
+    st.session_state["attached_audio_mime"] = audio_file.type or "audio/wav"
+
+    # Show audio preview / player
+    st.sidebar.audio(audio_file)
+
+    # Send button for audio
+    st.sidebar.button("Send Audio", key="send_audio_sidebar_btn", on_click=send_audio_clicked)
+
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
@@ -1506,6 +1537,8 @@ for message in st.session_state.messages:
             st.write(message["content"])
         if message.get("image_bytes"):
             st.image(message["image_bytes"])
+        if message.get("audio_bytes"):
+            st.audio(message["audio_bytes"])
 
 # -----------------------------------------------
 # Chat input & message sending
@@ -1522,48 +1555,86 @@ print("reset_uploader in session state:", "reset_uploader" in st.session_state)
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
 # Determine if we should send a message this run
-should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False)
+should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False) or st.session_state.get("send_audio_only", False)
 
 if should_send:
-    prompt = prompt_input or ""  # allow empty string when image-only
+    prompt = prompt_input or ""  # allow empty string when image-only or audio-only
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
     
     # Debug info
-    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
+    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}, send_audio_only: {st.session_state.get('send_audio_only', False)}")
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
     
-    # Reset the send_image_only flag for next run
+    # Read and consume any attached audio
+    audio_bytes = st.session_state.pop("attached_audio_bytes", None)
+    audio_mime = st.session_state.pop("attached_audio_mime", "audio/wav")
+    
+    # Reset the send_image_only / send_audio_only flag for next run
     send_image_only = st.session_state.pop("send_image_only", False)
+    send_audio_only = st.session_state.pop("send_audio_only", False)
     
     # Ensure uploader will be reset on next rerun
-    if image_bytes:
+    if image_bytes or audio_bytes:
         st.session_state.reset_uploader = True
-        print(f"Image received, size: {len(image_bytes)} bytes")
+        if image_bytes:
+            print(f"Image received, size: {len(image_bytes)} bytes")
+        if audio_bytes:
+            print(f"Audio received, size: {len(audio_bytes)} bytes")
     
-    if send_image_only and not image_bytes:
-        # Edge-case: send button but no image (shouldn't normally happen)
-        print("Warning: Send image requested but no image found")
-        send_image_only = False
-
+    # If audio-only (or audio with no typed prompt), transcribe audio to generate prompt text
+    if (send_audio_only or (not prompt and audio_bytes)) and audio_bytes and api_key:
+        try:
+            transcription_client = OpenAI(api_key=api_key)
+            audio_file_obj = io.BytesIO(audio_bytes)
+            audio_file_obj.name = "voice_message.wav"  # give a filename for the API
+            print("Transcribing audio via gpt-4o-transcribe ...")
+            try:
+                transcription_response = transcription_client.audio.transcriptions.create(
+                    model="gpt-4o-transcribe",
+                    file=audio_file_obj,
+                    response_format="text"
+                )
+            except OpenAIError as transcribe_err:
+                print(f"gpt-4o-transcribe failed ({transcribe_err}), falling back to whisper-1")
+                audio_file_obj.seek(0)
+                transcription_response = transcription_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file_obj,
+                    response_format="text"
+                )
+            prompt = transcription_response if isinstance(transcription_response, str) else transcription_response.text  # handle both response types
+            print(f"Transcription result: {prompt}")
+        except Exception as e:
+            print(f"Error during transcription: {e}")
+            prompt = "[Error transcribing audio]"
+    
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
     else:
-        # Add user message (with optional image) to chat history
+        # Add user message (with optional image/audio) to chat history
         user_message_entry = {"role": "user", "content": prompt}
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
-            st.session_state.reset_uploader = True
+        if audio_bytes:
+            user_message_entry["audio_bytes"] = audio_bytes
+            user_message_entry["audio_mime"] = audio_mime
+
+        # Save the user message to the chat history list *before* assistant response
         st.session_state.messages.append(user_message_entry)
+
+        # Render the user message immediately for better UX
         with st.chat_message("user"):
             if prompt:
                 st.write(prompt)
             if image_bytes:
                 st.image(image_bytes)
+            if audio_bytes:
+                st.audio(audio_bytes)
 
         # Generate response
         with st.chat_message("assistant"):
