@@ -1068,15 +1068,16 @@ st.sidebar.markdown("""
 recorder_container = st.sidebar.container()
 
 # Use the audio_recorder component to capture audio
-audio_bytes_sidebar = recorder_container.audio_recorder(
-    text="",
-    recording_color="#ff4b4b",
-    neutral_color="#2a62ca",
-    icon_name="microphone",
-    icon_size="3x",
-    pause_threshold=2.0,
-    sample_rate=41_000,
-)
+with recorder_container:
+    audio_bytes_sidebar = audio_recorder(
+        text="",
+        recording_color="#ff4b4b",
+        neutral_color="#2a62ca",
+        icon_name="microphone",
+        icon_size="3x",
+        pause_threshold=2.0,
+        sample_rate=41_000,
+    )
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
