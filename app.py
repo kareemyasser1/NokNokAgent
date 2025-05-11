@@ -1027,6 +1027,29 @@ if uploaded_file is not None:
     # Add send button with direct function call
     st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
 
+# ───────────────────────────────────────────────
+# 🎤  Voice message recorder (Sidebar)
+# ───────────────────────────────────────────────
+st.sidebar.markdown("### 🎤 Voice Message")
+
+audio_input_bytes = audio_recorder(
+    text="  Record",
+    recording_color="#ff595e",   # red while recording
+    neutral_color="#2a62ca",     # primary brand color when idle
+    icon_name="microphone",
+    icon_size="2x",
+    pause_threshold=2.0,
+    key="voice_recorder_sidebar",
+)
+
+# Prevent sending the same audio repeatedly across reruns
+if audio_input_bytes:
+    audio_hash = hashlib.md5(audio_input_bytes).hexdigest()
+    if st.session_state.get("last_audio_hash") == audio_hash:
+        audio_input_bytes = None  # Already processed this recording in a prior rerun
+    else:
+        st.session_state["last_audio_hash"] = audio_hash
+
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
@@ -1527,21 +1550,8 @@ print("reset_uploader in session state:", "reset_uploader" in st.session_state)
 # -----------------------------------------------
 # Audio Recorder input
 # -----------------------------------------------
-audio_input_bytes = audio_recorder(
-    text="",
-    recording_color="#e63e2d",
-    neutral_color="#2a62ca",
-    icon_name="microphone",
-    icon_size="2x",
-)
-
-# Prevent sending the same audio repeatedly across reruns
-if audio_input_bytes:
-    audio_hash = hashlib.md5(audio_input_bytes).hexdigest()
-    if st.session_state.get("last_audio_hash") == audio_hash:
-        audio_input_bytes = None  # Already processed this recording
-    else:
-        st.session_state["last_audio_hash"] = audio_hash
+if False:  # Recorder moved to sidebar – keep for reference, never executed
+    _dummy = audio_recorder(text="", icon_name="microphone")
 
 # Standard chat text input (always displayed below the microphone)
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
