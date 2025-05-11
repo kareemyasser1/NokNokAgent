@@ -1110,19 +1110,20 @@ if "condition_handler" in st.session_state and st.session_state.condition_handle
 # 🎙️  Voice message recorder (sidebar)
 # ───────────────────────────────────────────────
 st.sidebar.markdown("### 🎙️ Voice Message")
-voice_audio_bytes = st.sidebar.audio_recorder(
-    text="",
-    recording_color="#ff4d4d",
-    neutral_color="#2a62ca",
-    icon_name="microphone",
-    icon_size="2x",
-    key="voice_recorder",
-)
-# Playback preview & store in session for processing on same run
-if voice_audio_bytes:
-    st.sidebar.audio(voice_audio_bytes, format="audio/wav")
-    # Store bytes in session state so the main chat loop can pick them up once
-    st.session_state["voice_audio_bytes"] = voice_audio_bytes
+with st.sidebar:
+    voice_audio_bytes = audio_recorder(
+        text="",
+        recording_color="#ff4d4d",
+        neutral_color="#2a62ca",
+        icon_name="microphone",
+        icon_size="2x",
+        key="voice_recorder",
+    )
+    # Playback preview & store in session for processing on same run
+    if voice_audio_bytes:
+        st.audio(voice_audio_bytes, format="audio/wav")
+        # Store bytes in session state so the main chat loop can pick them up once
+        st.session_state["voice_audio_bytes"] = voice_audio_bytes
 
 # Client selection dropdown
 if "current_client_id" not in st.session_state:
