@@ -1076,7 +1076,13 @@ with top_cols[0]:
                     st.session_state.condition_handler.setup_complete = True
                     st.session_state.condition_handler.last_data_refresh = datetime.now()
                 
-                st.success("Database refreshed!")
+                # Use a custom success message with HTML instead of st.success() to avoid vertical text
+                st.sidebar.markdown("""
+                <div style="background-color:#8CCD9E; color:white; padding:8px; border-radius:3px; margin:3px; text-align:center;">
+                    ✅ Database refreshed!
+                </div>
+                """, unsafe_allow_html=True)
+                
                 # Rerun the app to show updated data
                 st.rerun()
 
