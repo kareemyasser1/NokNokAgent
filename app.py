@@ -471,16 +471,15 @@ def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr
         
         # Get specific worksheets - try by name first, then by index as fallback
         try:
-            try:
-                order_sheet = spreadsheet.worksheet("Order")
-                print("Using 'Order' worksheet by name")
-            except gspread.WorksheetNotFound:
-                # If not found by name, use first sheet
-                if len(all_worksheets) >= 1:
-                    order_sheet = all_worksheets[0]  # First sheet
-                    print(f"Using first sheet for order data: {order_sheet.title}")
-                else:
-                    raise Exception("No sheets available for order data")
+            order_sheet = spreadsheet.worksheet("Order")
+            print("Using 'Order' worksheet by name")
+        except gspread.WorksheetNotFound:
+            # If not found by name, use first sheet
+            if len(all_worksheets) >= 1:
+                order_sheet = all_worksheets[0]  # First sheet
+                print(f"Using first sheet for order data: {order_sheet.title}")
+            else:
+                raise Exception("No sheets available for order data")
         except Exception as e:
             st.error(f"Error accessing Order sheet: {e}")
             order_sheet = None
@@ -1027,26 +1026,69 @@ if uploaded_file is not None:
     # Add send button with direct function call
     st.sidebar.button("Send Image", key="send_image_sidebar_btn", on_click=send_image_clicked)
 
-# ───────────────────────────────────────────────
-# 🎤  Voice message recorder (Sidebar)
-# ───────────────────────────────────────────────
-st.sidebar.markdown("### 🎤 Voice Message")
+# Add CSS to position the microphone button inside the chat input area
+st.markdown("""
+<style>
+/* Style for the chat input area */
+[data-testid="stChatInput"] {
+    padding-right: 50px !important; /* Make space for mic button */
+    position: relative !important;
+}
 
+/* Hidden container for the microphone recorder */
+.mic-container {
+    position: fixed;
+    bottom: 15px;
+    right: 70px;
+    z-index: 1000;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Style for the mic button */
+.mic-container div {
+    transform: scale(0.7);
+}
+
+/* Make mic icon more visible */
+.mic-container button {
+    background-color: transparent !important;
+    border: none !important;
+    opacity: 0.9 !important;
+    color: #2a62ca !important; /* Brand blue color */
+}
+
+/* Change appearance when recording */
+.mic-container button.recording {
+    opacity: 1 !important;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+    color: #ff595e !important; /* Red color when recording */
+}
+</style>
+<div class="mic-container">
+</div>
+""", unsafe_allow_html=True)
+
+# Place the audio recorder at the bottom where the chat input is
 audio_input_bytes = audio_recorder(
-    text="  Record",
-    recording_color="#ff595e",   # red while recording
-    neutral_color="#2a62ca",     # primary brand color when idle
+    text="",
+    recording_color="#ff595e",
+    neutral_color="#2a62ca",
     icon_name="microphone",
-    icon_size="2x",
+    icon_size="lg",
     pause_threshold=2.0,
-    key="voice_recorder_sidebar",
+    key="voice_recorder_overlay"
 )
 
 # Prevent sending the same audio repeatedly across reruns
 if audio_input_bytes:
     audio_hash = hashlib.md5(audio_input_bytes).hexdigest()
     if st.session_state.get("last_audio_hash") == audio_hash:
-        audio_input_bytes = None  # Already processed this recording in a prior rerun
+        audio_input_bytes = None  # Already processed this recording
     else:
         st.session_state["last_audio_hash"] = audio_hash
 
@@ -1550,10 +1592,10 @@ print("reset_uploader in session state:", "reset_uploader" in st.session_state)
 # -----------------------------------------------
 # Audio Recorder input
 # -----------------------------------------------
-if False:  # Recorder moved to sidebar – keep for reference, never executed
-    _dummy = audio_recorder(text="", icon_name="microphone")
+# Audio recorder has been moved to the sidebar entirely
+# No recorder should appear in the main window
 
-# Standard chat text input (always displayed below the microphone)
+# Standard chat text input for typing messages
 prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 
 # Determine if we should send a message this run
