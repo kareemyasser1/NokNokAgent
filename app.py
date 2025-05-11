@@ -2267,6 +2267,60 @@ if "current_client_id" in st.session_state and st.session_state.current_client_i
         print(f"Auto-refreshing data for client ID: {st.session_state.current_client_id}")
         st.session_state.condition_handler.load_data()
 
+# Add system prompt debugger
+with st.sidebar.expander("Debug System Prompt", expanded=False):
+    if st.button("View Processed Prompt"):
+        current_client_id = st.session_state.current_client_id if "current_client_id" in st.session_state else None
+        processed_prompt = process_prompt_variables(system_prompt_template, current_client_id)
+        
+        # Show which client is being used
+        if current_client_id:
+            st.info(f"Showing prompt for Client ID: {current_client_id}")
+        else:
+            st.info("Showing prompt for guest (no client selected)")
+        
+        # Extract the replaced values from processed prompt for display
+        client_name = processed_prompt.split("@clientName@")[0] if "@clientName@" in processed_prompt else "Not found"
+        
+        # Extract values by looking for key phrases in the processed text
+        eta_value = None
+        if "You can expect to receive your order by" in processed_prompt:
+            eta_parts = processed_prompt.split("You can expect to receive your order by")
+            if len(eta_parts) > 1:
+                eta_end = eta_parts[1].find(".")
+                if eta_end > 0:
+                    eta_value = eta_parts[1][:eta_end]
+        
+        delay_value = None
+        if "It appears that the order was delivered" in processed_prompt:
+            delay_value = "Order status is Delivered"
+        elif "The driver has arrived" in processed_prompt:
+            delay_value = "Order status is Driver Arrived"
+        elif "difficulty in delivering your order due to the poor weather conditions" in processed_prompt:
+            delay_value = "Weather conditions are poor"
+        else:
+            delay_value = "Default delay message"
+        
+        tech_value = None
+        if "We're currently facing some difficulties" in processed_prompt:
+            tech_value = "Technical issues = True"
+        else:
+            tech_value = "Technical issues = False"
+        
+        st.markdown("**Prompt details:**")
+        st.write("- Client name:", client_name)
+        if eta_value:
+            st.write("- ETA value:", eta_value)
+        st.write("- Delivery status:", delay_value)
+        st.write("- Technical status:", tech_value)
+        
+        st.markdown("**Full processed prompt:**")
+        # Add basic syntax highlighting by converting special tokens to colored spans
+        highlighted_template = processed_prompt
+        highlighted_template = re.sub(r'@(\w+)@', r'<span style="color:red">@\1@</span>', highlighted_template)
+        
+        st.markdown(highlighted_template)
+
 # Show current language indicator in sidebar
 current_language = st.session_state.get("current_prompt_language", "english").capitalize()
 language_emoji = "🇱🇧" if current_language.lower() == "lebanese" else "🇬🇧"
