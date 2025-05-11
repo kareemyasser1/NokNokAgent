@@ -1034,68 +1034,8 @@ st.markdown("""
     padding-right: 50px !important; /* Make space for mic button */
     position: relative !important;
 }
-
-/* Hidden container for the microphone recorder */
-.mic-container {
-    position: absolute !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    height: 60px !important;
-    pointer-events: none !important;
-    z-index: 99999 !important;
-    display: flex;
-    align-items: flex-end !important;
-    justify-content: flex-end !important;
-}
-
-/* Style for the mic button */
-.mic-container div {
-    transform: scale(0.65) !important;
-    margin-right: 70px !important;
-    margin-bottom: 12px !important;
-    pointer-events: auto !important;
-}
-
-/* Make mic icon more visible */
-.mic-container button {
-    background-color: transparent !important;
-    border: none !important;
-    opacity: 0.9 !important;
-    color: #2a62ca !important; /* Brand blue color */
-}
-
-/* Change appearance when recording */
-.mic-container button.recording {
-    opacity: 1 !important;
-    transform: scale(1.05);
-    transition: all 0.2s ease;
-    color: #ff595e !important; /* Red color when recording */
-}
 </style>
 """, unsafe_allow_html=True)
-
-# Add an empty audio recorder placeholder
-st.markdown("<div class='mic-container'></div>", unsafe_allow_html=True)
-
-# Place the audio recorder at the bottom where the chat input is
-audio_input_bytes = audio_recorder(
-    text="",
-    recording_color="#ff595e",
-    neutral_color="#2a62ca",
-    icon_name="microphone",
-    icon_size="lg",
-    pause_threshold=2.0,
-    key="voice_recorder_overlay"
-)
-
-# Prevent sending the same audio repeatedly across reruns
-if audio_input_bytes:
-    audio_hash = hashlib.md5(audio_input_bytes).hexdigest()
-    if st.session_state.get("last_audio_hash") == audio_hash:
-        audio_input_bytes = None  # Already processed this recording
-    else:
-        st.session_state["last_audio_hash"] = audio_hash
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
