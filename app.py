@@ -1111,6 +1111,10 @@ if "condition_handler" in st.session_state and st.session_state.condition_handle
 # ───────────────────────────────────────────────
 st.sidebar.markdown("### 🎙️ Voice Message")
 with st.sidebar:
+    # Initialize a flag to track if recording has been processed
+    if "voice_processed" not in st.session_state:
+        st.session_state["voice_processed"] = False
+        
     voice_audio_bytes = audio_recorder(
         text="",
         recording_color="#ff4d4d",
@@ -1119,12 +1123,24 @@ with st.sidebar:
         icon_size="2x",
         key="voice_recorder",
     )
-    # Store bytes in session state without playback preview
-    if voice_audio_bytes:
-        # Skip audio playback preview, only store for processing
+    # Only process if we have new audio and haven't processed it yet
+    if voice_audio_bytes and not st.session_state["voice_processed"]:
+        # Mark as processed to prevent duplicate sends
+        st.session_state["voice_processed"] = True
+        
+        # Store bytes in session state along with unique timestamp
         st.session_state["voice_audio_bytes"] = voice_audio_bytes
+        st.session_state["voice_timestamp"] = datetime.now().timestamp()
+        
         # Optional status indicator for better UX
         st.success("Voice recorded! Processing...", icon="🎙️")
+        
+        # Force a rerun to process the voice message
+        st.rerun()
+    # If no audio bytes but we still have the processed flag set, clear it
+    elif not voice_audio_bytes and st.session_state["voice_processed"]:
+        # Recorder was reset, so we can reset the processed flag
+        st.session_state["voice_processed"] = False
 
 # Client selection dropdown
 if "current_client_id" not in st.session_state:
@@ -1524,7 +1540,15 @@ else:
 # Display chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        if message.get("content"):
+        if "voice_audio_bytes" in message:
+            # Display voice audio
+            st.audio(message["voice_audio_bytes"], format="audio/wav")
+            # Add button to show/hide transcription
+            if st.button("Show transcription", key=f"transcript_btn_{id(message)}"):
+                st.info(f"Transcript: {message['voice_transcript']}")
+                # Update message to include content (for API context)
+                message["content"] = message["voice_transcript"]
+        elif message.get("content"):
             st.write(message["content"])
         if message.get("image_bytes"):
             st.image(message["image_bytes"])
