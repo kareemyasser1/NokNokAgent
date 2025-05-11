@@ -1037,20 +1037,24 @@ st.markdown("""
 
 /* Hidden container for the microphone recorder */
 .mic-container {
-    position: fixed;
-    bottom: 15px;
-    right: 70px;
-    z-index: 1000;
-    height: 40px;
-    width: 40px;
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    pointer-events: none !important;
+    z-index: 99999 !important;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
 }
 
 /* Style for the mic button */
 .mic-container div {
-    transform: scale(0.7);
+    transform: scale(0.65) !important;
+    margin-right: 70px !important;
+    margin-bottom: 12px !important;
+    pointer-events: auto !important;
 }
 
 /* Make mic icon more visible */
@@ -1069,9 +1073,10 @@ st.markdown("""
     color: #ff595e !important; /* Red color when recording */
 }
 </style>
-<div class="mic-container">
-</div>
 """, unsafe_allow_html=True)
+
+# Add an empty audio recorder placeholder
+st.markdown("<div class='mic-container'></div>", unsafe_allow_html=True)
 
 # Place the audio recorder at the bottom where the chat input is
 audio_input_bytes = audio_recorder(
@@ -2608,3 +2613,63 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# ───────────────────────────────────────────────
+# 🎤  Voice message recorder
+# ───────────────────────────────────────────────
+st.markdown("""
+<style>
+/* Position the microphone at the fixed position near chat input */
+.mic-fixed-position {
+    position: fixed;
+    bottom: 19px;  
+    right: 70px;
+    width: 40px;
+    height: 40px;
+    z-index: 9999;
+    background: transparent;
+}
+
+/* Make the recorder smaller and properly positioned */
+.mic-fixed-position .audio-recorder {
+    transform: scale(0.7);
+    margin-left: -15px;
+    margin-top: -5px;
+}
+
+/* Fix mic button visual style */
+.mic-fixed-position button {
+    background: transparent !important;
+    border: none !important;
+    color: #2a62ca !important;
+}
+
+/* Recording state */
+.mic-fixed-position button.recording {
+    color: #ff595e !important;
+}
+</style>
+<div class="mic-fixed-position">
+""", unsafe_allow_html=True)
+
+# Place the audio recorder inside the fixed position container
+audio_input_bytes = audio_recorder(
+    text="",
+    recording_color="#ff595e",
+    neutral_color="#2a62ca",
+    icon_name="microphone",
+    icon_size="lg",
+    pause_threshold=2.0,
+    key="voice_recorder_fixed"
+)
+
+# Close the container div
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Prevent sending the same audio repeatedly across reruns
+if audio_input_bytes:
+    audio_hash = hashlib.md5(audio_input_bytes).hexdigest()
+    if st.session_state.get("last_audio_hash") == audio_hash:
+        audio_input_bytes = None  # Already processed this recording
+    else:
+        st.session_state["last_audio_hash"] = audio_hash
