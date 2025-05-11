@@ -1014,7 +1014,7 @@ def send_audio_clicked():
     print("Send audio button clicked!")
     st.session_state["send_audio_only"] = True
     # Trigger a rerun so that the audio is processed and sent
-    st.experimental_rerun()
+    st.rerun()
 
 uploaded_file = st.sidebar.file_uploader(
     "",  # Empty label
