@@ -1547,6 +1547,7 @@ prompt_input = st.chat_input("Ask about orders, clients, or inventory...")
 voice_bytes_pending = st.session_state.pop("voice_audio_bytes", None)
 if voice_bytes_pending:
     try:
+        # Transcribe the audio to text but don't set as prompt
         client = OpenAI(api_key=api_key)
         audio_file = io.BytesIO(voice_bytes_pending)
         audio_file.name = "voice.wav"
@@ -1558,21 +1559,44 @@ if voice_bytes_pending:
             transcription_response.text
             if hasattr(transcription_response, "text") else str(transcription_response)
         )
-        # Inject the transcript as the prompt input so it flows naturally into the existing chat pipeline
-        prompt_input = transcript_text.strip()
+        
+        # Store both the audio bytes and transcription in session state
+        st.session_state["pending_voice_message"] = {
+            "audio_bytes": voice_bytes_pending,
+            "transcript": transcript_text
+        }
+        
+        # Signal that we should send a voice message
+        st.session_state["send_voice_message"] = True
     except Exception as e:
         st.sidebar.error(f"Audio transcription failed: {e}")
 
 # Determine if we should send a message this run (text, image-only, or voice)
-should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False)
+should_send = (prompt_input is not None) or st.session_state.get("send_image_only", False) or st.session_state.get("send_voice_message", False)
 
 if should_send:
-    prompt = prompt_input or ""  # allow empty string when image-only
+    # Initialize prompt with empty string (will be updated based on message type)
+    prompt = ""
+    
+    # Handle voice messages first
+    voice_message = False
+    voice_message_data = st.session_state.pop("pending_voice_message", None)
+    send_voice = st.session_state.pop("send_voice_message", False)
+    
+    if send_voice and voice_message_data:
+        # We're sending a voice message
+        voice_message = True
+        voice_audio_bytes = voice_message_data["audio_bytes"]
+        voice_transcript = voice_message_data["transcript"]
+    else:
+        # Standard text input
+        prompt = prompt_input or ""  # allow empty string when image-only
+
     st.session_state.last_user_activity = datetime.now()
     st.session_state.closing_message_sent = False
     
     # Debug info
-    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}")
+    print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}, voice_message: {voice_message}")
 
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
@@ -1594,15 +1618,39 @@ if should_send:
     if not api_key:
         st.error("OpenAI API key is missing. Please set it in your environment variables.")
     else:
-        # Add user message (with optional image) to chat history
-        user_message_entry = {"role": "user", "content": prompt}
+        # Add user message to chat history
+        if voice_message:
+            # Create a user message with voice audio
+            user_message_entry = {
+                "role": "user", 
+                "content": "", # Empty content initially
+                "voice_audio_bytes": voice_audio_bytes,
+                "voice_transcript": voice_transcript
+            }
+        else:
+            # Normal text or image message
+            user_message_entry = {"role": "user", "content": prompt}
+            
+        # Add image if present
         if image_bytes:
             user_message_entry["image_bytes"] = image_bytes
             user_message_entry["mime"] = image_mime
             st.session_state.reset_uploader = True
+            
+        # Add message to history
         st.session_state.messages.append(user_message_entry)
+        
+        # Display user message in the chat UI
         with st.chat_message("user"):
-            if prompt:
+            if voice_message:
+                # Display voice audio message
+                st.audio(voice_audio_bytes, format="audio/wav")
+                # Add a button to show/hide transcription
+                if st.button("Show transcription", key=f"transcript_btn_{len(st.session_state.messages)}"):
+                    st.info(f"Transcript: {voice_transcript}")
+                    # Update the stored message to include the content (for API context)
+                    st.session_state.messages[-1]["content"] = voice_transcript
+            elif prompt:
                 st.write(prompt)
             if image_bytes:
                 st.image(image_bytes)
@@ -1627,16 +1675,26 @@ if should_send:
                 
                 messages_for_api = [{"role": "system", "content": personalized_system_prompt}]
                 
-                # Convert stored messages to OpenAI format (supporting images)
+                # Convert stored messages to OpenAI format (supporting images and voice messages)
                 for m in st.session_state.messages:
                     if "image_bytes" in m and m["image_bytes"]:
+                        # Image message handling (unchanged)
                         parts = []
                         if m.get("content"):
                             parts.append({"type": "text", "text": m["content"]})
                         b64 = base64.b64encode(m["image_bytes"]).decode()
                         parts.append({"type": "image_url", "image_url": {"url": f"data:{m.get('mime', 'image/jpeg')};base64,{b64}"}})
                         messages_for_api.append({"role": m["role"], "content": parts})
+                    elif "voice_audio_bytes" in m:
+                        # Voice message - use transcript as the content for API
+                        if m.get("content"):
+                            # If button was clicked, use already stored content
+                            messages_for_api.append({"role": m["role"], "content": m["content"]})
+                        else:
+                            # Otherwise use the transcript directly
+                            messages_for_api.append({"role": m["role"], "content": m["voice_transcript"]})
                     else:
+                        # Regular text message
                         messages_for_api.append({"role": m["role"], "content": m["content"]})
                 
                 # Show a spinner while waiting for the response
