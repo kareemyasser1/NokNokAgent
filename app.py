@@ -1085,7 +1085,15 @@ if audio_bytes_sidebar:
     # Persist the audio so it can be sent on the next run
     st.session_state["attached_audio_bytes"] = audio_bytes_sidebar
     st.session_state["attached_audio_mime"] = "audio/wav"
-    st.sidebar.button("Send Audio", key="send_audio_sidebar_btn", on_click=send_audio_clicked)
+    
+    # Check if this is a new recording by comparing with previous one
+    current_audio_hash = hash(audio_bytes_sidebar)
+    if "last_audio_hash" not in st.session_state or st.session_state.get("last_audio_hash") != current_audio_hash:
+        # Store the hash of this recording to avoid repeated sending
+        st.session_state["last_audio_hash"] = current_audio_hash
+        # Automatically send the audio without requiring a button click
+        st.sidebar.info("Sending voice message...")
+        send_audio_clicked()
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
