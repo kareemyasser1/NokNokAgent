@@ -998,6 +998,23 @@ if uploaded_file is not None:
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
+
+# Add custom CSS to fix vertical spinner text
+st.markdown("""
+<style>
+[data-testid="stSidebar"] .stSpinner {
+    display: inline-flex;
+    white-space: nowrap;
+    width: auto !important;
+}
+[data-testid="stSidebar"] .stSpinner > div {
+    display: inline-flex;
+    white-space: nowrap;
+    min-width: 120px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 with top_cols[0]:
     if st.button("🔄", help="Refresh Database"):
         with st.spinner("Refreshing database..."):
