@@ -289,6 +289,35 @@ body, .stApp {{
 </style>
 """, unsafe_allow_html=True)
 
+# Add custom CSS to fix vertical spinner text
+st.markdown("""
+<style>
+/* Fix for vertical spinner text */
+[data-testid="stSidebar"] .stSpinner {
+    display: inline-flex;
+    white-space: nowrap;
+    width: auto !important;
+}
+[data-testid="stSidebar"] .stSpinner > div {
+    display: inline-flex;
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+/* Fix for vertical success message text */
+[data-testid="stSidebar"] [data-testid="stSuccessMessage"] {
+    display: inline-flex !important;
+    white-space: nowrap !important;
+    width: auto !important;
+}
+[data-testid="stSidebar"] [data-testid="stSuccessMessage"] > div {
+    display: inline-flex !important;
+    white-space: nowrap !important;
+    min-width: 120px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
     """Check if text contains any keywords that would trigger conditions"""
@@ -999,9 +1028,10 @@ if uploaded_file is not None:
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
 top_cols = st.sidebar.columns([1, 6, 1])
 
-# Add custom CSS to fix vertical spinner text
+# Add custom CSS to fix vertical spinner text and success message
 st.markdown("""
 <style>
+/* Fix for vertical spinner text */
 [data-testid="stSidebar"] .stSpinner {
     display: inline-flex;
     white-space: nowrap;
@@ -1011,6 +1041,18 @@ st.markdown("""
     display: inline-flex;
     white-space: nowrap;
     min-width: 120px;
+}
+
+/* Fix for vertical success message text */
+[data-testid="stSidebar"] [data-testid="stSuccessMessage"] {
+    display: inline-flex !important;
+    white-space: nowrap !important;
+    width: auto !important;
+}
+[data-testid="stSidebar"] [data-testid="stSuccessMessage"] > div {
+    display: inline-flex !important;
+    white-space: nowrap !important;
+    min-width: 120px !important;
 }
 </style>
 """, unsafe_allow_html=True)
