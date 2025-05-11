@@ -1109,7 +1109,8 @@ if "condition_handler" in st.session_state and st.session_state.condition_handle
 # ───────────────────────────────────────────────
 # 🎙️  Voice message recorder (sidebar)
 # ───────────────────────────────────────────────
-voice_audio_bytes = audio_recorder(
+st.sidebar.markdown("### 🎙️ Voice Message")
+voice_audio_bytes = st.sidebar.audio_recorder(
     text="",
     recording_color="#ff4d4d",
     neutral_color="#2a62ca",
