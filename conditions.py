@@ -411,12 +411,15 @@ def handle_lebanese_prompt_switch(handler, context):
             #     "language": "lebanese",
             #     "message": lebanese_response
             # }
-            
+            return {
+                "type": "error",
+                "message":user_context
+            }
         except Exception as e:
             # If GPT call fails, return an error
             return {
                 "type": "error",
-                "message": user_context
+                "message": f"Failed to generate response in Lebanese mode: {str(e)}"
             }
     
     except Exception as e:
