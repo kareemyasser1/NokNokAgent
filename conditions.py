@@ -387,16 +387,12 @@ def handle_lebanese_prompt_switch(handler, context):
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Prepare messages for the API call with explicit instruction to respond to history
-            prompt_with_instruction = (
-                f"{lebanese_prompt}\n\n"
-                #f"##Here is the recent conversation history that you must respond to. Please respond to it directly in Lebanese without greetings:\n\n##"
-                #f"{user_context}"
-            )
-            
+            # Create the API request with the full Lebanese system prompt and conversation history
             api_messages = [
-                {"role": "system", "content": prompt_with_instruction},
-                {"role": "user", "content": user_context}
+                # First message is the full Lebanese system prompt
+                {"role": "system", "content": lebanese_prompt},
+                # Second message contains conversation history guidance
+                {"role": "user", "content": f"Here is the recent conversation history. Please respond to it directly in Lebanese Arabic:\n\n{user_context}"}
             ]
             
             # Call the API
@@ -410,17 +406,17 @@ def handle_lebanese_prompt_switch(handler, context):
             lebanese_response = response.choices[0].message.content.strip()
             
             # Return only the response to the context
-            return {
-                "type": "prompt_response",
-                "language": "lebanese",
-                "message": lebanese_response
-            }
+            # return {
+            #     "type": "prompt_response",
+            #     "language": "lebanese",
+            #     "message": lebanese_response
+            # }
             
         except Exception as e:
             # If GPT call fails, return an error
             return {
                 "type": "error",
-                "message": f"Failed to generate response in Lebanese mode: {str(e)}"
+                "message": user_context
             }
     
     except Exception as e:
@@ -465,16 +461,12 @@ def handle_english_prompt_switch(handler, context):
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Prepare messages for the API call with explicit instruction to respond to history
-            prompt_with_instruction = (
-                f"{english_prompt}\n\n"
-                f"Here is the recent conversation history. Please respond to it directly in English without greetings:\n\n"
-                f"{user_context}"
-            )
-            
+            # Create the API request with the full English system prompt and conversation history
             api_messages = [
-                {"role": "system", "content": prompt_with_instruction},
-                {"role": "user", "content": "Please respond to the conversation above."}
+                # First message is the full English system prompt
+                {"role": "system", "content": english_prompt},
+                # Second message contains conversation history guidance
+                {"role": "user", "content": f"Here is the recent conversation history. Please respond to it directly in English:\n\n{user_context}"}
             ]
             
             # Call the API
