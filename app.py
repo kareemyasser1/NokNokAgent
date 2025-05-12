@@ -1060,9 +1060,9 @@ st.sidebar.markdown("""
 recorder_container = st.sidebar.container()
 
 with recorder_container:
-    col1, col3 = st.columns([1, 3])
+    col1, col2 = st.columns([1, 3])
 
-    with col3:
+    with col2:
         audio_bytes_sidebar = audio_recorder(
             text="",
             recording_color="#f44336",
