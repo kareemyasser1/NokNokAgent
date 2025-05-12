@@ -1070,7 +1070,8 @@ with recorder_container:
             icon_name="microphone",
             icon_size="2x",
             pause_threshold=2.0,
-            sample_rate=44100
+            sample_rate=44100,
+            key="voice_recorder"  # Add persistent key
         )
 
     # with col2:
@@ -1098,6 +1099,11 @@ if audio_bytes_sidebar:
         
         # Add visual feedback with a spinner during processing
         with st.sidebar.status("Processing voice message...", expanded=True) as status:
+            # Print debug info about client selection state
+            current_client_id = st.session_state.get("current_client_id")
+            saved_index = st.session_state.get("saved_client_selection_index", 0)
+            print(f"VOICE MSG DEBUG - Current client ID: {current_client_id}, Saved index: {saved_index}")
+            
             # Pre-transcribe the audio here to avoid extra reruns
             if api_key:
                 try:
@@ -1299,12 +1305,28 @@ if st.session_state.noknok_sheets:
                 dropdown_labels = [option["label"] for option in client_options]
                 dropdown_values = [option["value"] for option in client_options]
                 
-                # Show dropdown for client selection
+                # Initialize saved index for selection if not already present
+                if "saved_client_selection_index" not in st.session_state:
+                    st.session_state.saved_client_selection_index = 0
+
+                # Find the index of the currently selected client ID (if any)
+                current_client_id = st.session_state.get("current_client_id")
+                if current_client_id:
+                    # Try to find this client ID in the dropdown values
+                    try:
+                        saved_index = dropdown_values.index(str(current_client_id))
+                        st.session_state.saved_client_selection_index = saved_index
+                    except ValueError:
+                        # Client ID not found in dropdown, use default
+                        pass
+
+                # Show dropdown for client selection with saved index
                 selected_index = st.sidebar.selectbox(
                     "Select client to chat as:",
                     options=range(len(dropdown_labels)),
                     format_func=lambda i: dropdown_labels[i],
-                    index=0  # Default to None/guest
+                    index=st.session_state.saved_client_selection_index,  # Use saved index
+                    key="client_selection_dropdown"  # Add a key to maintain state across reruns
                 )
                 
                 selected_value = dropdown_values[selected_index]
@@ -1314,9 +1336,18 @@ if st.session_state.noknok_sheets:
                     # Store client ID in session state
                     client_id = selected_value
                     st.session_state.current_client_id = client_id
+                    # Save the selected index for future runs
+                    st.session_state.saved_client_selection_index = selected_index
                     
                     # Find the client's data to display
                     client_data = next((c for c in clients_data if str(c.get('ClientID')) == str(client_id)), None)
+                    
+                    # Add debug log to diagnose client data retrieval issues
+                    print(f"Looking for client ID {client_id} in clients_data")
+                    print(f"Number of clients in data: {len(clients_data)}")
+                    if len(clients_data) > 0:
+                        print(f"Sample client IDs: {[c.get('ClientID') for c in clients_data[:5]]}")
+                    
                     if client_data:
                         # Format name using the correct field names
                         first_name = client_data.get('Client First Name', '')
@@ -1558,6 +1589,11 @@ if st.session_state.noknok_sheets:
                             
                             # Display orders HTML
                             st.sidebar.markdown(orders_html, unsafe_allow_html=True)
+                    else:
+                        # Client data not found in database
+                        print(f"ERROR: Client with ID {client_id} not found in client data")
+                        st.sidebar.error(f"Client data for ID {client_id} not found in database. Please refresh the data.")
+                        # Keep the client ID in session state to try again after refresh
                 else:
                     st.session_state.current_client_id = None
         else:
