@@ -1061,15 +1061,15 @@ recorder_container = st.sidebar.container()
 
 # Use the recorder with built-in features
 with recorder_container:
-    audio_bytes_sidebar = audio_recorder(
-        text="SPEAK NOW",
-        recording_color="#f44336",  # Red when recording
-        neutral_color="#1e88e5",    # Blue when not recording
-        icon_name="microphone",
-        icon_size="2x",
-        pause_threshold=2.0,
-        sample_rate=44100
-    )
+   audio_bytes_sidebar = audio_recorder(
+    text='<span style="color:#1e88e5; font-weight:bold;">SPEAK NOW</span>',
+    recording_color="#f44336",  # Red when recording
+    neutral_color="#1e88e5",    # Blue when not recording
+    icon_name="microphone",
+    icon_size="2x",
+    pause_threshold=2.0,
+    sample_rate=44100
+)
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
