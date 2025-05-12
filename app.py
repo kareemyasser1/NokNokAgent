@@ -1108,7 +1108,7 @@ st.sidebar.markdown("""
     justify-content: space-between !important;
     background-color: #f0f2f5 !important;
     border-radius: 20px !important;
-    padding: 8px 12px !important;
+    padding: 10px 15px !important;
     margin-top: 5px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
     border: 2px solid #e1e4e8 !important;
