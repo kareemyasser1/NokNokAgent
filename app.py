@@ -1041,6 +1041,10 @@ if uploaded_file is not None:
 if "is_recording_audio" not in st.session_state:
     st.session_state.is_recording_audio = False
 
+# Track previous audio state to detect changes
+if "previous_audio_bytes" not in st.session_state:
+    st.session_state.previous_audio_bytes = None
+
 st.sidebar.markdown("### 🎙️ Voice Message (tap to speak)")
 
 # Apply very minimal styling to the recorder
@@ -1071,7 +1075,7 @@ st.sidebar.markdown("""
 
 recorder_container = st.sidebar.container()
 
-# Use the recorder with built-in features, but side by side
+# Use the recorder with built-in features
 with recorder_container:
     # Show recording status if active
     if st.session_state.is_recording_audio:
@@ -1080,16 +1084,6 @@ with recorder_container:
     col1, col2 = st.columns([1, 2])  # Split space inside the sidebar container
 
     with col1:
-        # Customize the recorder to prevent auto-send
-        def on_recorder_change():
-            # Set the recording flag when the recorder state changes
-            if not st.session_state.get("attached_audio_bytes"):
-                st.session_state.is_recording_audio = True
-                print("Recording started")
-            else:
-                st.session_state.is_recording_audio = False
-                print("Recording stopped, audio available")
-        
         # Audio recorder button without text
         audio_bytes_sidebar = audio_recorder(
             text="",  # Empty so no built-in text appears
@@ -1099,13 +1093,36 @@ with recorder_container:
             icon_size="2x",
             pause_threshold=2.0,
             sample_rate=44100,
-            key="voice_recorder",  # Add persistent key
-            on_change=on_recorder_change  # Add callback for recording state changes
+            key="voice_recorder"  # Add persistent key
         )
 
-# If a recording is available, preview it and provide a send button
+# Detect recording state changes by comparing current and previous audio bytes
+if audio_bytes_sidebar is None and st.session_state.previous_audio_bytes is None:
+    # No change, no recording
+    pass
+elif audio_bytes_sidebar is None and st.session_state.previous_audio_bytes is not None:
+    # Recording started (button clicked)
+    st.session_state.is_recording_audio = True
+    print("Recording started (detected)")
+elif audio_bytes_sidebar is not None and st.session_state.previous_audio_bytes is None:
+    # New recording completed
+    st.session_state.is_recording_audio = False
+    print("Recording completed (detected)")
+elif audio_bytes_sidebar is not None and st.session_state.previous_audio_bytes is not None:
+    # Recording already exists
+    if hash(audio_bytes_sidebar) != hash(st.session_state.previous_audio_bytes):
+        # Different recording
+        print("New recording detected")
+    else:
+        # Same recording
+        pass
+        
+# Update previous audio state for next run
+st.session_state.previous_audio_bytes = audio_bytes_sidebar
+
+# If a recording is available and not currently recording
 if audio_bytes_sidebar and not st.session_state.is_recording_audio:
-    # Only process recording if it's not actively being recorded
+    # Only process recording if it's completed
     # Persist the audio so it can be sent on the next run
     st.session_state["attached_audio_bytes"] = audio_bytes_sidebar
     st.session_state["attached_audio_mime"] = "audio/wav"
