@@ -212,23 +212,28 @@ st.markdown(f"""
     background-color: #ffffff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
-    height: 80px;
+    height: 160px; /* Doubled height from 80px to 160px */
 }}
 
-/* Adjust the header when sidebar is expanded */
-.sidebar-expanded .logo-title-container {{
-    left: 21rem; /* Match Streamlit's sidebar width */
+/* Adjust the header when sidebar is collapsed vs expanded */
+[data-testid="stSidebar"][aria-expanded="true"] ~ div:has(.logo-title-container) .logo-title-container {{
+    left: 21rem;
     width: calc(100% - 21rem);
+}}
+
+[data-testid="stSidebar"][aria-expanded="false"] ~ div:has(.logo-title-container) .logo-title-container {{
+    left: 0;
+    width: 100%;
 }}
 
 /* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
 .main-content-wrapper {{
-    margin-top: 90px; /* Slightly more than the header height */
+    margin-top: 170px; /* Increased to account for taller header */
     padding-top: 20px;
 }}
 
 .logo-title-container img {{
-    max-height: 60px !important;
+    max-height: 100px !important; /* Increased from 60px for larger header */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -237,14 +242,25 @@ st.markdown(f"""
 .title-text {{
     margin: 0;
     padding: 0;
-    font-size: 2.5rem;
+    font-size: 3.5rem; /* Increased from 2.5rem for larger header */
     font-weight: bold;
     white-space: nowrap;
     transition: all 0.3s ease;
 }}
 
-/* Adjust logo and text size on smaller screens or when sidebar is expanded */
-@media (max-width: 992px), .sidebar-expanded {{
+/* Adjust logo and text size on smaller screens */
+@media (max-width: 992px) {{
+    .logo-title-container img {{
+        max-height: 60px !important;
+    }}
+    
+    .title-text {{
+        font-size: 2.5rem;
+    }}
+}}
+
+/* For even smaller screens */
+@media (max-width: 576px) {{
     .logo-title-container img {{
         max-height: 40px !important;
     }}
@@ -354,12 +370,10 @@ st.markdown("""
     white-space: nowrap !important;
     min-width: 120px !important;
 }
-
-/* Add JavaScript to detect sidebar state and adjust header accordingly */
 </style>
 
 <script>
-// Function to observe sidebar toggle and update CSS classes
+// Function to ensure content wrapper exists
 document.addEventListener('DOMContentLoaded', function() {
     // Create a wrapper div for main content with padding for the fixed header
     const mainContent = document.querySelector('.main');
@@ -369,16 +383,6 @@ document.addEventListener('DOMContentLoaded', function() {
         mainContent.parentNode.insertBefore(wrapper, mainContent);
         wrapper.appendChild(mainContent);
     }
-    
-    // Observer to detect sidebar toggle
-    const observer = new MutationObserver(function(mutations) {
-        // Check if sidebar is expanded
-        const sidebarExpanded = document.querySelector('.modebar-container[style*="left: 375px"]') !== null;
-        document.body.classList.toggle('sidebar-expanded', sidebarExpanded);
-    });
-    
-    // Start observing
-    observer.observe(document.body, { childList: true, subtree: true });
 });
 </script>
 """, unsafe_allow_html=True)
