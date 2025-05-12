@@ -492,6 +492,35 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 """, unsafe_allow_html=True)
 
+# NEW: Ensure sidebar-toggle JavaScript actually runs (markdown strips <script>).
+components.html("""
+<script>
+// Function to handle layout updates for sidebar (duplicate to guarantee execution)
+(function(){
+    // Create a wrapper div for main content with padding for the fixed header
+    const main = document.querySelector('.main');
+    if (main && !document.querySelector('.main-content-wrapper')){
+        const wrap=document.createElement('div');
+        wrap.className='main-content-wrapper';
+        main.parentNode.insertBefore(wrap,main);
+        wrap.appendChild(main);
+    }
+    function update(){
+        const sidebar=document.querySelector('[data-testid="stSidebar"]');
+        if(!sidebar)return;
+        const expanded = sidebar.getAttribute('aria-expanded') === 'true';
+        document.body.classList.toggle('sidebar-expanded', expanded);
+        const header=document.querySelector('.logo-title-container');
+        if(header){ header.style.transform = expanded ? 'translateX(21rem)' : 'translateX(0)'; }
+    }
+    update();
+    const obs=new MutationObserver(update);
+    const sb=document.querySelector('[data-testid="stSidebar"]');
+    if(sb) obs.observe(sb,{attributes:true});
+})();
+</script>
+""", height=0, width=0)
+
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
     """Check if text contains any keywords that would trigger conditions"""
