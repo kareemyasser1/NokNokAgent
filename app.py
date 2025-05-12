@@ -2661,3 +2661,34 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# ── Enhanced recorder size & visuals (override) ──
+st.sidebar.markdown("""
+<style>
+[data-testid='stSidebar'] .audio-recorder {
+    max-width: 90% !important;
+    padding: 14px 20px !important;
+    border-radius: 28px !important;
+    background: linear-gradient(135deg, #f7f9fa 0%, #eef1f4 100%) !important;
+    border-width: 3px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+}
+
+[data-testid='stSidebar'] .audio-recorder span {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #1e88e5 !important;
+    letter-spacing: 0.6px !important;
+}
+
+[data-testid='stSidebar'] .audio-recorder button {
+    width: 56px !important;
+    height: 56px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+}
+
+[data-testid='stSidebar'] .audio-recorder button i {
+    font-size: 26px !important;
+}
+</style>
+""", unsafe_allow_html=True)
