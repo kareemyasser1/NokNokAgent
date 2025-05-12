@@ -1055,16 +1055,16 @@ st.sidebar.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-# Sidebar container
 recorder_container = st.sidebar.container()
 
+# Use the recorder with built-in features, but side by side
 with recorder_container:
-    col1, col2 = st.columns([1, 3])
+    col1, col2 = st.columns([1, 2])  # Split space inside the sidebar container
 
-    with col2:
+    with col1:
+        # Audio recorder button without text
         audio_bytes_sidebar = audio_recorder(
-            text="",
+            text="",  # Empty so no built-in text appears
             recording_color="#f44336",
             neutral_color="#1e88e5",
             icon_name="microphone",
@@ -1073,11 +1073,13 @@ with recorder_container:
             sample_rate=44100
         )
 
-    with col1:
+    with col2:
+        # Styled "SPEAK NOW" text next to the mic button
         st.markdown(
-            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;"> Click to record -> </span>',
+            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">SPEAK NOW</span>',
             unsafe_allow_html=True
         )
+
 
 
 
