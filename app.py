@@ -401,15 +401,16 @@ st.markdown("""
 /* Smooth transition for the entire header container */
 .logo-title-container {
     transition: transform 0.3s ease !important;
+    transform: translateX(30px); /* shift 30px to the right by default */
 }
 
 /* When JavaScript adds the `sidebar-expanded` class to <body>,
-   move the header 21 rem (≈ sidebar width) to the right. */
+   move the header 21 rem (≈ sidebar width) to the right plus 30 px offset. */
 .sidebar-expanded .logo-title-container {
     /* Reset `left` / `width` that were previously set so we don't double-shift */
     left: 0 !important;
     width: 100% !important;
-    transform: translateX(21rem);
+    transform: translateX(calc(21rem + 30px));
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2914,15 +2915,16 @@ st.markdown("""
 /* Smooth transition for the entire header container */
 .logo-title-container {
     transition: transform 0.3s ease !important;
+    transform: translateX(30px); /* shift 30px to the right by default */
 }
 
 /* When JavaScript adds the `sidebar-expanded` class to <body>,
-   move the header 21 rem (≈ sidebar width) to the right. */
+   move the header 21 rem (≈ sidebar width) to the right plus 30 px offset. */
 .sidebar-expanded .logo-title-container {
     /* Reset `left` / `width` that were previously set so we don't double-shift */
     left: 0 !important;
     width: 100% !important;
-    transform: translateX(21rem);
+    transform: translateX(calc(21rem + 30px));
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2937,7 +2939,7 @@ components.html("""
     if(!sidebar || !header) return;
     const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
     header.style.transition = 'transform 0.3s ease';
-    header.style.transform  = isExpanded ? 'translateX(21rem)' : 'translateX(0)';
+    header.style.transform  = isExpanded ? 'translateX(calc(21rem + 30px))' : 'translateX(30px)';
   }
   // initial run
   update();
