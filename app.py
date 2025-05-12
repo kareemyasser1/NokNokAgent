@@ -215,15 +215,10 @@ st.markdown(f"""
     height: 160px; /* Doubled height from 80px to 160px */
 }}
 
-/* Adjust the header when sidebar is collapsed vs expanded */
-[data-testid="stSidebar"][aria-expanded="true"] ~ div:has(.logo-title-container) .logo-title-container {{
+/* Sidebar-expanded version - this will be added by JavaScript */
+.sidebar-expanded .logo-title-container {{
     left: 21rem;
     width: calc(100% - 21rem);
-}}
-
-[data-testid="stSidebar"][aria-expanded="false"] ~ div:has(.logo-title-container) .logo-title-container {{
-    left: 0;
-    width: 100%;
 }}
 
 /* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
@@ -373,7 +368,7 @@ st.markdown("""
 </style>
 
 <script>
-// Function to ensure content wrapper exists
+// Function to handle layout updates
 document.addEventListener('DOMContentLoaded', function() {
     // Create a wrapper div for main content with padding for the fixed header
     const mainContent = document.querySelector('.main');
@@ -383,6 +378,57 @@ document.addEventListener('DOMContentLoaded', function() {
         mainContent.parentNode.insertBefore(wrapper, mainContent);
         wrapper.appendChild(mainContent);
     }
+    
+    // Function to check if sidebar is expanded
+    function updateSidebarState() {
+        // Get the sidebar element
+        const sidebar = document.querySelector('[data-testid="stSidebar"]');
+        if (sidebar) {
+            // Check if sidebar is expanded by checking its aria-expanded attribute
+            const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
+            console.log('Sidebar expanded:', isExpanded);
+            
+            // Add or remove sidebar-expanded class to body
+            if (isExpanded) {
+                document.body.classList.add('sidebar-expanded');
+            } else {
+                document.body.classList.remove('sidebar-expanded');
+            }
+        }
+    }
+    
+    // Run initially
+    updateSidebarState();
+    
+    // Set up a mutation observer to detect changes in the sidebar
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'aria-expanded') {
+                updateSidebarState();
+            }
+        });
+    });
+    
+    // Start observing the sidebar for attribute changes
+    const sidebar = document.querySelector('[data-testid="stSidebar"]');
+    if (sidebar) {
+        observer.observe(sidebar, { attributes: true });
+    }
+    
+    // Also run when elements are added/removed from the DOM
+    const bodyObserver = new MutationObserver(function(mutations) {
+        // If sidebar wasn't found initially, try again
+        if (!sidebar) {
+            const newSidebar = document.querySelector('[data-testid="stSidebar"]');
+            if (newSidebar) {
+                observer.observe(newSidebar, { attributes: true });
+                updateSidebarState();
+            }
+        }
+    });
+    
+    // Start observing the body
+    bodyObserver.observe(document.body, { childList: true, subtree: true });
 });
 </script>
 """, unsafe_allow_html=True)
