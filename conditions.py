@@ -375,24 +375,51 @@ def handle_lebanese_prompt_switch(handler, context):
         st.session_state.system_prompt_template = lebanese_prompt
         st.session_state.current_prompt_language = "lebanese"
         
+        # Print the entire context for debugging
+        print("Lebanese Switch - Full context:", context)
+        
         # Extract the last 4 messages from the history
         full_history = context.get("history", "")
-        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
-        last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+        print("Lebanese Switch - Full history:", full_history)
         
-        # Combine the last messages to create context for the new prompt
-        user_context = "\n\n".join(last_4_messages)
+        # Get the last user message if history is empty
+        last_message = context.get("last_user_message", "")
+        print("Lebanese Switch - Last user message:", last_message)
+        
+        # If history is empty but we have a last message, use that
+        if not full_history and last_message:
+            user_context = last_message
+            print("Using last_user_message instead of empty history")
+        else:
+            # Try multiple ways to split the history 
+            if "\n\n" in full_history:
+                messages = full_history.split("\n\n")
+            elif "\n" in full_history:
+                messages = full_history.split("\n")
+            else:
+                # Just use the whole history as one message if can't split
+                messages = [full_history]
+                
+            last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+            user_context = "\n\n".join(last_4_messages)
+        
+        print("Lebanese Switch - Final user_context:", user_context)
+        
+        # If still empty, provide a default context
+        if not user_context.strip():
+            user_context = "Hello, I'm switching to Lebanese mode. How can I help you?"
+            print("Using default context because user_context is empty")
         
         # Generate a response to the last messages using the new Lebanese prompt
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Create the API request with the full Lebanese system prompt and conversation history
+            # Prepare messages for the API call
+            prompt_with_instruction = f"{lebanese_prompt}"
+            
             api_messages = [
-                # First message is the full Lebanese system prompt
-                {"role": "system", "content": lebanese_prompt},
-                # Second message contains conversation history guidance
-                {"role": "user", "content": f"Here is the recent conversation history. Please respond to it directly in Lebanese Arabic:\n\n{user_context}"}
+                {"role": "system", "content": prompt_with_instruction},
+                {"role": "user", "content": user_context}
             ]
             
             # Call the API
@@ -406,16 +433,14 @@ def handle_lebanese_prompt_switch(handler, context):
             lebanese_response = response.choices[0].message.content.strip()
             
             # Return only the response to the context
-            # return {
-            #     "type": "prompt_response",
-            #     "language": "lebanese",
-            #     "message": lebanese_response
-            # }
             return {
-                "type": "error",
-                "message":user_context
+                "type": "prompt_response",
+                "language": "lebanese",
+                "message": lebanese_response
             }
+            
         except Exception as e:
+            print(f"Error in Lebanese response generation: {e}")
             # If GPT call fails, return an error
             return {
                 "type": "error",
@@ -423,6 +448,7 @@ def handle_lebanese_prompt_switch(handler, context):
             }
     
     except Exception as e:
+        print(f"Unexpected error in Lebanese switch: {e}")
         return {"type": "error", "message": f"Unexpected error: {e}"}
 
 # ─────────────────────────────────────────────────────────────
@@ -452,24 +478,51 @@ def handle_english_prompt_switch(handler, context):
         st.session_state.system_prompt_template = english_prompt
         st.session_state.current_prompt_language = "english"
         
+        # Print the entire context for debugging
+        print("English Switch - Full context:", context)
+        
         # Extract the last 4 messages from the history
         full_history = context.get("history", "")
-        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
-        last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+        print("English Switch - Full history:", full_history)
         
-        # Combine the last messages to create context for the new prompt
-        user_context = "\n\n".join(last_4_messages)
+        # Get the last user message if history is empty
+        last_message = context.get("last_user_message", "")
+        print("English Switch - Last user message:", last_message)
+        
+        # If history is empty but we have a last message, use that
+        if not full_history and last_message:
+            user_context = last_message
+            print("Using last_user_message instead of empty history")
+        else:
+            # Try multiple ways to split the history 
+            if "\n\n" in full_history:
+                messages = full_history.split("\n\n")
+            elif "\n" in full_history:
+                messages = full_history.split("\n")
+            else:
+                # Just use the whole history as one message if can't split
+                messages = [full_history]
+                
+            last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+            user_context = "\n\n".join(last_4_messages)
+        
+        print("English Switch - Final user_context:", user_context)
+        
+        # If still empty, provide a default context
+        if not user_context.strip():
+            user_context = "Hello, I'm switching to English mode. How can I help you?"
+            print("Using default context because user_context is empty")
         
         # Generate a response to the last messages using the new English prompt
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Create the API request with the full English system prompt and conversation history
+            # Prepare messages for the API call
+            prompt_with_instruction = f"{english_prompt}"
+            
             api_messages = [
-                # First message is the full English system prompt
-                {"role": "system", "content": english_prompt},
-                # Second message contains conversation history guidance
-                {"role": "user", "content": f"Here is the recent conversation history. Please respond to it directly in English:\n\n{user_context}"}
+                {"role": "system", "content": prompt_with_instruction},
+                {"role": "user", "content": user_context}
             ]
             
             # Call the API
@@ -490,6 +543,7 @@ def handle_english_prompt_switch(handler, context):
             }
             
         except Exception as e:
+            print(f"Error in English response generation: {e}")
             # If GPT call fails, return an error
             return {
                 "type": "error",
@@ -497,6 +551,7 @@ def handle_english_prompt_switch(handler, context):
             }
     
     except Exception as e:
+        print(f"Unexpected error in English switch: {e}")
         return {"type": "error", "message": f"Unexpected error: {e}"}
 
 # Function to register all conditions with a handler
