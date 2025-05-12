@@ -215,9 +215,9 @@ st.markdown(f"""
     height: 160px; /* Doubled height from 80px to 160px */
 }}
 
-/* Sidebar-expanded version - this will be added by JavaScript */
-.sidebar-expanded .logo-title-container {{
-    left: 21rem;
+/* Sidebar-expanded version - applied directly to container now */
+.logo-title-container.sidebar-expanded {{
+    left: 21rem; /* Match Streamlit's sidebar width */
     width: calc(100% - 21rem);
     padding-left: 2rem; /* Add more padding on the left when sidebar is expanded */
     justify-content: flex-start; /* Ensure left alignment is maintained when sidebar is open */
@@ -227,6 +227,7 @@ st.markdown(f"""
 .main-content-wrapper {{
     margin-top: 170px; /* Increased to account for taller header */
     padding-top: 20px;
+    transition: all 0.3s ease; /* Add transition for smoother adjustments */
 }}
 
 .logo-title-container img {{
@@ -418,11 +419,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
             console.log('Sidebar expanded:', isExpanded);
             
-            // Add or remove sidebar-expanded class to body
-            if (isExpanded) {
-                document.body.classList.add('sidebar-expanded');
-            } else {
-                document.body.classList.remove('sidebar-expanded');
+            // Get the logo-title-container element
+            const logoContainer = document.querySelector('.logo-title-container');
+            if (logoContainer) {
+                // Add or remove sidebar-expanded class directly to the container
+                if (isExpanded) {
+                    logoContainer.classList.add('sidebar-expanded');
+                } else {
+                    logoContainer.classList.remove('sidebar-expanded');
+                }
             }
         }
     }
@@ -454,6 +459,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 observer.observe(newSidebar, { attributes: true });
                 updateSidebarState();
             }
+        }
+        
+        // Always check for logo container and update its state
+        // This helps ensure it's properly updated as DOM changes
+        const logoContainer = document.querySelector('.logo-title-container');
+        if (logoContainer) {
+            // Force update the state
+            updateSidebarState();
         }
     });
     
