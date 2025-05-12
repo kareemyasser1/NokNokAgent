@@ -443,6 +443,16 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 document.body.classList.remove('sidebar-expanded');
             }
+            
+            // NEW: also shift header programmatically for reliability
+            const header = document.querySelector('.logo-title-container');
+            if (header) {
+                if (isExpanded) {
+                    header.style.transform = 'translateX(21rem)';
+                } else {
+                    header.style.transform = 'translateX(0)';
+                }
+            }
         }
     }
     
