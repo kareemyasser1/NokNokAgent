@@ -380,17 +380,23 @@ def handle_lebanese_prompt_switch(handler, context):
         messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
         last_4_messages = messages[-4:] if len(messages) >= 4 else messages
         
-        # Combine the last messages to create a new prompt for GPT to respond to
+        # Combine the last messages to create context for the new prompt
         user_context = "\n\n".join(last_4_messages)
         
         # Generate a response to the last messages using the new Lebanese prompt
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Prepare messages for the API call
+            # Prepare messages for the API call with explicit instruction to respond to history
+            prompt_with_instruction = (
+                f"{lebanese_prompt}\n\n"
+                f"Here is the recent conversation history. Please respond to it directly in Lebanese Arabic:\n\n"
+                f"{user_context}"
+            )
+            
             api_messages = [
-                {"role": "system", "content": lebanese_prompt},
-                {"role": "user", "content": user_context}
+                {"role": "system", "content": prompt_with_instruction},
+                {"role": "user", "content": "Please respond to the conversation above."}
             ]
             
             # Call the API
@@ -403,20 +409,18 @@ def handle_lebanese_prompt_switch(handler, context):
             # Get the response
             lebanese_response = response.choices[0].message.content.strip()
             
-            # Return success with both switching message and the response to last messages
+            # Return only the response to the context
             return {
-                "type": "prompt_switched_with_response",
+                "type": "prompt_response",
                 "language": "lebanese",
-                "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!",
-                "context_response": lebanese_response
+                "message": lebanese_response
             }
             
         except Exception as e:
-            # If GPT call fails, just return the switch message
+            # If GPT call fails, return an error
             return {
-                "type": "prompt_switched",
-                "language": "lebanese",
-                "message": f"I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
+                "type": "error",
+                "message": f"Failed to generate response in Lebanese mode: {str(e)}"
             }
     
     except Exception as e:
@@ -454,17 +458,23 @@ def handle_english_prompt_switch(handler, context):
         messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
         last_4_messages = messages[-4:] if len(messages) >= 4 else messages
         
-        # Combine the last messages to create a new prompt for GPT to respond to
+        # Combine the last messages to create context for the new prompt
         user_context = "\n\n".join(last_4_messages)
         
         # Generate a response to the last messages using the new English prompt
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             
-            # Prepare messages for the API call
+            # Prepare messages for the API call with explicit instruction to respond to history
+            prompt_with_instruction = (
+                f"{english_prompt}\n\n"
+                f"Here is the recent conversation history. Please respond to it directly in English:\n\n"
+                f"{user_context}"
+            )
+            
             api_messages = [
-                {"role": "system", "content": english_prompt},
-                {"role": "user", "content": user_context}
+                {"role": "system", "content": prompt_with_instruction},
+                {"role": "user", "content": "Please respond to the conversation above."}
             ]
             
             # Call the API
@@ -477,20 +487,18 @@ def handle_english_prompt_switch(handler, context):
             # Get the response
             english_response = response.choices[0].message.content.strip()
             
-            # Return success with both switching message and the response to last messages
+            # Return only the response to the context
             return {
-                "type": "prompt_switched_with_response",
+                "type": "prompt_response",
                 "language": "english",
-                "message": "I've switched to English mode. How can I help you today?",
-                "context_response": english_response
+                "message": english_response
             }
             
         except Exception as e:
-            # If GPT call fails, just return the switch message
+            # If GPT call fails, return an error
             return {
-                "type": "prompt_switched",
-                "language": "english",
-                "message": f"I've switched to English mode. How can I help you today?"
+                "type": "error",
+                "message": f"Failed to generate response in English mode: {str(e)}"
             }
     
     except Exception as e:
