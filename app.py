@@ -201,13 +201,37 @@ st.markdown(f"""
 .logo-title-container {{
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 1.5rem;
-    margin-top: 2rem;
+    padding: 1rem 1rem 1rem 1.5rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 80px;
+}}
+
+/* Adjust the header when sidebar is expanded */
+.sidebar-expanded .logo-title-container {{
+    left: 21rem; /* Match Streamlit's sidebar width */
+    width: calc(100% - 21rem);
+}}
+
+/* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
+.main-content-wrapper {{
+    margin-top: 90px; /* Slightly more than the header height */
+    padding-top: 20px;
 }}
 
 .logo-title-container img {{
-    max-height: none !important;
+    max-height: 60px !important;
+    width: auto !important;
     object-fit: contain;
+    transition: all 0.3s ease;
 }}
 
 .title-text {{
@@ -215,6 +239,19 @@ st.markdown(f"""
     padding: 0;
     font-size: 2.5rem;
     font-weight: bold;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}}
+
+/* Adjust logo and text size on smaller screens or when sidebar is expanded */
+@media (max-width: 992px), .sidebar-expanded {{
+    .logo-title-container img {{
+        max-height: 40px !important;
+    }}
+    
+    .title-text {{
+        font-size: 1.8rem;
+    }}
 }}
 
 body, .stApp {{
@@ -317,7 +354,33 @@ st.markdown("""
     white-space: nowrap !important;
     min-width: 120px !important;
 }
+
+/* Add JavaScript to detect sidebar state and adjust header accordingly */
 </style>
+
+<script>
+// Function to observe sidebar toggle and update CSS classes
+document.addEventListener('DOMContentLoaded', function() {
+    // Create a wrapper div for main content with padding for the fixed header
+    const mainContent = document.querySelector('.main');
+    if (mainContent && !document.querySelector('.main-content-wrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'main-content-wrapper';
+        mainContent.parentNode.insertBefore(wrapper, mainContent);
+        wrapper.appendChild(mainContent);
+    }
+    
+    // Observer to detect sidebar toggle
+    const observer = new MutationObserver(function(mutations) {
+        // Check if sidebar is expanded
+        const sidebarExpanded = document.querySelector('.modebar-container[style*="left: 375px"]') !== null;
+        document.body.classList.toggle('sidebar-expanded', sidebarExpanded);
+    });
+    
+    // Start observing
+    observer.observe(document.body, { childList: true, subtree: true });
+});
+</script>
 """, unsafe_allow_html=True)
 
 # Add a helper function to check for condition trigger keywords
@@ -916,6 +979,11 @@ st.markdown(f'''
     <img src="data:image/png;base64,{logo_base64}" width="200">
     <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
+''', unsafe_allow_html=True)
+
+# Wrap the main content in a div to add padding below the fixed header
+st.markdown('''
+<div class="main-content-wrapper">
 ''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
@@ -2672,3 +2740,6 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
+
+# Close the main-content-wrapper div at the end of the app
+st.markdown('</div>', unsafe_allow_html=True)
