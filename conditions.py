@@ -205,25 +205,33 @@ def handle_items_request(handler, context):
         # 1) Ensure a client is selected
         # client_id = getattr(handler, "current_client_id", None)
         # if not client_id:x
-        #     return {"type":"error","message":"No client selected for item lookup"}
+        #      return {"type":"error","message":"No client selected for item lookup"}
 
         reply = context["reply"]
         
-        # 2) Extract item-name via regex instead of GPT
-        # Pattern to match text between different types of quotes:
-        # - Plain double quotes: "text"
-        # - Smart double quotes: "text"
-        # - Plain single quotes: 'text'
-        # - Smart single quotes: 'text'
-        quote_pattern = r'[""\']([^""\']+)[""\'"]'
-        
-        # Find all matches
-        matches = re.findall(quote_pattern, reply)
-        
-        if matches:
-            item_name = matches[0].strip()
-        else:
-            return {"type":"error","message":"Could not find any quoted item name in the assistant's reply"}
+        # 2) Extract item-name using GPT instead of regex
+        try:
+            extract_prompt = f"""
+            Extract the exact item name that appears in quotes in the following text. 
+            Return only the item name with no additional text or explanations.
+            If multiple quoted items are found, return the first one only.
+            
+            Text: {reply}
+            """
+            
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            extraction_resp = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role":"user","content":extract_prompt}],
+                stream=False
+            )
+            item_name = extraction_resp.choices[0].message.content.strip()
+            
+            if not item_name:
+                return {"type":"error","message":"Could not extract any item name from the assistant's reply"}
+                
+        except OpenAIError as e:
+            return {"type":"error","message":f"OpenAI extraction error: {e}"}
 
         # 3) Write item_name → F2, wait, then read JSON from G2
         items_sheet = handler.noknok_sheets.get("items")
