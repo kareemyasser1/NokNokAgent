@@ -1062,7 +1062,7 @@ recorder_container = st.sidebar.container()
 with recorder_container:
     col1, col2 = st.columns([1, 2])  # Split space inside the sidebar container
 
-    with col1:
+    with col2:
         # Audio recorder button without text
         audio_bytes_sidebar = audio_recorder(
             text="",  # Empty so no built-in text appears
@@ -1074,7 +1074,7 @@ with recorder_container:
             sample_rate=44100
         )
 
-    with col2:
+    with col1:
         # Styled "SPEAK NOW" text next to the mic button
         st.markdown(
             '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">SPEAK NOW</span>',
