@@ -1057,11 +1057,6 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 # Simple container for the recorder
 recorder_container = st.sidebar.container()
-import streamlit as st
-from streamlit_audio_recorder import audio_recorder  # Or your recorder lib
-
-# Simple container for the recorder
-recorder_container = st.sidebar.container()
 
 # Use the recorder with built-in features, styled as a bar
 with recorder_container:
@@ -1095,6 +1090,8 @@ with recorder_container:
         pause_threshold=2.0,
         sample_rate=44100
     )
+
+
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
