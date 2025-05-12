@@ -375,11 +375,49 @@ def handle_lebanese_prompt_switch(handler, context):
         st.session_state.system_prompt_template = lebanese_prompt
         st.session_state.current_prompt_language = "lebanese"
         
-        return {
-            "type": "prompt_switched",
-            "language": "lebanese",
-            "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
-        }
+        # Extract the last 4 messages from the history
+        full_history = context.get("history", "")
+        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
+        last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+        
+        # Combine the last messages to create a new prompt for GPT to respond to
+        user_context = "\n\n".join(last_4_messages)
+        
+        # Generate a response to the last messages using the new Lebanese prompt
+        try:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            
+            # Prepare messages for the API call
+            api_messages = [
+                {"role": "system", "content": lebanese_prompt},
+                {"role": "user", "content": user_context}
+            ]
+            
+            # Call the API
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=api_messages,
+                stream=False
+            )
+            
+            # Get the response
+            lebanese_response = response.choices[0].message.content.strip()
+            
+            # Return success with both switching message and the response to last messages
+            return {
+                "type": "prompt_switched_with_response",
+                "language": "lebanese",
+                "message": "I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!",
+                "context_response": lebanese_response
+            }
+            
+        except Exception as e:
+            # If GPT call fails, just return the switch message
+            return {
+                "type": "prompt_switched",
+                "language": "lebanese",
+                "message": f"I've switched to Lebanese mode. Feel free to chat with me in Lebanese Arabic now!"
+            }
     
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
@@ -411,11 +449,49 @@ def handle_english_prompt_switch(handler, context):
         st.session_state.system_prompt_template = english_prompt
         st.session_state.current_prompt_language = "english"
         
-        return {
-            "type": "prompt_switched",
-            "language": "english", 
-            "message": "I've switched to English mode. How can I help you today?"
-        }
+        # Extract the last 4 messages from the history
+        full_history = context.get("history", "")
+        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
+        last_4_messages = messages[-4:] if len(messages) >= 4 else messages
+        
+        # Combine the last messages to create a new prompt for GPT to respond to
+        user_context = "\n\n".join(last_4_messages)
+        
+        # Generate a response to the last messages using the new English prompt
+        try:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            
+            # Prepare messages for the API call
+            api_messages = [
+                {"role": "system", "content": english_prompt},
+                {"role": "user", "content": user_context}
+            ]
+            
+            # Call the API
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=api_messages,
+                stream=False
+            )
+            
+            # Get the response
+            english_response = response.choices[0].message.content.strip()
+            
+            # Return success with both switching message and the response to last messages
+            return {
+                "type": "prompt_switched_with_response",
+                "language": "english",
+                "message": "I've switched to English mode. How can I help you today?",
+                "context_response": english_response
+            }
+            
+        except Exception as e:
+            # If GPT call fails, just return the switch message
+            return {
+                "type": "prompt_switched",
+                "language": "english",
+                "message": f"I've switched to English mode. How can I help you today?"
+            }
     
     except Exception as e:
         return {"type": "error", "message": f"Unexpected error: {e}"}
