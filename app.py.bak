@@ -337,6 +337,8 @@ body, .stApp {{
     background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
     color: #000000 !important;
 }}
+    transition: all 0.3s ease;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -367,35 +369,7 @@ st.markdown("""
     min-width: 120px !important;
 }
 </style>
-""", unsafe_allow_html=True)
 
-# Add CSS for the header logo
-st.markdown("""
-<style>
-.logo-title-container img.header-logo {
-    max-height: 50px !important; /* Half size logo */
-    width: auto !important;
-    object-fit: contain;
-    transition: all 0.3s ease;
-}
-
-/* Media queries for responsive logo sizing */
-@media (max-width: 992px) {
-    .logo-title-container img.header-logo {
-        max-height: 30px !important;
-    }
-}
-
-@media (max-width: 576px) {
-    .logo-title-container img.header-logo {
-        max-height: 20px !important;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Add JavaScript for sidebar toggling
-st.markdown("""
 <script>
 // Function to handle layout updates
 document.addEventListener('DOMContentLoaded', function() {
