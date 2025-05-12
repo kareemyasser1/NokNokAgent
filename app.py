@@ -1064,18 +1064,18 @@ st.sidebar.markdown("""
 
 /* WhatsApp-like recording bar styling */
 .whatsapp-recorder {
-    background-color: #f1f6ff;
+    background-color: #f0f2f5;
     border-radius: 20px;
     padding: 8px 12px;
     margin-top: 10px;
     display: flex;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(42, 98, 202, 0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .recorder-text {
     flex-grow: 1;
-    color: #2a62ca;
+    color: #333;
     margin-right: 10px;
     font-weight: 500;
     font-size: 14px;
@@ -1083,7 +1083,7 @@ st.sidebar.markdown("""
 
 /* Style the audio recorder button to look like WhatsApp */
 [data-testid="stSidebar"] .audio-recorder button {
-    background-color: #2a62ca !important; /* Main blue color */
+    background-color: #00a884 !important; /* WhatsApp green */
     border-radius: 50% !important;
     width: 40px !important;
     height: 40px !important;
@@ -1093,13 +1093,12 @@ st.sidebar.markdown("""
     padding: 0 !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 4px rgba(42, 98, 202, 0.25) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
     transition: all 0.2s ease !important;
 }
 
 [data-testid="stSidebar"] .audio-recorder button:hover {
     transform: scale(1.05) !important;
-    box-shadow: 0 3px 6px rgba(42, 98, 202, 0.3) !important;
 }
 
 /* Fix audio recorder container */
@@ -1107,19 +1106,21 @@ st.sidebar.markdown("""
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    background-color: #f1f6ff !important;
+    background-color: #f0f2f5 !important;
     border-radius: 20px !important;
     padding: 8px 12px !important;
     margin-top: 5px !important;
-    border: 1px solid rgba(42, 98, 202, 0.15) !important;
-    box-shadow: 0 1px 3px rgba(42, 98, 202, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: 2px solid #e1e4e8 !important;
+    max-width: 85% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* Style when recording */
 [data-testid="stSidebar"] .audio-recorder.recording {
-    background-color: #e8f0ff !important; /* Light blue background when recording */
-    border-color: rgba(42, 98, 202, 0.3) !important;
-    box-shadow: 0 1px 5px rgba(42, 98, 202, 0.2) !important;
+    background-color: #ffefe5 !important; /* Light red background when recording */
+    border: 2px solid #ff4b4b !important; /* Red border when recording */
 }
 
 /* Visually emphasize the mic icon */
@@ -1128,16 +1129,20 @@ st.sidebar.markdown("""
     font-size: 18px !important;
 }
 
-/* Pulse animation when recording */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(42, 98, 202, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(42, 98, 202, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(42, 98, 202, 0); }
+/* Style the "Tap to speak" text */
+[data-testid="stSidebar"] .audio-recorder .audio-recorder-status {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    color: #333333 !important;
+    text-align: center !important;
 }
 
-[data-testid="stSidebar"] .audio-recorder.recording button {
-    animation: pulse 2s infinite;
-    background-color: #4377da !important;
+/* When recording, style the "Recording..." text */
+[data-testid="stSidebar"] .audio-recorder.recording .audio-recorder-status {
+    color: #ff4b4b !important;
+    font-weight: 700 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1149,8 +1154,8 @@ recorder_container = st.sidebar.container()
 with recorder_container:
     audio_bytes_sidebar = audio_recorder(
         text="Tap to speak",
-        recording_color="#4377da",  # Lighter blue when recording
-        neutral_color="#2a62ca",   # App's blue theme color
+        recording_color="#ff4b4b",  # Red when recording
+        neutral_color="#1e88e5",    # Blue when not recording
         icon_name="microphone",
         icon_size="lg",
         pause_threshold=2.0,
