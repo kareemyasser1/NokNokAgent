@@ -1040,70 +1040,68 @@ if uploaded_file is not None:
 # Add extra CSS to ensure audio recorder stays in sidebar
 st.sidebar.markdown("""
 <style>
-/* Complete reset of audio recorder styling */
-[data-testid="stSidebar"] div.css-1kyxreq {
+/* Direct override for the audio recorder container - important for centering */
+.audio-recorder {
     max-width: 85% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-/* Direct targeting of the audio recorder element */
-[data-testid="stSidebar"] .audio-recorder {
+    margin: 0 auto !important;
+    display: block !important;
     border: 2px solid #e1e4e8 !important;
     border-radius: 20px !important;
     background-color: #f0f2f5 !important;
     padding: 8px 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-/* Directly target the text element */
-[data-testid="stSidebar"] .audio-recorder span {
+/* Style the text content with !important flags */
+.audio-recorder-status, .audio-recorder span {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     font-weight: 600 !important;
-    font-size: 15px !important;
-    letter-spacing: 0.5px !important;
+    font-size: 16px !important; 
     color: #333333 !important;
-    text-align: center !important;
+    letter-spacing: 0.5px !important;
     margin-right: 10px !important;
-    flex-grow: 1 !important;
+    text-align: center !important;
+    display: inline-block !important;
+    width: auto !important;
 }
 
-/* Force the button to be properly styled */
-[data-testid="stSidebar"] .audio-recorder button {
+/* Focus on button styling */
+.audio-recorder button {
     background-color: #1e88e5 !important;
     border-radius: 50% !important;
     width: 40px !important;
     height: 40px !important;
-    display: flex !important;
+    display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    float: right !important;
     padding: 0 !important;
-    margin: 0 !important;
-    transition: all 0.2s ease !important;
 }
 
-/* Styling for when recording is active */
-[data-testid="stSidebar"] .audio-recorder.recording {
+/* Recording state styles - with !important flags */
+.audio-recorder.recording {
     background-color: #ffefe5 !important;
     border-color: #ff4b4b !important;
+    border-width: 2px !important;
 }
 
-[data-testid="stSidebar"] .audio-recorder.recording button {
+.audio-recorder.recording button {
     background-color: #ff4b4b !important;
 }
 
-[data-testid="stSidebar"] .audio-recorder.recording span {
+.audio-recorder.recording .audio-recorder-status,
+.audio-recorder.recording span {
     color: #ff4b4b !important;
     font-weight: 700 !important;
 }
 
-/* Icon styling */
-[data-testid="stSidebar"] .audio-recorder button i {
+/* Ensure the icon is properly colored */
+.audio-recorder button i,
+.audio-recorder button svg,
+.audio-recorder button .fa,
+.audio-recorder button .fas {
     color: white !important;
     font-size: 18px !important;
 }
@@ -1120,12 +1118,15 @@ st.sidebar.markdown("""
 # Create a container specifically for the recorder to help with containment
 recorder_container = st.sidebar.container()
 
-# Use the audio_recorder correctly within the container context
+# Use the audio_recorder but with more prominent text
 with recorder_container:
+    # Add some spacing/margin for better layout
+    st.markdown('<div style="height: 5px;"></div>', unsafe_allow_html=True)
+    
     audio_bytes_sidebar = audio_recorder(
-        text="Tap to speak",
-        recording_color="#ff4b4b",  # Red when recording
-        neutral_color="#1e88e5",    # Blue when not recording
+        text="Tap to speak",  # This should now be more visible with our CSS
+        recording_color="#ff4b4b",
+        neutral_color="#1e88e5",
         icon_name="microphone",
         icon_size="lg",
         pause_threshold=2.0,
