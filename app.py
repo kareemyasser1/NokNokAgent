@@ -1062,7 +1062,7 @@ recorder_container = st.sidebar.container()
 with recorder_container:
     col1, col2 = st.columns([1, 2])
 
-    with col1:
+    with col2:
         audio_bytes_sidebar = audio_recorder(
             text="",
             recording_color="#f44336",
@@ -1073,10 +1073,10 @@ with recorder_container:
             sample_rate=44100
         )
 
-    with col2:
+    with col1:
         st.markdown(
-            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;"> << Click to record </span>',
-            unsafe_allow_html=True
+            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;"> Click to record >> </span>',
+            unsafe_allows_html=True
         )
 
 
