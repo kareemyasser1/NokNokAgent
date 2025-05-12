@@ -1085,8 +1085,8 @@ st.sidebar.markdown("""
 [data-testid="stSidebar"] .audio-recorder button {
     background-color: #00a884 !important; /* WhatsApp green */
     border-radius: 50% !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 48px !important;
+    height: 48px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1126,16 +1126,16 @@ st.sidebar.markdown("""
 /* Visually emphasize the mic icon */
 [data-testid="stSidebar"] .audio-recorder button i.fa {
     color: white !important;
-    font-size: 18px !important;
+    font-size: 22px !important;
 }
 
 /* Style the "Tap to speak" text */
 [data-testid="stSidebar"] .audio-recorder .audio-recorder-status {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     font-size: 15px !important;
     letter-spacing: 0.5px !important;
-    color: #333333 !important;
+    color: #1e88e5 !important;
     text-align: center !important;
 }
 
