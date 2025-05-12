@@ -1042,78 +1042,136 @@ st.sidebar.markdown("### 🎙️ Voice Message")
 # First apply a reset style to ensure our custom styles take effect
 st.sidebar.markdown("""
 <style>
-/* Reset all audio recorder styles */
-.custom-recorder-container .audio-recorder * {
-    all: initial !important;
-    box-sizing: border-box !important;
-    font-family: 'Segoe UI', Tahoma, sans-serif !important;
-}
-
+/* Audio recorder positioning fixes */
 .custom-recorder-container {
+    position: relative !important;
     margin: 20px auto !important;
-    width: 95% !important;
-}
-
-/* Force main wrapper style */
-.custom-recorder-wrapper {
-    display: block !important;
+    width: 90% !important;
     background-color: #e3f2fd !important;
     border: 3px solid #1e88e5 !important;
     border-radius: 24px !important;
-    padding: 12px !important;
-    margin: 15px auto !important;
+    padding: 8px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-    width: 100% !important;
-    text-align: right !important;
-    position: relative !important;
-    overflow: hidden !important;
 }
 
-/* Force text styling */
+/* Position the text on the left */
 .recorder-text {
     display: inline-block !important;
     font-weight: 900 !important;
     font-size: 18px !important;
     color: #0d47a1 !important;
-    background: white !important;
     padding: 8px 16px !important;
+    background-color: white !important;
     border: 2px solid #1e88e5 !important;
     border-radius: 12px !important;
-    margin-right: 10px !important;
-    text-align: right !important;
+    text-align: left !important;
+    margin-right: 15px !important;
+    font-family: 'Segoe UI', Tahoma, sans-serif !important;
+}
+
+/* Make audio recorder take less space */
+div[data-testid="stSidebar"] .audio-recorder {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Style the microphone button */
+div[data-testid="stSidebar"] .audio-recorder button {
+    background-color: #1e88e5 !important;
+    border: 3px solid #0d47a1 !important; 
+    border-radius: 50% !important;
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Style the mic icon */
+div[data-testid="stSidebar"] .audio-recorder button i.fa,
+div[data-testid="stSidebar"] .audio-recorder button i.fas {
+    color: white !important;
+    font-size: 22px !important;
+}
+
+/* Hide all text in the audio recorder component */
+div[data-testid="stSidebar"] .audio-recorder span,
+div[data-testid="stSidebar"] .audio-recorder .audio-recorder-status {
+    display: none !important;
+}
+
+/* Recording state styles */
+div[data-testid="stSidebar"] .audio-recorder.recording button {
+    background-color: #f44336 !important;
+    border: 3px solid #b71c1c !important;
+}
+
+.custom-recorder-container.recording {
+    background-color: #ffebee !important;
+    border: 3px solid #f44336 !important;
+}
+
+.custom-recorder-container.recording .recorder-text {
+    color: #b71c1c !important;
+    border: 2px solid #f44336 !important;
 }
 </style>
 """, unsafe_allow_html=True)
- 
-# Create a container specifically for the recorder to help with containment
+
+# Create a single container for both text and recorder
 custom_container = st.sidebar.container()
 
-with custom_container:
-    # Create a wrapper div with our custom styling
-    st.markdown('<div class="custom-recorder-container">', unsafe_allow_html=True)
-    st.markdown('<div class="custom-recorder-wrapper">', unsafe_allow_html=True)
-    
-    # Add the text with custom styling - this appears before the recorder
-    st.markdown('<div class="recorder-text">SPEAK NOW</div>', unsafe_allow_html=True)
-    
-    # Close the wrappers
-    st.markdown('</div></div>', unsafe_allow_html=True)
+# Start the custom recorder container
+custom_container.markdown('<div class="custom-recorder-container" id="recorder-wrapper">', unsafe_allow_html=True)
 
-# Create a new container just for the recorder
-recorder_container = st.sidebar.container()
- 
-# Use the audio_recorder correctly within the container context
-with recorder_container:
+# Add the custom text - this should be on the left
+custom_container.markdown('<div class="recorder-text">SPEAK NOW</div>', unsafe_allow_html=True)
+
+# Add the recorder in the same container
+with custom_container:
     audio_bytes_sidebar = audio_recorder(
-        text="",  # Remove text as we're using our custom text
+        text="",  # Empty text since we use our custom text
         recording_color="#f44336",  # Red when recording
         neutral_color="#1e88e5",    # Blue when not recording
         icon_name="microphone",
-        icon_size="2x",
+        icon_size="lg",
         pause_threshold=1.5,
         sample_rate=41_000,
-        key="custom_audio_recorder_123",  # Add a unique key to force re-render
+        key="custom_audio_recorder_123",  # Unique key to force re-render
     )
+
+# Close the custom container
+custom_container.markdown('</div>', unsafe_allow_html=True)
+
+# Add JavaScript to handle recording state changes for our custom container
+custom_container.markdown("""
+<script>
+// Wait for the recorder to be available in the DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Check periodically for recording state changes
+    setInterval(function() {
+        const recorder = document.querySelector('.audio-recorder');
+        const wrapper = document.getElementById('recorder-wrapper');
+        
+        if (recorder && wrapper) {
+            if (recorder.classList.contains('recording')) {
+                wrapper.classList.add('recording');
+            } else {
+                wrapper.classList.remove('recording');
+            }
+        }
+    }, 500);
+});
+</script>
+""", unsafe_allow_html=True)
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
