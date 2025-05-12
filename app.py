@@ -1158,21 +1158,17 @@ if audio_bytes_sidebar and not st.session_state.is_recording_audio:
                         st.session_state["audio_transcription"] = audio_text
                         print(f"Audio transcription: {audio_text}")
                         status.update(label="Voice message ready!", state="complete", expanded=False)
+                        
+                        # Automatically send the audio without requiring a button click
+                        st.session_state["send_audio_only"] = True
+                        # Short delay to allow the status to update before rerun
+                        time.sleep(0.5)
                     except Exception as e:
                         print(f"Audio transcription failed: {e}")
                         status.update(label=f"Transcription error: {str(e)}", state="error")
-            
-            # Display the transcription and provide a send button
-            if "audio_transcription" in st.session_state:
-                st.sidebar.text_area("Transcription:", st.session_state["audio_transcription"], 
-                                     key="transcription_preview", disabled=True)
-                
-                # Add a manual send button
-                if st.sidebar.button("Send Voice Message"):
-                    # Only then set the flag to send
-                    st.session_state["send_audio_only"] = True
-                    # Trigger rerun to send the message
-                    st.rerun()
+                        
+                # Trigger rerun to send the message
+                st.rerun()
         else:
             # If recording is too short, show a message and don't trigger send
             st.sidebar.warning("Voice message too short. Please record a longer message.")
