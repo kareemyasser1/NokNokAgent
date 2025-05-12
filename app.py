@@ -218,7 +218,7 @@ st.markdown(f"""
 /* Sidebar-expanded version - this will be added by JavaScript */
 .sidebar-expanded .logo-title-container {{
     left: 21rem;
-    width: calc(100% - 21rem);
+    width: calc(100% - 21rem)/2;
     justify-content: center; /* Ensure centering is maintained when sidebar is open */
 }}
 
