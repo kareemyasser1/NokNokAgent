@@ -395,6 +395,25 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ➡️ NEW: Animate header/container when sidebar toggles
+st.markdown("""
+<style>
+/* Smooth transition for the entire header container */
+.logo-title-container {
+    transition: transform 0.3s ease !important;
+}
+
+/* When JavaScript adds the `sidebar-expanded` class to <body>,
+   move the header 21 rem (≈ sidebar width) to the right. */
+.sidebar-expanded .logo-title-container {
+    /* Reset `left` / `width` that were previously set so we don't double-shift */
+    left: 0 !important;
+    width: 100% !important;
+    transform: translateX(21rem);
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Add JavaScript for sidebar toggling
 st.markdown("""
 <script>
@@ -2846,6 +2865,25 @@ st.markdown("""
     .logo-title-container img.header-logo {
         max-height: 60px !important; /* Tripled from 20px to 60px */
     }
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ➡️ NEW: Animate header/container when sidebar toggles
+st.markdown("""
+<style>
+/* Smooth transition for the entire header container */
+.logo-title-container {
+    transition: transform 0.3s ease !important;
+}
+
+/* When JavaScript adds the `sidebar-expanded` class to <body>,
+   move the header 21 rem (≈ sidebar width) to the right. */
+.sidebar-expanded .logo-title-container {
+    /* Reset `left` / `width` that were previously set so we don't double-shift */
+    left: 0 !important;
+    width: 100% !important;
+    transform: translateX(21rem);
 }
 </style>
 """, unsafe_allow_html=True)
