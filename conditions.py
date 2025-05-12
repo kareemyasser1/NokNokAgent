@@ -390,7 +390,7 @@ def handle_lebanese_prompt_switch(handler, context):
             # Prepare messages for the API call with explicit instruction to respond to history
             prompt_with_instruction = (
                 f"{lebanese_prompt}\n\n"
-                f"Here is the recent conversation history. Please respond to it directly in Lebanese Arabic:\n\n"
+                f"Here is the recent conversation history. Please respond to it directly in Lebanese without greetings:\n\n"
                 f"{user_context}"
             )
             
@@ -468,7 +468,7 @@ def handle_english_prompt_switch(handler, context):
             # Prepare messages for the API call with explicit instruction to respond to history
             prompt_with_instruction = (
                 f"{english_prompt}\n\n"
-                f"Here is the recent conversation history. Please respond to it directly in English:\n\n"
+                f"Here is the recent conversation history. Please respond to it directly in English without greetings:\n\n"
                 f"{user_context}"
             )
             
