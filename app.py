@@ -201,9 +201,9 @@ st.markdown(f"""
 .logo-title-container {{
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center; /* Changed from flex-start to center */
     gap: 1.5rem;
-    padding: 1rem 1rem 1rem 1.5rem;
+    padding: 1rem;  /* Equal padding all around */
     position: fixed;
     top: 0;
     left: 0;
@@ -219,6 +219,7 @@ st.markdown(f"""
 .sidebar-expanded .logo-title-container {{
     left: 21rem;
     width: calc(100% - 21rem);
+    justify-content: center; /* Ensure centering is maintained when sidebar is open */
 }}
 
 /* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
