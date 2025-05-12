@@ -1095,9 +1095,36 @@ if audio_bytes_sidebar:
     if "last_audio_hash" not in st.session_state or st.session_state.get("last_audio_hash") != current_audio_hash:
         # Store the hash of this recording to avoid repeated sending
         st.session_state["last_audio_hash"] = current_audio_hash
-        # Automatically send the audio without requiring a button click
-        st.sidebar.success("Voice message recorded!")
-        send_audio_clicked()
+        
+        # Add visual feedback with a spinner during processing
+        with st.sidebar.status("Processing voice message...", expanded=True) as status:
+            # Pre-transcribe the audio here to avoid extra reruns
+            if api_key:
+                try:
+                    audio_buffer = io.BytesIO(audio_bytes_sidebar)
+                    audio_buffer.name = "voice.wav"
+                    trans_client = OpenAI(api_key=api_key)
+                    transcription_resp = trans_client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=audio_buffer,
+                        response_format="text"
+                    )
+                    # openai python v1 returns .text
+                    audio_text = transcription_resp.text if hasattr(transcription_resp, "text") else str(transcription_resp)
+                    st.session_state["audio_transcription"] = audio_text
+                    print(f"Audio transcription: {audio_text}")
+                    status.update(label="Voice message ready!", state="complete", expanded=False)
+                except Exception as e:
+                    print(f"Audio transcription failed: {e}")
+                    status.update(label=f"Transcription error: {str(e)}", state="error")
+            
+            # Automatically send the audio without requiring a button click
+            st.session_state["send_audio_only"] = True
+            # Short delay to allow the status to update before rerun
+            time.sleep(0.5)
+        
+        # Trigger rerun to send the message
+        st.rerun()
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
@@ -1635,20 +1662,25 @@ if should_send:
     # Transcribe audio if present to generate user prompt text
     audio_text = ""
     if audio_bytes and api_key:
-        try:
-            audio_buffer = io.BytesIO(audio_bytes)
-            audio_buffer.name = "voice.wav"
-            trans_client = OpenAI(api_key=api_key)
-            transcription_resp = trans_client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_buffer,
-                response_format="text"
-            )
-            # openai python v1 returns .text
-            audio_text = transcription_resp.text if hasattr(transcription_resp, "text") else str(transcription_resp)
-            print(f"Audio transcription: {audio_text}")
-        except Exception as e:
-            print(f"Audio transcription failed: {e}")
+        # Check if we already have a transcription from pre-processing
+        if "audio_transcription" in st.session_state:
+            audio_text = st.session_state.pop("audio_transcription", "")
+            print(f"Using pre-processed audio transcription: {audio_text}")
+        else:
+            try:
+                audio_buffer = io.BytesIO(audio_bytes)
+                audio_buffer.name = "voice.wav"
+                trans_client = OpenAI(api_key=api_key)
+                transcription_resp = trans_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_buffer,
+                    response_format="text"
+                )
+                # openai python v1 returns .text
+                audio_text = transcription_resp.text if hasattr(transcription_resp, "text") else str(transcription_resp)
+                print(f"Audio transcription: {audio_text}")
+            except Exception as e:
+                print(f"Audio transcription failed: {e}")
     
     if send_image_only and not image_bytes:
         # Edge-case: send button but no image (shouldn't normally happen)
