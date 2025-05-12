@@ -1037,93 +1037,84 @@ if uploaded_file is not None:
 # 🎙️  Audio recorder (sidebar only)
 # ──────────────────────────────────────────────────────────
 
-st.sidebar.markdown("### 🎙️ Voice Message")
-
 # Add extra CSS to ensure audio recorder stays in sidebar
 st.sidebar.markdown("""
 <style>
-/* Ensure audio recorder container stays within sidebar bounds */
+/* Complete reset of audio recorder styling */
+[data-testid="stSidebar"] div.css-1kyxreq {
+    max-width: 85% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Direct targeting of the audio recorder element */
 [data-testid="stSidebar"] .audio-recorder {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto;
-    overflow: hidden;
+    border: 2px solid #e1e4e8 !important;
+    border-radius: 20px !important;
+    background-color: #f0f2f5 !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 
-/* Make sure record button styling is contained */
+/* Directly target the text element */
+[data-testid="stSidebar"] .audio-recorder span {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    color: #333333 !important;
+    text-align: center !important;
+    margin-right: 10px !important;
+    flex-grow: 1 !important;
+}
+
+/* Force the button to be properly styled */
 [data-testid="stSidebar"] .audio-recorder button {
-    margin: 0 auto !important;
-    display: block !important;
-}
-
-/* Audio playback should stay in sidebar */
-[data-testid="stSidebar"] audio {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-/* WhatsApp-like recording bar styling */
-.whatsapp-recorder {
-    background-color: #f0f2f5;
-    border-radius: 20px;
-    padding: 8px 12px;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.recorder-text {
-    flex-grow: 1;
-    color: #333;
-    margin-right: 10px;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-/* Style the audio recorder button to look like WhatsApp */
-[data-testid="stSidebar"] .audio-recorder button {
-    background-color: #00a884 !important; /* WhatsApp green */
+    background-color: #1e88e5 !important;
     border-radius: 50% !important;
     width: 40px !important;
     height: 40px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    border: none !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
     padding: 0 !important;
     margin: 0 !important;
-    flex-shrink: 0 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
     transition: all 0.2s ease !important;
 }
 
-[data-testid="stSidebar"] .audio-recorder button:hover {
-    transform: scale(1.05) !important;
-}
-
-/* Fix audio recorder container */
-[data-testid="stSidebar"] .audio-recorder {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background-color: #f0f2f5 !important;
-    border-radius: 20px !important;
-    padding: 8px 12px !important;
-    margin-top: 5px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-}
-
-/* Style when recording */
+/* Styling for when recording is active */
 [data-testid="stSidebar"] .audio-recorder.recording {
-    background-color: #ffefe5 !important; /* Light red background when recording */
+    background-color: #ffefe5 !important;
+    border-color: #ff4b4b !important;
 }
 
-/* Visually emphasize the mic icon */
-[data-testid="stSidebar"] .audio-recorder button i.fa {
+[data-testid="stSidebar"] .audio-recorder.recording button {
+    background-color: #ff4b4b !important;
+}
+
+[data-testid="stSidebar"] .audio-recorder.recording span {
+    color: #ff4b4b !important;
+    font-weight: 700 !important;
+}
+
+/* Icon styling */
+[data-testid="stSidebar"] .audio-recorder button i {
     color: white !important;
     font-size: 18px !important;
 }
 </style>
+""", unsafe_allow_html=True)
+
+# Add a more visible header for the voice message section
+st.sidebar.markdown("""
+<div style="text-align: center; margin-bottom: 8px; margin-top: 15px;">
+    <h3 style="font-size: 18px; color: #1e88e5; margin: 0; padding: 0;">🎙️ Voice Message</h3>
+</div>
 """, unsafe_allow_html=True)
 
 # Create a container specifically for the recorder to help with containment
@@ -1133,8 +1124,8 @@ recorder_container = st.sidebar.container()
 with recorder_container:
     audio_bytes_sidebar = audio_recorder(
         text="Tap to speak",
-        recording_color="#ff4b4b",
-        neutral_color="#00a884",  # WhatsApp green
+        recording_color="#ff4b4b",  # Red when recording
+        neutral_color="#1e88e5",    # Blue when not recording
         icon_name="microphone",
         icon_size="lg",
         pause_threshold=2.0,
