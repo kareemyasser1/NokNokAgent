@@ -936,7 +936,7 @@ def handle_order_refund(handler, context):
             
             # Format the amount for message
             try:
-                amount_display = f"${float_amount}"
+                amount_display = f"${float_amount:.2f}"
             except:
                 amount_display = str(order_amount)
             
@@ -946,7 +946,7 @@ def handle_order_refund(handler, context):
                 "order_id": order_id,
                 "client_id": client_id,
                 "amount": amount_display,
-                "new_wallet_balance": f"${new_wallet_amount}",
+                "new_wallet_balance": f"${new_wallet_amount:.2f}",
                 "message": f"Your order totaling {amount_display} has been refunded to your noknok wallet. We hope to serve you better in the future. Thank you for your kind understanding! 💙🙏🏻"
             }
         else:

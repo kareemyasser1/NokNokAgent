@@ -1359,7 +1359,7 @@ if st.session_state.noknok_sheets:
                             </div>
                             <div class="client-field">
                                 <span class="field-label">Balance:</span>
-                                <span class="balance-value">${client_balance}</span>
+                                <span class="balance-value">${float(client_balance):.2f}</span>
                             </div>
                         </div>
                         """
@@ -1472,7 +1472,7 @@ if st.session_state.noknok_sheets:
                                 # Format the amount for display
                                 try:
                                     if order_amount is not None:
-                                        amount_display = f"${float(order_amount)}"
+                                        amount_display = f"${float(order_amount):.2f}"
                                     else:
                                         amount_display = "(Amount not available)"
                                 except (ValueError, TypeError):
@@ -1887,7 +1887,7 @@ if "refund_order_pending" in st.session_state and st.session_state.refund_order_
                                     st.session_state.messages.append({"role": "assistant", "content": success_message})
                                     
                                     # Add extra message about new balance
-                                    balance_message = f"Your new Noknok wallet balance is {result['result'].get('new_wallet_balance', '0')}."
+                                    balance_message = f"Your new Noknok wallet balance is ${float(result['result'].get('new_wallet_balance', '0')):.2f}."
                                     with st.chat_message("assistant"):
                                         st.write(balance_message)
                                     st.session_state.messages.append({"role": "assistant", "content": balance_message})
@@ -2049,7 +2049,7 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                                         # Try to convert to float to check if it's numeric
                                         float_amount = float(order_amount)
                                         # Format with dollar sign
-                                        amount_display = f"${float_amount}"
+                                        amount_display = f"${float_amount:.2f}"
                                     except (ValueError, TypeError):
                                         # If not numeric, use the value as is
                                         amount_display = order_amount
