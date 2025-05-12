@@ -1055,61 +1055,31 @@ st.sidebar.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-import streamlit as st
-
-# Sidebar container
+# Simple container for the recorder
 recorder_container = st.sidebar.container()
 
+# Use the recorder with built-in features, but side by side
 with recorder_container:
-    # Style the bar
-    st.markdown("""
-        <style>
-        .record-bar {
-            border: 2px solid #1e88e5;
-            border-radius: 25px;
-            padding: 10px;
-            background-color: #f0f8ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .record-text {
-            color: #1e88e5;
-            font-weight: bold;
-            font-size: 20px;
-        }
-        .record-button {
-            background-color: white;
-            border: 2px solid #1e88e5;
-            color: #1e88e5;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        .record-button:hover {
-            background-color: #1e88e5;
-            color: white;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
-    # Create columns to simulate the bar layout
-    col1, col2 = st.columns([1, 3])
-
-    with col1:
-        # Use a button with emoji mic
-        record = st.button("🎤", key="mic_button")
+    col1, col2 = st.columns([1, 2])  # Split space inside the sidebar container
 
     with col2:
-        st.markdown('<div class="record-text">SPEAK NOW</div>', unsafe_allow_html=True)
+        # Audio recorder button without text
+        audio_bytes_sidebar = audio_recorder(
+            text="",  # Empty so no built-in text appears
+            recording_color="#f44336",
+            neutral_color="#1e88e5",
+            icon_name="microphone",
+            icon_size="2x",
+            pause_threshold=2.0,
+            sample_rate=44100
+        )
 
-    # Optional: Show if recording is started
-    if record:
-        st.success("Recording started!")
-
+    with col1:
+        # Styled "SPEAK NOW" text next to the mic button
+        st.markdown(
+            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">SPEAK NOW</span>',
+            unsafe_allow_html=True
+        )
 
 
 
