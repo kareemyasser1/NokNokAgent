@@ -201,70 +201,20 @@ st.markdown(f"""
 .logo-title-container {{
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Changed from center to flex-start for left alignment */
     gap: 1.5rem;
-    padding: 1rem;  /* Equal padding all around */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    height: 160px; /* Doubled height from 80px to 160px */
-}}
-
-/* Sidebar-expanded version - this will be added by JavaScript */
-.sidebar-expanded .logo-title-container {{
-    left: 21rem;
-    width: calc(100% - 21rem);
-    padding-left: 2rem; /* Add more padding on the left when sidebar is expanded */
-    justify-content: flex-start; /* Ensure left alignment is maintained when sidebar is open */
-}}
-
-/* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
-.main-content-wrapper {{
-    margin-top: 170px; /* Increased to account for taller header */
-    padding-top: 20px;
+    margin-top: 2rem;
 }}
 
 .logo-title-container img {{
-    max-height: 50px !important; /* Reduced from 100px to 50px (half size) */
-    width: auto !important;
+    max-height: none !important;
     object-fit: contain;
-    transition: all 0.3s ease;
 }}
 
 .title-text {{
     margin: 0;
     padding: 0;
-    font-size: 3.5rem; /* Increased from 2.5rem for larger header */
+    font-size: 2.5rem;
     font-weight: bold;
-    white-space: nowrap;
-    transition: all 0.3s ease;
-}}
-
-/* Adjust logo and text size on smaller screens */
-@media (max-width: 992px) {{
-    .logo-title-container img {{
-        max-height: 30px !important; /* Reduced from 60px to 30px (half size) */
-    }}
-    
-    .title-text {{
-        font-size: 2.5rem;
-    }}
-}}
-
-/* For even smaller screens */
-@media (max-width: 576px) {{
-    .logo-title-container img {{
-        max-height: 20px !important; /* Reduced from 40px to 20px (half size) */
-    }}
-    
-    .title-text {{
-        font-size: 1.8rem;
-    }}
 }}
 
 body, .stApp {{
@@ -369,158 +319,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-# Add CSS for the header logo
-st.markdown("""
-<style>
-.logo-title-container img.header-logo {
-    max-height: 150px !important; /* Tripled from 50px to 150px */
-    width: auto !important;
-    object-fit: contain;
-    transition: all 0.3s ease;
-}
-
-/* Media queries for responsive logo sizing */
-@media (max-width: 992px) {
-    .logo-title-container img.header-logo {
-        max-height: 90px !important; /* Tripled from 30px to 90px */
-    }
-}
-
-@media (max-width: 576px) {
-    .logo-title-container img.header-logo {
-        max-height: 60px !important; /* Tripled from 20px to 60px */
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ➡️ NEW: Animate header/container when sidebar toggles
-st.markdown("""
-<style>
-/* Smooth transition for the entire header container */
-.logo-title-container {
-    transition: transform 0.3s ease !important;
-    transform: translateX(30px); /* shift 30px to the right by default */
-}
-
-/* When JavaScript adds the `sidebar-expanded` class to <body>,
-   move the header 21 rem (≈ sidebar width) to the right plus 30 px offset. */
-.sidebar-expanded .logo-title-container {
-    /* Reset `left` / `width` that were previously set so we don't double-shift */
-    left: 0 !important;
-    width: 100% !important;
-    transform: translateX(calc(21rem + 130px));
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Add JavaScript for sidebar toggling
-st.markdown("""
-<script>
-// Function to handle layout updates
-document.addEventListener('DOMContentLoaded', function() {
-    // Create a wrapper div for main content with padding for the fixed header
-    const mainContent = document.querySelector('.main');
-    if (mainContent && !document.querySelector('.main-content-wrapper')) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'main-content-wrapper';
-        mainContent.parentNode.insertBefore(wrapper, mainContent);
-        wrapper.appendChild(mainContent);
-    }
-    
-    // Function to check if sidebar is expanded
-    function updateSidebarState() {
-        // Get the sidebar element
-        const sidebar = document.querySelector('[data-testid="stSidebar"]');
-        if (sidebar) {
-            // Check if sidebar is expanded by checking its aria-expanded attribute
-            const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
-            console.log('Sidebar expanded:', isExpanded);
-            
-            // Add or remove sidebar-expanded class to body
-            if (isExpanded) {
-                document.body.classList.add('sidebar-expanded');
-            } else {
-                document.body.classList.remove('sidebar-expanded');
-            }
-            
-            // NEW: also shift header programmatically for reliability
-            const header = document.querySelector('.logo-title-container');
-            if (header) {
-                if (isExpanded) {
-                    header.style.transform = 'translateX(21rem)';
-                } else {
-                    header.style.transform = 'translateX(0)';
-                }
-            }
-        }
-    }
-    
-    // Run initially
-    updateSidebarState();
-    
-    // Set up a mutation observer to detect changes in the sidebar
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.attributeName === 'aria-expanded') {
-                updateSidebarState();
-            }
-        });
-    });
-    
-    // Start observing the sidebar for attribute changes
-    const sidebar = document.querySelector('[data-testid="stSidebar"]');
-    if (sidebar) {
-        observer.observe(sidebar, { attributes: true });
-    }
-    
-    // Also run when elements are added/removed from the DOM
-    const bodyObserver = new MutationObserver(function(mutations) {
-        // If sidebar wasn't found initially, try again
-        if (!sidebar) {
-            const newSidebar = document.querySelector('[data-testid="stSidebar"]');
-            if (newSidebar) {
-                observer.observe(newSidebar, { attributes: true });
-                updateSidebarState();
-            }
-        }
-    });
-    
-    // Start observing the body
-    bodyObserver.observe(document.body, { childList: true, subtree: true });
-});
-</script>
-""", unsafe_allow_html=True)
-
-# NEW: Ensure sidebar-toggle JavaScript actually runs (markdown strips <script>).
-components.html("""
-<script>
-// Function to handle layout updates for sidebar (duplicate to guarantee execution)
-(function(){
-    // Create a wrapper div for main content with padding for the fixed header
-    const main = document.querySelector('.main');
-    if (main && !document.querySelector('.main-content-wrapper')){
-        const wrap=document.createElement('div');
-        wrap.className='main-content-wrapper';
-        main.parentNode.insertBefore(wrap,main);
-        wrap.appendChild(main);
-    }
-    function update(){
-        const sidebar=document.querySelector('[data-testid="stSidebar"]');
-        if(!sidebar)return;
-        const expanded = sidebar.getAttribute('aria-expanded') === 'true';
-        document.body.classList.toggle('sidebar-expanded', expanded);
-        const header=document.querySelector('.logo-title-container');
-        if(header){ header.style.transform = expanded ? 'translateX(21rem)' : 'translateX(0)'; }
-    }
-    update();
-    const obs=new MutationObserver(update);
-    const sb=document.querySelector('[data-testid="stSidebar"]');
-    if(sb) obs.observe(sb,{attributes:true});
-})();
-</script>
-""", height=0, width=0)
 
 # Add a helper function to check for condition trigger keywords
 def contains_condition_trigger(text):
@@ -1084,7 +882,6 @@ st.markdown('''
 .logo-title-container {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Add left alignment */
     gap: 1.5rem;
     margin-top: 2rem;
 }
@@ -1116,14 +913,9 @@ st.markdown('''
 # Custom layout for logo and title
 st.markdown(f'''
 <div class="logo-title-container">
-    <img src="data:image/png;base64,{logo_base64}" class="header-logo">
+    <img src="data:image/png;base64,{logo_base64}" width="200">
     <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
-''', unsafe_allow_html=True)
-
-# Wrap the main content in a div to add padding below the fixed header
-st.markdown('''
-<div class="main-content-wrapper">
 ''', unsafe_allow_html=True)
 
 # Increment version if prior run requested reset
@@ -2880,74 +2672,3 @@ if st.session_state.get("english_prompt_pending"):
     # clear the flag
     st.session_state.english_prompt_pending = False
     st.session_state.pop("english_prompt_prompt", None)
-
-# Close the main-content-wrapper div at the end of the app
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Add a CSS rule for the header-logo
-st.markdown("""
-<style>
-.logo-title-container img.header-logo {
-    max-height: 150px !important; /* Tripled from 50px to 150px */
-    width: auto !important;
-    object-fit: contain;
-    transition: all 0.3s ease;
-}
-
-/* Media queries for responsive logo sizing */
-@media (max-width: 992px) {
-    .logo-title-container img.header-logo {
-        max-height: 90px !important; /* Tripled from 30px to 90px */
-    }
-}
-
-@media (max-width: 576px) {
-    .logo-title-container img.header-logo {
-        max-height: 60px !important; /* Tripled from 20px to 60px */
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ➡️ NEW: Animate header/container when sidebar toggles
-st.markdown("""
-<style>
-/* Smooth transition for the entire header container */
-.logo-title-container {
-    transition: transform 0.3s ease !important;
-    transform: translateX(30px); /* shift 30px to the right by default */
-}
-
-/* When JavaScript adds the `sidebar-expanded` class to <body>,
-   move the header 21 rem (≈ sidebar width) to the right plus 30 px offset. */
-.sidebar-expanded .logo-title-container {
-    /* Reset `left` / `width` that were previously set so we don't double-shift */
-    left: 0 !important;
-    width: 100% !important;
-    transform: translateX(calc(21rem + 130px));
-}
-</style>
-""", unsafe_allow_html=True)
-
-components.html("""
-<script>
-(function(){
-  const doc = window.parent.document;
-  function update(){
-    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
-    const header  = doc.querySelector('.logo-title-container');
-    if(!sidebar || !header) return;
-    const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
-    header.style.transition = 'transform 0.3s ease';
-    header.style.transform  = isExpanded ? 'translateX(calc(21rem + 130px))' : 'translateX(30px)';
-  }
-  // initial run
-  update();
-  // observe attribute changes on sidebar
-  const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
-  if(sidebar){
-    new MutationObserver(update).observe(sidebar,{attributes:true});
-  }
-})();
-</script>
-""", height=0, width=0)
