@@ -1076,7 +1076,7 @@ with recorder_container:
     with col1:
         # Styled "SPEAK NOW" text next to the mic button
         st.markdown(
-            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">SPEAK NOW</span>',
+            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">Click & SPEAK NOW</span>',
             unsafe_allow_html=True
         )
 
