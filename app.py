@@ -1081,7 +1081,6 @@ with recorder_container:
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
-    st.sidebar.audio(audio_bytes_sidebar, format="audio/wav")
     # Persist the audio so it can be sent on the next run
     st.session_state["attached_audio_bytes"] = audio_bytes_sidebar
     st.session_state["attached_audio_mime"] = "audio/wav"
@@ -1092,7 +1091,7 @@ if audio_bytes_sidebar:
         # Store the hash of this recording to avoid repeated sending
         st.session_state["last_audio_hash"] = current_audio_hash
         # Automatically send the audio without requiring a button click
-        st.sidebar.info("Sending voice message...")
+        st.sidebar.success("Voice message recorded!")
         send_audio_clicked()
 
 # Add refresh button as a circular arrow at the top
