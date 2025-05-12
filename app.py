@@ -1042,107 +1042,75 @@ st.sidebar.markdown("### 🎙️ Voice Message")
 # Add extra CSS to ensure audio recorder stays in sidebar
 st.sidebar.markdown("""
 <style>
-/* Ensure audio recorder container stays within sidebar bounds */
-[data-testid="stSidebar"] .audio-recorder {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto;
-    overflow: hidden;
+/* More aggressive styling for the audio recorder */
+div[data-testid="stSidebar"] div.audio-recorder {
+    width: 90% !important;
+    max-width: 90% !important;
+    margin: 15px auto !important;
+    border: 3px solid #1e88e5 !important;
+    border-radius: 24px !important;
+    padding: 12px 15px !important;
+    background-color: #e3f2fd !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
 }
 
-/* Make sure record button styling is contained */
-[data-testid="stSidebar"] .audio-recorder button {
-    margin: 0 auto !important;
-    display: block !important;
-}
-
-/* Audio playback should stay in sidebar */
-[data-testid="stSidebar"] audio {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-/* WhatsApp-like recording bar styling */
-.whatsapp-recorder {
-    background-color: #f0f2f5;
-    border-radius: 20px;
-    padding: 8px 12px;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.recorder-text {
-    flex-grow: 1;
-    color: #333;
-    margin-right: 10px;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-/* Style the audio recorder button to look like WhatsApp */
-[data-testid="stSidebar"] .audio-recorder button {
-    background-color: #00a884 !important; /* WhatsApp green */
+/* More aggressive styling for the button */
+div[data-testid="stSidebar"] div.audio-recorder button {
+    background-color: #1e88e5 !important;
     border-radius: 50% !important;
-    width: 48px !important;
-    height: 48px !important;
+    width: 60px !important;
+    height: 60px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
     margin: 0 !important;
-    flex-shrink: 0 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
     transition: all 0.2s ease !important;
-}
-
-[data-testid="stSidebar"] .audio-recorder button:hover {
-    transform: scale(1.05) !important;
-}
-
-/* Fix audio recorder container */
-[data-testid="stSidebar"] .audio-recorder {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background-color: #f0f2f5 !important;
-    border-radius: 20px !important;
-    padding: 10px 15px !important;
-    margin-top: 5px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-    border: 2px solid #e1e4e8 !important;
-    max-width: 85% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    border: none !important;
 }
 
 /* Style when recording */
-[data-testid="stSidebar"] .audio-recorder.recording {
-    background-color: #ffefe5 !important; /* Light red background when recording */
-    border: 2px solid #ff4b4b !important; /* Red border when recording */
+div[data-testid="stSidebar"] div.audio-recorder.recording {
+    background-color: #ffebee !important;
+    border: 3px solid #f44336 !important;
 }
 
-/* Visually emphasize the mic icon */
-[data-testid="stSidebar"] .audio-recorder button i.fa {
+/* Direct style for the recording button when recording */
+div[data-testid="stSidebar"] div.audio-recorder.recording button {
+    background-color: #f44336 !important;
+}
+
+/* More aggressive styling for the icon */
+div[data-testid="stSidebar"] div.audio-recorder button i.fa,
+div[data-testid="stSidebar"] div.audio-recorder button i.fas {
     color: white !important;
-    font-size: 22px !important;
+    font-size: 28px !important;
+    font-weight: bold !important;
 }
 
-/* Style the "Tap to speak" text */
-[data-testid="stSidebar"] .audio-recorder .audio-recorder-status {
+/* More aggressive styling for the text */
+div[data-testid="stSidebar"] div.audio-recorder span,
+div[data-testid="stSidebar"] div.audio-recorder .audio-recorder-status {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 15px !important;
-    letter-spacing: 0.5px !important;
+    font-weight: 800 !important;
+    font-size: 18px !important;
     color: #1e88e5 !important;
     text-align: center !important;
+    display: block !important;
+    flex-grow: 1 !important;
+    margin-right: 15px !important;
+    letter-spacing: 0.5px !important;
 }
 
-/* When recording, style the "Recording..." text */
-[data-testid="stSidebar"] .audio-recorder.recording .audio-recorder-status {
-    color: #ff4b4b !important;
-    font-weight: 700 !important;
+/* Text color when recording */
+div[data-testid="stSidebar"] div.audio-recorder.recording span,
+div[data-testid="stSidebar"] div.audio-recorder.recording .audio-recorder-status {
+    color: #f44336 !important;
+    font-weight: 800 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1153,11 +1121,11 @@ recorder_container = st.sidebar.container()
 # Use the audio_recorder correctly within the container context
 with recorder_container:
     audio_bytes_sidebar = audio_recorder(
-        text="Tap to speak",
-        recording_color="#ff4b4b",  # Red when recording
+        text="SPEAK NOW",
+        recording_color="#f44336",  # Red when recording
         neutral_color="#1e88e5",    # Blue when not recording
         icon_name="microphone",
-        icon_size="lg",
+        icon_size="2x",
         pause_threshold=2.0,
         sample_rate=41_000,
     )
