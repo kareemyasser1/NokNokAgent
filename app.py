@@ -1081,10 +1081,6 @@ with recorder_container:
     #         unsafe_allow_html=True
     #     )
 
-
-
-
-
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
     # Persist the audio so it can be sent on the next run
@@ -1097,40 +1093,46 @@ if audio_bytes_sidebar:
         # Store the hash of this recording to avoid repeated sending
         st.session_state["last_audio_hash"] = current_audio_hash
         
-        # Add visual feedback with a spinner during processing
-        with st.sidebar.status("Processing voice message...", expanded=True) as status:
-            # Print debug info about client selection state
-            current_client_id = st.session_state.get("current_client_id")
-            saved_index = st.session_state.get("saved_client_selection_index", 0)
-            print(f"VOICE MSG DEBUG - Current client ID: {current_client_id}, Saved index: {saved_index}")
+        # Check if audio is long enough before processing
+        if len(audio_bytes_sidebar) > 1000:  # Minimum size threshold
+            # Add visual feedback with a spinner during processing
+            with st.sidebar.status("Processing voice message...", expanded=True) as status:
+                # Print debug info about client selection state
+                current_client_id = st.session_state.get("current_client_id")
+                saved_index = st.session_state.get("saved_client_selection_index", 0)
+                print(f"VOICE MSG DEBUG - Current client ID: {current_client_id}, Saved index: {saved_index}")
+                
+                # Pre-transcribe the audio here to avoid extra reruns
+                if api_key:
+                    try:
+                        audio_buffer = io.BytesIO(audio_bytes_sidebar)
+                        audio_buffer.name = "voice.wav"
+                        trans_client = OpenAI(api_key=api_key)
+                        transcription_resp = trans_client.audio.transcriptions.create(
+                            model="whisper-1",
+                            file=audio_buffer,
+                            response_format="text"
+                        )
+                        # openai python v1 returns .text
+                        audio_text = transcription_resp.text if hasattr(transcription_resp, "text") else str(transcription_resp)
+                        st.session_state["audio_transcription"] = audio_text
+                        print(f"Audio transcription: {audio_text}")
+                        status.update(label="Voice message ready!", state="complete", expanded=False)
+                        
+                        # Automatically send the audio without requiring a button click
+                        st.session_state["send_audio_only"] = True
+                        # Short delay to allow the status to update before rerun
+                        time.sleep(0.5)
+                    except Exception as e:
+                        print(f"Audio transcription failed: {e}")
+                        status.update(label=f"Transcription error: {str(e)}", state="error")
             
-            # Pre-transcribe the audio here to avoid extra reruns
-            if api_key:
-                try:
-                    audio_buffer = io.BytesIO(audio_bytes_sidebar)
-                    audio_buffer.name = "voice.wav"
-                    trans_client = OpenAI(api_key=api_key)
-                    transcription_resp = trans_client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=audio_buffer,
-                        response_format="text"
-                    )
-                    # openai python v1 returns .text
-                    audio_text = transcription_resp.text if hasattr(transcription_resp, "text") else str(transcription_resp)
-                    st.session_state["audio_transcription"] = audio_text
-                    print(f"Audio transcription: {audio_text}")
-                    status.update(label="Voice message ready!", state="complete", expanded=False)
-                except Exception as e:
-                    print(f"Audio transcription failed: {e}")
-                    status.update(label=f"Transcription error: {str(e)}", state="error")
-            
-            # Automatically send the audio without requiring a button click
-            st.session_state["send_audio_only"] = True
-            # Short delay to allow the status to update before rerun
-            time.sleep(0.5)
-        
-        # Trigger rerun to send the message
-        st.rerun()
+                # Trigger rerun to send the message
+                st.rerun()
+        else:
+            # If recording is too short, show a message and don't trigger send
+            st.sidebar.warning("Voice message too short. Please record a longer message.")
+            # Don't set send_audio_only flag for short recordings
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
