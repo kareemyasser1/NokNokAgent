@@ -218,7 +218,7 @@ st.markdown(f"""
 /* Sidebar-expanded version - this will be added by JavaScript */
 .sidebar-expanded .logo-title-container {{
     left: 21rem;
-    width: calc(100% - 21rem)/2;
+    width: calc(100% - 21rem);
     justify-content: center; /* Ensure centering is maintained when sidebar is open */
 }}
 
@@ -229,7 +229,7 @@ st.markdown(f"""
 }}
 
 .logo-title-container img {{
-    max-height: 100px !important; /* Increased from 60px for larger header */
+    max-height: 50px !important; /* Reduced from 100px to 50px (half size) */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -247,7 +247,7 @@ st.markdown(f"""
 /* Adjust logo and text size on smaller screens */
 @media (max-width: 992px) {{
     .logo-title-container img {{
-        max-height: 60px !important;
+        max-height: 30px !important; /* Reduced from 60px to 30px (half size) */
     }}
     
     .title-text {{
@@ -258,7 +258,7 @@ st.markdown(f"""
 /* For even smaller screens */
 @media (max-width: 576px) {{
     .logo-title-container img {{
-        max-height: 40px !important;
+        max-height: 20px !important; /* Reduced from 40px to 20px (half size) */
     }}
     
     .title-text {{
