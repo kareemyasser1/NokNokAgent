@@ -174,7 +174,7 @@ def handle_items_request(handler, context):
     1. Ask GPT to extract the quoted item name from the assistant reply.
     2. Write it to F2 (col 6,row 2) of the 'Items' sheet.
     3. Wait 3 s, then read G2 (col 7,row 2) as JSON results.
-    4. Build the one-shot prompt (injecting last user message + that JSON).
+    4. Build the one-shot prompt (injecting last 4 messages + that JSON).
     5. Ask GPT for the final item answer.
     6. Return the answer as 'message'.
     """
@@ -185,7 +185,6 @@ def handle_items_request(handler, context):
         #     return {"type":"error","message":"No client selected for item lookup"}
 
         reply = context["reply"]
-        last_user = context.get("last_user_message", "")
         
         # 2) Extract item-name via regex instead of GPT
         # Pattern to match text between different types of quotes:
@@ -212,6 +211,15 @@ def handle_items_request(handler, context):
         json_results = items_sheet.cell(2, 7).value or ""  # G2
 
         # 4) Build the one-shot prompt
+        # Get the last 4 messages from context instead of just the last user message
+        full_history = context.get("history", "")
+        
+        # Split history by message delimiter to get last 4 messages
+        # This approach depends on how messages are formatted in the history
+        # Assuming each message is on a new line or has some delimiter
+        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
+        last_4_messages = "\n\n".join(messages[-4:] if len(messages) >= 4 else messages)
+        
         template = """
 <Purpose> You will act as an assistant that helps users find information about items in our NokNok database based on search results. </Purpose>
 <Search Results Format> 
@@ -244,13 +252,14 @@ Now, please answer the user's query based on these search results. You are talki
 """
         one_shot = (
             template
-            .replace("@history@", last_user)
+            .replace("@history@", last_4_messages)
             .replace("@json@", json_results)
         )
 
         # 5) Final GPT call for item answer
         try:
-            final_resp = extractor.chat.completions.create(
+            client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
+            final_resp = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role":"user","content":one_shot}],
                 stream=False
