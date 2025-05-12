@@ -201,7 +201,7 @@ st.markdown(f"""
 .logo-title-container {{
     display: flex;
     align-items: center;
-    justify-content: center; /* Changed from flex-start to center */
+    justify-content: flex-start; /* Changed from center to flex-start for left alignment */
     gap: 1.5rem;
     padding: 1rem;  /* Equal padding all around */
     position: fixed;
@@ -219,7 +219,8 @@ st.markdown(f"""
 .sidebar-expanded .logo-title-container {{
     left: 21rem;
     width: calc(100% - 21rem);
-    justify-content: center; /* Ensure centering is maintained when sidebar is open */
+    padding-left: 2rem; /* Add more padding on the left when sidebar is expanded */
+    justify-content: flex-start; /* Ensure left alignment is maintained when sidebar is open */
 }}
 
 /* Add padding to the top of the Streamlit main content to prevent it from being hidden under the fixed header */
@@ -1024,6 +1025,7 @@ st.markdown('''
 .logo-title-container {
     display: flex;
     align-items: center;
+    justify-content: flex-start; /* Add left alignment */
     gap: 1.5rem;
     margin-top: 2rem;
 }
