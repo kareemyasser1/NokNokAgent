@@ -686,7 +686,7 @@ def process_prompt_variables(prompt_template, client_id=None):
                 if client:
                     print(f"Found client data: {client}")
                     
-                    # Try different field name variations for first name
+                    # Comprehensive name field detection - start with exact matches with most specific first
                     name_field_variations = [
                         'Client First Name', 
                         'ClientFirstName',
@@ -719,14 +719,14 @@ def process_prompt_variables(prompt_template, client_id=None):
                                     print(f"Found client name using case-insensitive match for '{field}': {client_name}")
                                     client_name_found = True
                                     break
-                                
-                    # If still no name found, look for any field that might contain "first" and "name"
+                    
+                    # If still no name found, try to use any field containing "name"
                     if not client_name_found:
                         for key in client.keys():
                             key_lower = key.lower()
-                            if ('first' in key_lower and 'name' in key_lower) and client[key]:
+                            if 'name' in key_lower and not key_lower.endswith('last') and client[key]:
                                 client_name = client[key]
-                                print(f"Found client name using field name pattern match '{key}': {client_name}")
+                                print(f"Found client name using partial field match '{key}': {client_name}")
                                 client_name_found = True
                                 break
                                 
@@ -2475,11 +2475,38 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         # Show which client is being used
         if current_client_id:
             st.info(f"Showing prompt for Client ID: {current_client_id}")
+            
+            # Get client name directly from the database for more accurate display
+            if "condition_handler" in st.session_state and st.session_state.condition_handler.client_data:
+                client = next((c for c in st.session_state.condition_handler.client_data if str(c.get('ClientID', '')) == str(current_client_id)), None)
+                
+                if client:
+                    # Try to extract client name from the client data
+                    name_field_variations = ['Client First Name', 'ClientFirstName', 'First Name', 'FirstName', 'Name']
+                    client_name = "Not found"
+                    
+                    # Print all available client fields for debugging
+                    print(f"Available client fields: {list(client.keys())}")
+                    
+                    # Try each field variation
+                    for field in name_field_variations:
+                        if field in client and client[field]:
+                            client_name = client[field]
+                            break
+                    
+                    # If still not found, try case insensitive match
+                    if client_name == "Not found":
+                        for key in client.keys():
+                            if any(variation.lower() in key.lower() for variation in name_field_variations):
+                                client_name = client[key]
+                                break
+                else:
+                    client_name = "Client not found in database"
+            else:
+                client_name = "Client data not available"
         else:
             st.info("Showing prompt for guest (no client selected)")
-        
-        # Extract the replaced values from processed prompt for display
-        client_name = processed_prompt.split("@clientName@")[0] if "@clientName@" in processed_prompt else "Not found"
+            client_name = "valued customer (default)"
         
         # Extract values by looking for key phrases in the processed text
         eta_value = None
