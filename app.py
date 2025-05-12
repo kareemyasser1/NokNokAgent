@@ -1046,8 +1046,15 @@ st.sidebar.markdown("""
 .audio-recorder button {
     background-color: #1e88e5 !important;
 }
+
+/* Style the text to be bold and blue */
+.audio-recorder-status {
+    font-weight: 900 !important;
+    color: #1e88e5 !important;
+    font-size: 16px !important;
+}
 </style>
-""")
+""", unsafe_allow_html=True)
 
 # Simple container for the recorder
 recorder_container = st.sidebar.container()
