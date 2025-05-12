@@ -396,7 +396,7 @@ def handle_lebanese_prompt_switch(handler, context):
             
             api_messages = [
                 {"role": "system", "content": prompt_with_instruction},
-               # {"role": "user", "content": "Please respond to the conversation above."}
+                {"role": "user", "content": messages[-3:] if len(messages) >= 3 else messages}
             ]
             
             # Call the API
