@@ -1075,7 +1075,7 @@ with recorder_container:
 
     with col1:
         st.markdown(
-            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;"> Click to record >> </span>',
+            '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;"> Click to record -> </span>',
             unsafe_allow_html=True
         )
 
