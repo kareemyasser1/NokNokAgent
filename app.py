@@ -373,7 +373,7 @@ st.markdown("""
 st.markdown("""
 <style>
 .logo-title-container img.header-logo {
-    max-height: 50px !important; /* Half size logo */
+    max-height: 150px !important; /* Tripled from 50px to 150px */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -382,13 +382,13 @@ st.markdown("""
 /* Media queries for responsive logo sizing */
 @media (max-width: 992px) {
     .logo-title-container img.header-logo {
-        max-height: 30px !important;
+        max-height: 90px !important; /* Tripled from 30px to 90px */
     }
 }
 
 @media (max-width: 576px) {
     .logo-title-container img.header-logo {
-        max-height: 20px !important;
+        max-height: 60px !important; /* Tripled from 20px to 60px */
     }
 }
 </style>
@@ -2827,7 +2827,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("""
 <style>
 .logo-title-container img.header-logo {
-    max-height: 50px !important; /* Half size logo */
+    max-height: 150px !important; /* Tripled from 50px to 150px */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -2836,13 +2836,13 @@ st.markdown("""
 /* Media queries for responsive logo sizing */
 @media (max-width: 992px) {
     .logo-title-container img.header-logo {
-        max-height: 30px !important;
+        max-height: 90px !important; /* Tripled from 30px to 90px */
     }
 }
 
 @media (max-width: 576px) {
     .logo-title-container img.header-logo {
-        max-height: 20px !important;
+        max-height: 60px !important; /* Tripled from 20px to 60px */
     }
 }
 </style>
