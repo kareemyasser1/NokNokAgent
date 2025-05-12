@@ -229,7 +229,7 @@ st.markdown(f"""
 }}
 
 .logo-title-container img {{
-    max-height: 5px !important; /* Reduced from 100px to 50px (half size) */
+    max-height: 50px !important; /* Reduced from 100px to 50px (half size) */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
@@ -337,6 +337,20 @@ body, .stApp {{
     background-color: #f1f6ff !important; /* Example color, replace with the actual color code of the send text bar */
     color: #000000 !important;
 }}
+
+.logo-title-container img.header-logo {
+    max-height: 50px !important; /* Half size logo */
+    width: auto !important;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+.logo-title-container img {
+    max-height: 50px !important; /* Reduced from 100px to 50px (half size) */
+    width: auto !important;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1027,7 +1041,7 @@ st.markdown('''
 # Custom layout for logo and title
 st.markdown(f'''
 <div class="logo-title-container">
-    <img src="data:image/png;base64,{logo_base64}" width="200">
+    <img src="data:image/png;base64,{logo_base64}" class="header-logo">
     <h1 class="title-text">AI Assistant 🛒</h1>
 </div>
 ''', unsafe_allow_html=True)
