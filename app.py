@@ -1070,7 +1070,7 @@ div[data-testid="stSidebar"] div.audio-recorder button {
     margin: 0 !important;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
     transition: all 0.2s ease !important;
-    border: none !important;
+    border: 3px solid #0d47a1 !important; /* Dark blue border around icon */
 }
 
 /* Style when recording */
@@ -1082,6 +1082,7 @@ div[data-testid="stSidebar"] div.audio-recorder.recording {
 /* Direct style for the recording button when recording */
 div[data-testid="stSidebar"] div.audio-recorder.recording button {
     background-color: #f44336 !important;
+    border: 3px solid #b71c1c !important; /* Dark red border when recording */
 }
 
 /* More aggressive styling for the icon */
@@ -1096,21 +1097,27 @@ div[data-testid="stSidebar"] div.audio-recorder button i.fas {
 div[data-testid="stSidebar"] div.audio-recorder span,
 div[data-testid="stSidebar"] div.audio-recorder .audio-recorder-status {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    font-weight: 800 !important;
+    font-weight: 900 !important; /* Extra bold */
     font-size: 18px !important;
-    color: #1e88e5 !important;
+    color: #0d47a1 !important; /* Darker blue for better contrast */
     text-align: center !important;
     display: block !important;
     flex-grow: 1 !important;
-    margin-right: 15px !important;
+    margin-left: 15px !important; /* Changed from right to left because of flex-direction */
     letter-spacing: 0.5px !important;
+    border: 2px solid #1e88e5 !important; /* Border around text */
+    border-radius: 12px !important;
+    padding: 6px 12px !important;
+    background-color: #ffffff !important;
+    text-align: right !important;
 }
 
 /* Text color when recording */
 div[data-testid="stSidebar"] div.audio-recorder.recording span,
 div[data-testid="stSidebar"] div.audio-recorder.recording .audio-recorder-status {
-    color: #f44336 !important;
-    font-weight: 800 !important;
+    color: #b71c1c !important; /* Darker red */
+    font-weight: 900 !important;
+    border: 2px solid #f44336 !important;
 }
 </style>
 """, unsafe_allow_html=True)
