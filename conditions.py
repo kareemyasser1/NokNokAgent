@@ -4,6 +4,7 @@ import time
 import streamlit as st
 from openai import OpenAI, OpenAIError
 import json
+import re
 
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
@@ -185,24 +186,22 @@ def handle_items_request(handler, context):
 
         reply = context["reply"]
         last_user = context.get("last_user_message", "")
-        extract_prompt = (
-            'From the assistant reply below, extract **only** the product name that is quoted '
-            'between "smart quotes" or "plain quotes".\n\n'
-            f"{context['reply']}"
-        )
-
-        # 2) Extract item-name via GPT
-       
-        try:
-            extractor = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
-            extract_resp = extractor.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role":"user","content":extract_prompt}],
-                stream=False
-            )
-            item_name = extract_resp.choices[0].message.content.strip().strip('"')
-        except OpenAIError as e:
-            return {"type":"error","message":f"OpenAI extraction error: {e}"}
+        
+        # 2) Extract item-name via regex instead of GPT
+        # Pattern to match text between different types of quotes:
+        # - Plain double quotes: "text"
+        # - Smart double quotes: "text"
+        # - Plain single quotes: 'text'
+        # - Smart single quotes: 'text'
+        quote_pattern = r'[""\']([^""\']+)[""\'"]'
+        
+        # Find all matches
+        matches = re.findall(quote_pattern, reply)
+        
+        if matches:
+            item_name = matches[0].strip()
+        else:
+            return {"type":"error","message":"Could not find any quoted item name in the assistant's reply"}
 
         # 3) Write item_name → F2, wait, then read JSON from G2
         items_sheet = handler.noknok_sheets.get("items")
