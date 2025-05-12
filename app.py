@@ -1037,6 +1037,10 @@ if uploaded_file is not None:
 # 🎙️  Audio recorder (sidebar only)
 # ──────────────────────────────────────────────────────────
 
+# First, add a session state flag to track recording state
+if "is_recording_audio" not in st.session_state:
+    st.session_state.is_recording_audio = False
+
 st.sidebar.markdown("### 🎙️ Voice Message (tap to speak)")
 
 # Apply very minimal styling to the recorder
@@ -1053,15 +1057,39 @@ st.sidebar.markdown("""
     color: #1e88e5 !important;
     font-size: 16px !important;
 }
+
+/* Add some styles to make recording more visible */
+.recording-active {
+    background-color: rgba(244, 67, 54, 0.1);
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
+
 recorder_container = st.sidebar.container()
 
 # Use the recorder with built-in features, but side by side
 with recorder_container:
+    # Show recording status if active
+    if st.session_state.is_recording_audio:
+        st.markdown('<div class="recording-active">🔴 Recording in progress...</div>', unsafe_allow_html=True)
+    
     col1, col2 = st.columns([1, 2])  # Split space inside the sidebar container
 
     with col1:
+        # Customize the recorder to prevent auto-send
+        def on_recorder_change():
+            # Set the recording flag when the recorder state changes
+            if not st.session_state.get("attached_audio_bytes"):
+                st.session_state.is_recording_audio = True
+                print("Recording started")
+            else:
+                st.session_state.is_recording_audio = False
+                print("Recording stopped, audio available")
+        
         # Audio recorder button without text
         audio_bytes_sidebar = audio_recorder(
             text="",  # Empty so no built-in text appears
@@ -1071,18 +1099,13 @@ with recorder_container:
             icon_size="2x",
             pause_threshold=2.0,
             sample_rate=44100,
-            key="voice_recorder"  # Add persistent key
+            key="voice_recorder",  # Add persistent key
+            on_change=on_recorder_change  # Add callback for recording state changes
         )
 
-    # with col2:
-    #     # Styled "SPEAK NOW" text next to the mic button
-    #     st.markdown(
-    #         '<span style="color:#1e88e5; font-weight:bold; font-size:20px; line-height:2.5;">SPEAK NOW</span>',
-    #         unsafe_allow_html=True
-    #     )
-
 # If a recording is available, preview it and provide a send button
-if audio_bytes_sidebar:
+if audio_bytes_sidebar and not st.session_state.is_recording_audio:
+    # Only process recording if it's not actively being recorded
     # Persist the audio so it can be sent on the next run
     st.session_state["attached_audio_bytes"] = audio_bytes_sidebar
     st.session_state["attached_audio_mime"] = "audio/wav"
@@ -1118,21 +1141,24 @@ if audio_bytes_sidebar:
                         st.session_state["audio_transcription"] = audio_text
                         print(f"Audio transcription: {audio_text}")
                         status.update(label="Voice message ready!", state="complete", expanded=False)
-                        
-                        # Automatically send the audio without requiring a button click
-                        st.session_state["send_audio_only"] = True
-                        # Short delay to allow the status to update before rerun
-                        time.sleep(0.5)
                     except Exception as e:
                         print(f"Audio transcription failed: {e}")
                         status.update(label=f"Transcription error: {str(e)}", state="error")
             
-                # Trigger rerun to send the message
-                st.rerun()
+            # Display the transcription and provide a send button
+            if "audio_transcription" in st.session_state:
+                st.sidebar.text_area("Transcription:", st.session_state["audio_transcription"], 
+                                     key="transcription_preview", disabled=True)
+                
+                # Add a manual send button
+                if st.sidebar.button("Send Voice Message"):
+                    # Only then set the flag to send
+                    st.session_state["send_audio_only"] = True
+                    # Trigger rerun to send the message
+                    st.rerun()
         else:
             # If recording is too short, show a message and don't trigger send
             st.sidebar.warning("Voice message too short. Please record a longer message.")
-            # Don't set send_audio_only flag for short recordings
 
 # Add refresh button as a circular arrow at the top
 sheet_url = "https://docs.google.com/spreadsheets/d/12rCspNRPXyuiJpF_4keonsa1UenwHVOdr8ixpZHnfwI"
