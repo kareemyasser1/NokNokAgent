@@ -229,7 +229,7 @@ st.markdown(f"""
 }}
 
 .logo-title-container img {{
-    max-height: 50px !important; /* Reduced from 100px to 50px (half size) */
+    max-height: 40px !important; /* Reduced from 100px to 50px (half size) */
     width: auto !important;
     object-fit: contain;
     transition: all 0.3s ease;
