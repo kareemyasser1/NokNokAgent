@@ -6,6 +6,29 @@ from openai import OpenAI, OpenAIError
 import json
 import re
 
+# Helper function to safely convert string amounts to float
+def safe_float_conversion(amount_str):
+    """
+    Safely convert a string amount to float by removing currency symbols.
+    Returns a float value or 0 if conversion fails.
+    """
+    if amount_str is None:
+        return 0
+    
+    if isinstance(amount_str, (int, float)):
+        return float(amount_str)
+    
+    # Remove currency symbols and whitespace
+    cleaned_str = str(amount_str).strip()
+    cleaned_str = re.sub(r'[$₹£€¥]', '', cleaned_str)
+    cleaned_str = cleaned_str.replace(',', '')
+    
+    try:
+        return float(cleaned_str)
+    except (ValueError, TypeError):
+        print(f"Warning: Could not convert '{amount_str}' to float")
+        return 0
+
 # CONDITION CHECK FUNCTIONS
 def check_support_url_in_reply(handler, context=None):
     """Check if the GPT reply contains noknok.com/support which requires human agent handoff"""
@@ -691,7 +714,10 @@ def handle_order_cancellation(handler, context):
     # Find the most recent order by date
     most_recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
     order_id = most_recent_order.get("OrderID")
+    
+    # Get the order amount with safe conversion
     order_amount = most_recent_order.get("TotalAmount", 0)
+    float_amount = safe_float_conversion(order_amount)
     
     # Update the order status to Cancelled in the sheet
     try:
@@ -710,13 +736,13 @@ def handle_order_cancellation(handler, context):
                     break
         
         # Prepare the confirmation message
-        confirmation_message = f"Your order totaling {order_amount}$ has been canceled. We hope to serve you better in the future. Thank you for your kind understanding! 💙🙏🏻"
+        confirmation_message = f"Your order totaling ${float_amount:.2f} has been canceled. We hope to serve you better in the future. Thank you for your kind understanding! 💙🙏🏻"
         
         return {
             "type": "order_cancelled",
             "order_id": order_id,
             "client_id": client_id,
-            "amount": order_amount,
+            "amount": f"${float_amount:.2f}",
             "message": confirmation_message
         }
     
@@ -801,12 +827,17 @@ def handle_order_refund(handler, context):
         }
     
     try:
-        # Convert order amount to float for calculation
-        float_amount = float(order_amount)
-    except (ValueError, TypeError):
+        # Convert order amount to float for calculation using the safe method
+        float_amount = safe_float_conversion(order_amount)
+        if float_amount == 0 and order_amount is not None:
+            return {
+                "type": "error",
+                "message": f"Invalid order amount format: {order_amount}"
+            }
+    except Exception as e:
         return {
             "type": "error",
-            "message": f"Invalid order amount format: {order_amount}"
+            "message": f"Error processing order amount: {str(e)}"
         }
     
     # Find the client to update their wallet
@@ -862,11 +893,8 @@ def handle_order_refund(handler, context):
             "message": "Could not find wallet field in client data"
         }
     
-    try:
-        # Convert wallet amount to float for calculation
-        float_wallet = float(wallet_amount) if wallet_amount else 0
-    except (ValueError, TypeError):
-        float_wallet = 0
+    # Convert wallet amount to float using safe conversion
+    float_wallet = safe_float_conversion(wallet_amount)
     
     # Calculate new wallet amount
     new_wallet_amount = float_wallet + float_amount
@@ -937,7 +965,8 @@ def handle_order_refund(handler, context):
             # Format the amount for message
             try:
                 amount_display = f"${float_amount:.2f}"
-            except:
+            except Exception as e:
+                print(f"Error formatting amount: {e}")
                 amount_display = str(order_amount)
             
             # Return success with refund details

@@ -19,7 +19,7 @@ import time
 import threading
 import re
 # Import our conditions module
-from conditions import register_all_conditions
+from conditions import register_all_conditions, safe_float_conversion
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 import base64
@@ -1359,7 +1359,7 @@ if st.session_state.noknok_sheets:
                             </div>
                             <div class="client-field">
                                 <span class="field-label">Balance:</span>
-                                <span class="balance-value">${float(client_balance):.2f}</span>
+                                <span class="balance-value">${safe_float_conversion(client_balance):.2f}</span>
                             </div>
                         </div>
                         """
@@ -1472,7 +1472,7 @@ if st.session_state.noknok_sheets:
                                 # Format the amount for display
                                 try:
                                     if order_amount is not None:
-                                        amount_display = f"${float(order_amount):.2f}"
+                                        amount_display = f"${safe_float_conversion(order_amount):.2f}"
                                     else:
                                         amount_display = "(Amount not available)"
                                 except (ValueError, TypeError):
@@ -1887,7 +1887,7 @@ if "refund_order_pending" in st.session_state and st.session_state.refund_order_
                                     st.session_state.messages.append({"role": "assistant", "content": success_message})
                                     
                                     # Add extra message about new balance
-                                    balance_message = f"Your new Noknok wallet balance is ${float(result['result'].get('new_wallet_balance', '0')):.2f}."
+                                    balance_message = f"Your new Noknok wallet balance is ${safe_float_conversion(result['result'].get('new_wallet_balance', '0')):.2f}."
                                     with st.chat_message("assistant"):
                                         st.write(balance_message)
                                     st.session_state.messages.append({"role": "assistant", "content": balance_message})
@@ -2047,7 +2047,7 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                                     # Check if the order amount is numeric to format it correctly
                                     try:
                                         # Try to convert to float to check if it's numeric
-                                        float_amount = float(order_amount)
+                                        float_amount = safe_float_conversion(order_amount)
                                         # Format with dollar sign
                                         amount_display = f"${float_amount:.2f}"
                                     except (ValueError, TypeError):
