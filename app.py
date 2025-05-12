@@ -410,7 +410,7 @@ st.markdown("""
     /* Reset `left` / `width` that were previously set so we don't double-shift */
     left: 0 !important;
     width: 100% !important;
-    transform: translateX(calc(21rem + 30px));
+    transform: translateX(calc(21rem + 100px));
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2924,7 +2924,7 @@ st.markdown("""
     /* Reset `left` / `width` that were previously set so we don't double-shift */
     left: 0 !important;
     width: 100% !important;
-    transform: translateX(calc(21rem + 30px));
+    transform: translateX(calc(21rem + 100px));
 }
 </style>
 """, unsafe_allow_html=True)
@@ -2939,7 +2939,7 @@ components.html("""
     if(!sidebar || !header) return;
     const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
     header.style.transition = 'transform 0.3s ease';
-    header.style.transform  = isExpanded ? 'translateX(calc(21rem + 30px))' : 'translateX(30px)';
+    header.style.transform  = isExpanded ? 'translateX(calc(21rem + 100px))' : 'translateX(30px)';
   }
   // initial run
   update();
