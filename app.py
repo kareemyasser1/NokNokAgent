@@ -2926,3 +2926,26 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+
+components.html("""
+<script>
+(function(){
+  const doc = window.parent.document;
+  function update(){
+    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+    const header  = doc.querySelector('.logo-title-container');
+    if(!sidebar || !header) return;
+    const isExpanded = sidebar.getAttribute('aria-expanded') === 'true';
+    header.style.transition = 'transform 0.3s ease';
+    header.style.transform  = isExpanded ? 'translateX(21rem)' : 'translateX(0)';
+  }
+  // initial run
+  update();
+  // observe attribute changes on sidebar
+  const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+  if(sidebar){
+    new MutationObserver(update).observe(sidebar,{attributes:true});
+  }
+})();
+</script>
+""", height=0, width=0)
