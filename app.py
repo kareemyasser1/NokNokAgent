@@ -1037,7 +1037,7 @@ if uploaded_file is not None:
 # 🎙️  Audio recorder (sidebar only)
 # ──────────────────────────────────────────────────────────
 
-st.sidebar.markdown("### 🎙️ Voice Message tap to speak")
+st.sidebar.markdown("### 🎙️ Voice Message (tap to speak)")
 
 # Apply very minimal styling to the recorder
 st.sidebar.markdown("""
