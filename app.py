@@ -1056,53 +1056,47 @@ st.sidebar.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Simple container for the recorder
+# Sidebar container
 recorder_container = st.sidebar.container()
 
 with recorder_container:
-    # Outer container with border
-    st.markdown(
-        """
-        <style>
-        .bar-container {
-            border: 2px solid #1e88e5;
-            border-radius: 25px;
-            padding: 10px;
-            background-color: #f0f8ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        </style>
-        <div class="bar-container">
-        """,
-        unsafe_allow_html=True
-    )
+    # Create a bordered bar using st.container()
+    with st.container():
+        # Apply border via Markdown (Streamlit-safe way)
+        st.markdown("""
+            <style>
+            .bar-style {
+                border: 2px solid #1e88e5;
+                border-radius: 25px;
+                padding: 10px;
+                background-color: #f0f8ff;
+            }
+            </style>
+            <div class="bar-style">
+            """, unsafe_allow_html=True)
 
-    # Now layout mic + text inside columns (which streamlit will render properly)
-    col1, col2 = st.columns([1, 2])
+        # Now place columns inside (Streamlit widgets must go in Streamlit layouts)
+        col1, col2 = st.columns([1, 3])
 
-    with col1:
-        audio_bytes_sidebar = audio_recorder(
-            text="",  # No built-in text
-            recording_color="#f44336",
-            neutral_color="#1e88e5",
-            icon_name="microphone",
-            icon_size="2x",
-            pause_threshold=2.0,
-            sample_rate=44100
-        )
+        with col1:
+            audio_bytes_sidebar = audio_recorder(
+                text="",
+                recording_color="#f44336",
+                neutral_color="#1e88e5",
+                icon_name="microphone",
+                icon_size="2x",
+                pause_threshold=2.0,
+                sample_rate=44100
+            )
 
-    with col2:
-        st.markdown(
-            '<div style="color:#1e88e5; font-weight:bold; font-size:20px; text-align:center; line-height:2.5;">SPEAK NOW</div>',
-            unsafe_allow_html=True
-        )
+        with col2:
+            st.markdown(
+                '<div style="color:#1e88e5; font-weight:bold; font-size:20px; text-align:center; line-height:2.5;">SPEAK NOW</div>',
+                unsafe_allow_html=True
+            )
 
-    # Close the bar container div
-    st.markdown("</div>", unsafe_allow_html=True)
-
+        # Close the div
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 
