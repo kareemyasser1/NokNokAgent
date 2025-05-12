@@ -1064,18 +1064,18 @@ st.sidebar.markdown("""
 
 /* WhatsApp-like recording bar styling */
 .whatsapp-recorder {
-    background-color: #f0f2f5;
+    background-color: #f1f6ff;
     border-radius: 20px;
     padding: 8px 12px;
     margin-top: 10px;
     display: flex;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(42, 98, 202, 0.1);
 }
 
 .recorder-text {
     flex-grow: 1;
-    color: #333;
+    color: #2a62ca;
     margin-right: 10px;
     font-weight: 500;
     font-size: 14px;
@@ -1083,7 +1083,7 @@ st.sidebar.markdown("""
 
 /* Style the audio recorder button to look like WhatsApp */
 [data-testid="stSidebar"] .audio-recorder button {
-    background-color: #00a884 !important; /* WhatsApp green */
+    background-color: #2a62ca !important; /* Main blue color */
     border-radius: 50% !important;
     width: 40px !important;
     height: 40px !important;
@@ -1093,12 +1093,13 @@ st.sidebar.markdown("""
     padding: 0 !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    box-shadow: 0 2px 4px rgba(42, 98, 202, 0.25) !important;
     transition: all 0.2s ease !important;
 }
 
 [data-testid="stSidebar"] .audio-recorder button:hover {
     transform: scale(1.05) !important;
+    box-shadow: 0 3px 6px rgba(42, 98, 202, 0.3) !important;
 }
 
 /* Fix audio recorder container */
@@ -1106,22 +1107,37 @@ st.sidebar.markdown("""
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    background-color: #f0f2f5 !important;
+    background-color: #f1f6ff !important;
     border-radius: 20px !important;
     padding: 8px 12px !important;
     margin-top: 5px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border: 1px solid rgba(42, 98, 202, 0.15) !important;
+    box-shadow: 0 1px 3px rgba(42, 98, 202, 0.1) !important;
 }
 
 /* Style when recording */
 [data-testid="stSidebar"] .audio-recorder.recording {
-    background-color: #ffefe5 !important; /* Light red background when recording */
+    background-color: #e8f0ff !important; /* Light blue background when recording */
+    border-color: rgba(42, 98, 202, 0.3) !important;
+    box-shadow: 0 1px 5px rgba(42, 98, 202, 0.2) !important;
 }
 
 /* Visually emphasize the mic icon */
 [data-testid="stSidebar"] .audio-recorder button i.fa {
     color: white !important;
     font-size: 18px !important;
+}
+
+/* Pulse animation when recording */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(42, 98, 202, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(42, 98, 202, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(42, 98, 202, 0); }
+}
+
+[data-testid="stSidebar"] .audio-recorder.recording button {
+    animation: pulse 2s infinite;
+    background-color: #4377da !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1133,8 +1149,8 @@ recorder_container = st.sidebar.container()
 with recorder_container:
     audio_bytes_sidebar = audio_recorder(
         text="Tap to speak",
-        recording_color="#ff4b4b",
-        neutral_color="#00a884",  # WhatsApp green
+        recording_color="#4377da",  # Lighter blue when recording
+        neutral_color="#2a62ca",   # App's blue theme color
         icon_name="microphone",
         icon_size="lg",
         pause_threshold=2.0,
