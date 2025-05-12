@@ -1212,9 +1212,13 @@ if "condition_handler" in st.session_state and st.session_state.condition_handle
     last_update = st.session_state.condition_handler.last_data_refresh.strftime("%H:%M:%S")
     st.sidebar.caption(f"Last updated: {last_update}")
 
-# Client selection dropdown
+# Initialize client selection state 
 if "current_client_id" not in st.session_state:
     st.session_state.current_client_id = None
+
+# Initialize saved index for selection if not already present
+if "saved_client_selection_index" not in st.session_state:
+    st.session_state.saved_client_selection_index = 0
 
 # Check database connection 
 db_connected = False
@@ -1305,27 +1309,22 @@ if st.session_state.noknok_sheets:
                 dropdown_labels = [option["label"] for option in client_options]
                 dropdown_values = [option["value"] for option in client_options]
                 
-                # Initialize saved index for selection if not already present
-                if "saved_client_selection_index" not in st.session_state:
-                    st.session_state.saved_client_selection_index = 0
-
-                # Find the index of the currently selected client ID (if any)
+                # Find the index for the currently selected client
+                initial_index = 0
                 current_client_id = st.session_state.get("current_client_id")
                 if current_client_id:
-                    # Try to find this client ID in the dropdown values
                     try:
-                        saved_index = dropdown_values.index(str(current_client_id))
-                        st.session_state.saved_client_selection_index = saved_index
+                        initial_index = dropdown_values.index(str(current_client_id))
+                        print(f"Found current client ID {current_client_id} at dropdown index {initial_index}")
                     except ValueError:
-                        # Client ID not found in dropdown, use default
-                        pass
-
-                # Show dropdown for client selection with saved index
+                        print(f"Client ID {current_client_id} not found in dropdown values")
+                
+                # Show dropdown for client selection
                 selected_index = st.sidebar.selectbox(
                     "Select client to chat as:",
                     options=range(len(dropdown_labels)),
                     format_func=lambda i: dropdown_labels[i],
-                    index=st.session_state.saved_client_selection_index,  # Use saved index
+                    index=initial_index,
                     key="client_selection_dropdown"  # Add a key to maintain state across reruns
                 )
                 
