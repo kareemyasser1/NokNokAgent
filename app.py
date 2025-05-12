@@ -1037,7 +1037,17 @@ if uploaded_file is not None:
 # 🎙️  Audio recorder (sidebar only)
 # ──────────────────────────────────────────────────────────
 
-st.sidebar.markdown("### 🎙️ Voice Message")
+st.sidebar.markdown("### 🎙️ Voice Assistant")
+
+# Add user guide with instructions
+st.sidebar.markdown("""
+<div style="background-color: #f8f9fa; border-left: 3px solid #2a62ca; padding: 10px; margin-bottom: 12px; border-radius: 4px;">
+    <p style="margin: 0; font-size: 0.9rem; color: #333;">
+        <b>How to use:</b> Click the microphone button below to start recording your voice message. 
+        Click again to stop. Your message will be sent automatically.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # Add extra CSS to ensure audio recorder stays in sidebar
 st.sidebar.markdown("""
@@ -1054,62 +1064,37 @@ st.sidebar.markdown("""
 [data-testid="stSidebar"] .audio-recorder button {
     margin: 0 auto !important;
     display: block !important;
-+   border-radius: 50% !important; 
-+   width: 80px !important;
-+   height: 80px !important;
-+   transition: all 0.3s ease !important;
-+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-+   border: none !important;
-+   padding: 0 !important;
-+   display: flex !important;
-+   align-items: center !important;
-+   justify-content: center !important;
+    transition: all 0.3s ease !important;
+    transform: scale(1) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    border-radius: 50% !important;
 }
 
-+/* Add hover effect */
-+[data-testid="stSidebar"] .audio-recorder button:hover {
-+   transform: scale(1.05) !important;
-+   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
-+}
-+
-+/* Add active/pressed effect */
-+[data-testid="stSidebar"] .audio-recorder button:active {
-+   transform: scale(0.95) !important;
-+   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-+}
-+
-+/* Style the record button icon */
-+[data-testid="stSidebar"] .audio-recorder button i {
-+   font-size: 32px !important;
-+}
-+
-+/* Add pulsing animation when recording */
-+[data-testid="stSidebar"] .audio-recorder.recording button {
-+   animation: pulse 1.5s infinite !important;
-+}
-+
-+@keyframes pulse {
-+   0% {
-+     box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7);
-+   }
-+   70% {
-+     box-shadow: 0 0 0 15px rgba(255, 75, 75, 0);
-+   }
-+   100% {
-+     box-shadow: 0 0 0 0 rgba(255, 75, 75, 0);
-+   }
-+}
-+
-+/* Add recording wrapper styling */
-+[data-testid="stSidebar"] .recording-wrapper {
-+   background: #f8f9fa;
-+   border-radius: 12px;
-+   padding: 20px;
-+   margin-top: 10px;
-+   margin-bottom: 15px;
-+   text-align: center;
-+   box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
-+}
+/* Hover effect for record button */
+[data-testid="stSidebar"] .audio-recorder button:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* Add pulse animation for recording state */
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 75, 75, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
+}
+
+[data-testid="stSidebar"] .audio-recorder.recording button {
+    animation: pulse 2s infinite !important;
+}
+
+/* Status text styling */
+[data-testid="stSidebar"] .audio-recorder-status {
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    color: #333 !important;
+    text-align: center !important;
+    margin-top: 8px !important;
+}
 
 /* Audio playback should stay in sidebar */
 [data-testid="stSidebar"] audio {
@@ -1122,36 +1107,20 @@ st.sidebar.markdown("""
 # Create a container specifically for the recorder to help with containment
 recorder_container = st.sidebar.container()
 
-# Add a stylish header with icon for voice messages
-recorder_container.markdown("""
-<div style="text-align: center; margin-bottom: 15px;">
-  <div style="background: linear-gradient(135deg, #2a62ca, #5c8dff); 
-              border-radius: 12px; 
-              padding: 10px; 
-              color: white;
-              box-shadow: 0 4px 10px rgba(42, 98, 202, 0.3);">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">Voice Message</div>
-    <div style="font-size: 12px; opacity: 0.8;">Just click and speak</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-# Create a visually appealing wrapper for the recorder
+# Use the audio_recorder component to capture audio
 with recorder_container:
-    st.markdown('<div class="recording-wrapper">', unsafe_allow_html=True)
-
-# Use the audio_recorder correctly within the container context
-with recorder_container:
+    # Add a caption for the recorder
+    st.caption("Your voice will be transcribed automatically")
+    
     audio_bytes_sidebar = audio_recorder(
-        text="",
+        text="Click to record",
         recording_color="#ff4b4b",
         neutral_color="#2a62ca",
         icon_name="microphone",
-        icon_size="2x",
-        pause_threshold=2.0,
+        icon_size="4x",
+        pause_threshold=1.5,
         sample_rate=41_000,
     )
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # If a recording is available, preview it and provide a send button
 if audio_bytes_sidebar:
@@ -1165,28 +1134,7 @@ if audio_bytes_sidebar:
         # Store the hash of this recording to avoid repeated sending
         st.session_state["last_audio_hash"] = current_audio_hash
         # Automatically send the audio without requiring a button click
-        
-        # Show sleek status message with animation
-        recorder_container.markdown("""
-        <div style="text-align: center; margin: 15px 0;">
-          <div style="display: inline-block; 
-                      padding: 8px 16px; 
-                      background: linear-gradient(135deg, #8ac926, #5ed9a7); 
-                      color: white; 
-                      border-radius: 20px;
-                      box-shadow: 0 2px 8px rgba(138, 201, 38, 0.3);
-                      animation: fadeInSlide 0.5s ease;">
-            ✓ Voice message sent!
-          </div>
-        </div>
-        <style>
-        @keyframes fadeInSlide {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        
+        st.sidebar.success("Voice message recorded!")
         send_audio_clicked()
 
 # Add refresh button as a circular arrow at the top
