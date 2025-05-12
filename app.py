@@ -1037,17 +1037,7 @@ if uploaded_file is not None:
 # 🎙️  Audio recorder (sidebar only)
 # ──────────────────────────────────────────────────────────
 
-st.sidebar.markdown("### 🎙️ Voice Assistant")
-
-# Add user guide with instructions
-st.sidebar.markdown("""
-<div style="background-color: #f8f9fa; border-left: 3px solid #2a62ca; padding: 10px; margin-bottom: 12px; border-radius: 4px;">
-    <p style="margin: 0; font-size: 0.9rem; color: #333;">
-        <b>How to use:</b> Click the microphone button below to start recording your voice message. 
-        Click again to stop. Your message will be sent automatically.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+st.sidebar.markdown("### 🎙️ Voice Message")
 
 # Add extra CSS to ensure audio recorder stays in sidebar
 st.sidebar.markdown("""
@@ -1064,36 +1054,6 @@ st.sidebar.markdown("""
 [data-testid="stSidebar"] .audio-recorder button {
     margin: 0 auto !important;
     display: block !important;
-    transition: all 0.3s ease !important;
-    transform: scale(1) !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
-    border-radius: 50% !important;
-}
-
-/* Hover effect for record button */
-[data-testid="stSidebar"] .audio-recorder button:hover {
-    transform: scale(1.05) !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
-}
-
-/* Add pulse animation for recording state */
-@keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 75, 75, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
-}
-
-[data-testid="stSidebar"] .audio-recorder.recording button {
-    animation: pulse 2s infinite !important;
-}
-
-/* Status text styling */
-[data-testid="stSidebar"] .audio-recorder-status {
-    font-weight: 500 !important;
-    font-size: 0.85rem !important;
-    color: #333 !important;
-    text-align: center !important;
-    margin-top: 8px !important;
 }
 
 /* Audio playback should stay in sidebar */
@@ -1101,24 +1061,83 @@ st.sidebar.markdown("""
     width: 100% !important;
     max-width: 100% !important;
 }
+
+/* WhatsApp-like recording bar styling */
+.whatsapp-recorder {
+    background-color: #f0f2f5;
+    border-radius: 20px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.recorder-text {
+    flex-grow: 1;
+    color: #333;
+    margin-right: 10px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Style the audio recorder button to look like WhatsApp */
+[data-testid="stSidebar"] .audio-recorder button {
+    background-color: #00a884 !important; /* WhatsApp green */
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stSidebar"] .audio-recorder button:hover {
+    transform: scale(1.05) !important;
+}
+
+/* Fix audio recorder container */
+[data-testid="stSidebar"] .audio-recorder {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background-color: #f0f2f5 !important;
+    border-radius: 20px !important;
+    padding: 8px 12px !important;
+    margin-top: 5px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+/* Style when recording */
+[data-testid="stSidebar"] .audio-recorder.recording {
+    background-color: #ffefe5 !important; /* Light red background when recording */
+}
+
+/* Visually emphasize the mic icon */
+[data-testid="stSidebar"] .audio-recorder button i.fa {
+    color: white !important;
+    font-size: 18px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # Create a container specifically for the recorder to help with containment
 recorder_container = st.sidebar.container()
 
-# Use the audio_recorder component to capture audio
+# Use the audio_recorder correctly within the container context
 with recorder_container:
-    # Add a caption for the recorder
-    st.caption("Your voice will be transcribed automatically")
-    
     audio_bytes_sidebar = audio_recorder(
-        text="Click to record",
+        text="Tap to speak",
         recording_color="#ff4b4b",
-        neutral_color="#2a62ca",
+        neutral_color="#00a884",  # WhatsApp green
         icon_name="microphone",
-        icon_size="4x",
-        pause_threshold=1.5,
+        icon_size="lg",
+        pause_threshold=2.0,
         sample_rate=41_000,
     )
 
