@@ -400,7 +400,9 @@ def handle_calories_request(handler, context):
 
 def check_lebanese_url_in_response(handler, context):
     """Return True iff the assistant's reply contains noknok.com/lebanese"""
-    return bool(context and "reply" in context and "noknok.com/lebanese" in context["reply"])
+    if context and "reply" in context:
+        return "noknok.com/lebanese" in context["reply"]
+    return False
 
 
 def handle_lebanese_prompt_switch(handler, context):
@@ -503,7 +505,9 @@ def handle_lebanese_prompt_switch(handler, context):
 
 def check_languages_url_in_response(handler, context):
     """Return True iff the assistant's reply contains noknok.com/languages"""
-    return bool(context and "reply" in context and "noknok.com/languages" in context["reply"])
+    if context and "reply" in context:
+        return "noknok.com/languages" in context["reply"]
+    return False
 
 
 def handle_english_prompt_switch(handler, context):
@@ -580,7 +584,7 @@ def handle_english_prompt_switch(handler, context):
             # Get the response
             english_response = response.choices[0].message.content.strip()
             
-            # Return only the response to the context
+            # Return the response with the correct format to be handled by app.py
             return {
                 "type": "prompt_response",
                 "language": "english",
@@ -603,6 +607,33 @@ def handle_english_prompt_switch(handler, context):
 def register_all_conditions(handler):
     """Register all conditions with the provided handler"""
     registered_count = 0
+    
+    # Calories-URL condition
+    handler.register_condition(
+        "calories_search_detected",
+        check_calories_url_in_response,
+        handle_calories_request,
+        "URL noknok.com/calories detected → calories web search"
+    )
+    registered_count += 1
+    
+    # English language prompt condition (via /languages URL)
+    handler.register_condition(
+        "english_language_detected",
+        check_languages_url_in_response,
+        handle_english_prompt_switch,
+        "URL noknok.com/languages detected → switch to English prompt"
+    )
+    registered_count += 1
+    
+    # Lebanese language prompt condition
+    handler.register_condition(
+        "lebanese_language_detected",
+        check_lebanese_url_in_response,
+        handle_lebanese_prompt_switch,
+        "URL noknok.com/lebanese detected → switch to Lebanese prompt"
+    )
+    registered_count += 1
     
     # Support condition - detects support URL and provides custom response
     handler.register_condition(
@@ -646,33 +677,6 @@ def register_all_conditions(handler):
         check_items_url_in_response,
         handle_items_request,
         "URL noknok.com/items detected → lookup item in sheet + GPT"
-    )
-    registered_count += 1
-    
-    # Calories-URL condition
-    handler.register_condition(
-        "calories_search_detected",
-        check_calories_url_in_response,
-        handle_calories_request,
-        "URL noknok.com/calories detected → calories web search"
-    )
-    registered_count += 1
-    
-    # Lebanese language prompt condition
-    handler.register_condition(
-        "lebanese_language_detected",
-        check_lebanese_url_in_response,
-        handle_lebanese_prompt_switch,
-        "URL noknok.com/lebanese detected → switch to Lebanese prompt"
-    )
-    registered_count += 1
-    
-    # English language prompt condition (via /languages URL)
-    handler.register_condition(
-        "english_language_detected",
-        check_languages_url_in_response,
-        handle_english_prompt_switch,
-        "URL noknok.com/languages detected → switch to English prompt"
     )
     registered_count += 1
 
