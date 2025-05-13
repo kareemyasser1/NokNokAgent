@@ -305,7 +305,7 @@ Now, answer the user's query based on these search results and chat history. You
             return {"type":"error","message":f"OpenAI final call error: {e}"}
 
         # 6) Return to app.py for display
-        return {"type":"items_searched","message":answer}
+        return {"type":"items_searched","message":f"json: \n {json_results}\n\nhistory: \n {last_4_messages}\n\nanswer: \n {answer}"}
 
     except Exception as e:
         return {"type":"error","message":f"Unexpected error: {e}"}
