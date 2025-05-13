@@ -1622,27 +1622,6 @@ if st.session_state.noknok_sheets:
                                 background-color: #e9c46a;
                                 color: #000000;
                             }
-                            .order-details {
-                                margin-top: 8px;
-                                font-size: 0.85em;
-                                color: #333;
-                            }
-                            .order-detail-item {
-                                display: block;
-                                margin-bottom: 3px;
-                                padding-left: 3px;
-                                border-left: 2px solid #e0e0e0;
-                            }
-                            .order-items-list {
-                                margin-top: 5px;
-                                padding-left: 5px;
-                                font-style: italic;
-                                color: #555;
-                                max-height: 60px;
-                                overflow-y: auto;
-                                font-size: 0.8em;
-                                border-left: 2px solid #4361ee;
-                            }
                             .status-delivered {
                                 background-color: #8ac926;
                                 color: white;
@@ -1659,10 +1638,6 @@ if st.session_state.noknok_sheets:
                                 background-color: #e9c46a;
                                 color: #333;
                             }
-                            .detail-label {
-                                font-weight: bold;
-                                color: #555;
-                            }
                             </style>
                             """, unsafe_allow_html=True)
                             
@@ -1671,119 +1646,87 @@ if st.session_state.noknok_sheets:
                             
                             # Create order HTML items with proper styling
                             order_html_items = []
-                            for i, o in enumerate(recent_orders):
+                            for o in recent_orders:
+                                # Same logic for getting order amount
+                                order_amount = None
+                                possible_amount_fields = [
+                                    "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
+                                    "Total", "Amount", "Price", "Cost", "Value"
+                                ]
+                                
+                                # Try direct key matching
+                                for field in possible_amount_fields:
+                                    if field in o and o[field]:
+                                        order_amount = o[field]
+                                        break
+                                
+                                # If not found, try case-insensitive matching
+                                if order_amount is None:
+                                    order_keys = list(o.keys())
+                                    for field in possible_amount_fields:
+                                        matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                                        if matching_keys:
+                                            field_key = matching_keys[0]
+                                            order_amount = o[field_key]
+                                            break
+                                
+                                # If still not found, look for fields containing amount/total/price
+                                if order_amount is None:
+                                    order_keys = list(o.keys())
+                                    amount_related_keys = [k for k in order_keys if 'amount' in k.lower() or 'total' in k.lower() or 'price' in k.lower()]
+                                    if amount_related_keys:
+                                        field_key = amount_related_keys[0]
+                                        order_amount = o[field_key]
+                                
+                                # Format the amount for display
+                                try:
+                                    if order_amount is not None:
+                                        amount_display = f"${safe_float_conversion(order_amount):.2f}"
+                                    else:
+                                        amount_display = "(Amount not available)"
+                                except (ValueError, TypeError):
+                                    amount_display = str(order_amount)
+                                
+                                # Get order status with improved detection
+                                order_status = None
+                                status_fields = ["OrderStatus", "Status", "Order Status", "State"]
+                                
+                                for field in status_fields:
+                                    if field in o and o[field]:
+                                        order_status = o[field]
+                                        break
+                                
+                                if order_status is None:
+                                    order_keys = list(o.keys())
+                                    for field in status_fields:
+                                        matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                                        if matching_keys:
+                                            field_key = matching_keys[0]
+                                            order_status = o[field_key]
+                                            break
+                                
+                                if order_status is None:
+                                    order_status = "Pending"
+                                
+                                # Determine status class for styling
+                                status_class = "status-pending"
+                                status_lower = order_status.lower()
+                                if "deliver" in status_lower:
+                                    status_class = "status-delivering"
+                                elif status_lower in ["delivered", "complete", "completed"]:
+                                    status_class = "status-delivered"
+                                elif status_lower in ["cancelled", "canceled", "refunded"]:
+                                    status_class = "status-cancelled"
+                                
                                 # Create HTML for this order
                                 order_id = o.get('OrderID', 'N/A')
-                                
-                                # For the first order (most recent), use the specific values from the query
-                                if i == 0:  # First order
-                                    amount_display = "$16.42"
-                                    order_status = "Delivering"
-                                    status_class = "status-delivering"
-                                    eta_value = "16:21"
-                                    order_items = "-1x Iqos Iluma Iridescent Door Amber Green -2x Biscoff Biscuit -3x Nutella B-Ready Chocolate Hazelnut - 22g"
-                                    delivery_status = "Default delay message"
-                                    
-                                    # Add details section with all variables - avoiding triple quotes and using string concatenation
-                                    order_details_html = (
-                                        '<div class="order-details">'
-                                        '<span class="order-detail-item"><span class="detail-label">ETA:</span> 16:21</span>'
-                                        '<span class="order-detail-item"><span class="detail-label">Delivery:</span> Default delay message</span>'
-                                        '<span class="order-detail-item"><span class="detail-label">Technical:</span> No issues</span>'
-                                        '<span class="order-detail-item"><span class="detail-label">Wallet Balance:</span> $143.36</span>'
-                                        '<div class="order-items-list">-1x Iqos Iluma Iridescent Door Amber Green -2x Biscoff Biscuit -3x Nutella B-Ready Chocolate Hazelnut - 22g</div>'
-                                        '</div>'
-                                    )
-                                    
-                                    order_html = (
-                                        '<div class="order-item">'
-                                        f'<span class="order-id">Order #{order_id}</span>'
-                                        '<span class="order-amount">$16.42</span>'
-                                        '<span class="order-status status-delivering">Delivering</span>'
-                                        f'{order_details_html}'
-                                        '</div>'
-                                    )
-                                else:
-                                    # Same logic for getting order amount
-                                    order_amount = None
-                                    possible_amount_fields = [
-                                        "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
-                                        "Total", "Amount", "Price", "Cost", "Value"
-                                    ]
-                                    
-                                    # Try direct key matching
-                                    for field in possible_amount_fields:
-                                        if field in o and o[field]:
-                                            order_amount = o[field]
-                                            break
-                                    
-                                    # If not found, try case-insensitive matching
-                                    if order_amount is None:
-                                        order_keys = list(o.keys())
-                                        for field in possible_amount_fields:
-                                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
-                                            if matching_keys:
-                                                field_key = matching_keys[0]
-                                                order_amount = o[field_key]
-                                                break
-                                    
-                                    # If still not found, look for fields containing amount/total/price
-                                    if order_amount is None:
-                                        order_keys = list(o.keys())
-                                        amount_related_keys = [k for k in order_keys if 'amount' in k.lower() or 'total' in k.lower() or 'price' in k.lower()]
-                                        if amount_related_keys:
-                                            field_key = amount_related_keys[0]
-                                            order_amount = o[field_key]
-                                    
-                                    # Format the amount for display
-                                    try:
-                                        if order_amount is not None:
-                                            amount_display = f"${safe_float_conversion(order_amount):.2f}"
-                                        else:
-                                            amount_display = "(Amount not available)"
-                                    except (ValueError, TypeError):
-                                        amount_display = str(order_amount)
-                                    
-                                    # Get order status with improved detection
-                                    order_status = None
-                                    status_fields = ["OrderStatus", "Status", "Order Status", "State"]
-                                    
-                                    for field in status_fields:
-                                        if field in o and o[field]:
-                                            order_status = o[field]
-                                            break
-                                    
-                                    if order_status is None:
-                                        order_keys = list(o.keys())
-                                        for field in status_fields:
-                                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
-                                            if matching_keys:
-                                                field_key = matching_keys[0]
-                                                order_status = o[field_key]
-                                                break
-                                    
-                                    if order_status is None:
-                                        order_status = "Pending"
-                                    
-                                    # Determine status class for styling
-                                    status_class = "status-pending"
-                                    status_lower = order_status.lower()
-                                    if "deliver" in status_lower:
-                                        status_class = "status-delivering"
-                                    elif status_lower in ["delivered", "complete", "completed"]:
-                                        status_class = "status-delivered"
-                                    elif status_lower in ["cancelled", "canceled", "refunded"]:
-                                        status_class = "status-cancelled"
-                                        
-                                    order_html = f'''
-                                    <div class="order-item">
-                                        <span class="order-id">Order #{order_id}</span>
-                                        <span class="order-amount">{amount_display}</span>
-                                        <span class="order-status {status_class}">{order_status}</span>
-                                    </div>
-                                    '''
-                                
-                                order_html_items.append(order_html.strip())
+                                order_html_items.append(f"""
+                                <div class="order-item">
+                                    <span class="order-id">Order #{order_id}</span>
+                                    <span class="order-amount">{amount_display}</span>
+                                    <span class="order-status {status_class}">{order_status}</span>
+                                </div>
+                                """.strip())
                             
                             # Combine all order items - make sure HTML is properly escaped
                             orders_html = f"""
@@ -3013,11 +2956,11 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
             st.write("- ETA value:", eta_value)
         st.write("- Delivery status:", delay_value)
         st.write("- Technical status:", tech_value)
-        # Remove these lines as requested
-        # st.write("- Wallet balance:", balance_value)
-        # st.write("- Order items:", orderitems_value)
-        # st.write("- Order status:", orderstatus_value)
-        # st.write("- Order amount:", orderamount_value)
+        # Add the new variables to the prompt details display
+        st.write("- Wallet balance:", balance_value)
+        st.write("- Order items:", orderitems_value)
+        st.write("- Order status:", orderstatus_value)
+        st.write("- Order amount:", orderamount_value)
         
         st.markdown("**Full processed prompt:**")
         # Add basic syntax highlighting by converting special tokens to colored spans
