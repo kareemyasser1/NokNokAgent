@@ -248,7 +248,16 @@ def handle_items_request(handler, context):
         # Split history by message delimiter to get last 4 messages
         # This approach depends on how messages are formatted in the history
         # Assuming each message is on a new line or has some delimiter
-        messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
+        if not full_history.strip():
+            # If history is empty, try to use the last user message
+            last_user_message = context.get("last_user_message", "")
+            if last_user_message.strip():
+                messages = [last_user_message]
+            else:
+                messages = []
+        else:
+            messages = full_history.split("\n\n")  # Adjust the delimiter based on actual format
+            
         last_4_messages = "\n\n".join(messages[-4:] if len(messages) >= 4 else messages)
         
         template = """
