@@ -1108,11 +1108,19 @@ elif audio_bytes_sidebar is not None and st.session_state.previous_audio_bytes i
     # New recording completed
     st.session_state.is_recording_audio = False
     print("Recording completed (detected)")
+    # Clear any previous audio data to ensure we don't have stale data
+    if "attached_audio_bytes" in st.session_state:
+        st.session_state.pop("attached_audio_bytes", None) 
+        st.session_state.pop("attached_audio_mime", None)
 elif audio_bytes_sidebar is not None and st.session_state.previous_audio_bytes is not None:
     # Recording already exists
     if hash(audio_bytes_sidebar) != hash(st.session_state.previous_audio_bytes):
         # Different recording
         print("New recording detected")
+        # Clear any previous audio data
+        if "attached_audio_bytes" in st.session_state:
+            st.session_state.pop("attached_audio_bytes", None)
+            st.session_state.pop("attached_audio_mime", None)
     else:
         # Same recording
         pass
@@ -1715,12 +1723,26 @@ if should_send:
     # Debug info
     print(f"Should send message - prompt: '{prompt}', send_image_only: {st.session_state.get('send_image_only', False)}, send_audio_only: {st.session_state.get('send_audio_only', False)}")
 
+    # Text input should take precedence over audio
+    if prompt_input is not None:
+        # If text is entered, always clear audio from session state
+        audio_bytes = None
+        audio_mime = None
+        # Also clear any saved audio
+        if "attached_audio_bytes" in st.session_state:
+            st.session_state.pop("attached_audio_bytes", None)
+        if "attached_audio_mime" in st.session_state:
+            st.session_state.pop("attached_audio_mime", None)
+        if "send_audio_only" in st.session_state:
+            st.session_state.pop("send_audio_only", None)
+    else:
+        # Read and consume any attached audio only if no text input
+        audio_bytes = st.session_state.pop("attached_audio_bytes", None)
+        audio_mime = st.session_state.pop("attached_audio_mime", "audio/wav")
+
     # Read and consume any attached image
     image_bytes = st.session_state.pop("attached_image_bytes", None)
     image_mime = st.session_state.pop("attached_image_mime", "image/jpeg")
-    # Read and consume any attached audio
-    audio_bytes = st.session_state.pop("attached_audio_bytes", None)
-    audio_mime = st.session_state.pop("attached_audio_mime", "audio/wav")
     
     # Reset the send flags for next run
     send_audio_only = st.session_state.pop("send_audio_only", False)
