@@ -2704,6 +2704,10 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
     if st.button("View Processed Prompt"):
         current_client_id = st.session_state.current_client_id if "current_client_id" in st.session_state else None
         
+        # Add debugging info directly in the UI
+        debug_info = []
+        debug_info.append(f"Current client ID: {current_client_id}")
+        
         # Get variable values first before processing the prompt
         balance_value = "N/A"
         orderitems_value = "N/A"
@@ -2716,26 +2720,42 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         # Extract the variable values directly from data
         if "condition_handler" in st.session_state and current_client_id:
             handler = st.session_state.condition_handler
+            debug_info.append("Found condition handler")
             
             # Force refresh data to get latest values
-            handler.load_data()
+            refresh_result = handler.load_data()
+            debug_info.append(f"Data refresh result: {refresh_result}")
             
             # Get client data for wallet balance
             if handler.client_data:
+                debug_info.append(f"Client data available: {len(handler.client_data)} records")
+                # Print sample client for debugging
+                if len(handler.client_data) > 0:
+                    debug_info.append(f"Sample client keys: {list(handler.client_data[0].keys())}")
+                
+                # Find the client
                 client = next((c for c in handler.client_data if str(c.get('ClientID', '')) == str(current_client_id)), None)
                 if client:
+                    debug_info.append(f"Found client record for ID {current_client_id}")
+                    # Print all client keys for debugging
+                    debug_info.append(f"Client record keys: {list(client.keys())}")
+                    
                     # Find balance (wallet) value
                     balance_fields = ['NokNok USD Wallet', 'Wallet Balance', 'Balance', 'USD Wallet']
+                    debug_info.append(f"Looking for balance fields: {balance_fields}")
+                    
                     balance_raw = None
                     
                     # Try direct field match
                     for field in balance_fields:
                         if field in client and client[field] is not None:
                             balance_raw = client[field]
+                            debug_info.append(f"Found balance using field '{field}': {balance_raw}")
                             break
                     
                     # Try case-insensitive match if needed
                     if balance_raw is None:
+                        debug_info.append("Trying case-insensitive balance field match")
                         client_fields = list(client.keys())
                         for field in balance_fields:
                             matching_fields = [k for k in client_fields if k.lower() == field.lower()]
@@ -2743,6 +2763,7 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
                                 field_name = matching_fields[0]
                                 if client[field_name] is not None:
                                     balance_raw = client[field_name]
+                                    debug_info.append(f"Found balance via case-insensitive match for '{field}': {balance_raw}")
                                     break
                     
                     # Format the balance
@@ -2750,48 +2771,83 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
                         try:
                             balance_float = safe_float_conversion(balance_raw)
                             balance_value = f"${balance_float:.2f}"
-                        except (ValueError, TypeError):
+                            debug_info.append(f"Formatted balance: {balance_value}")
+                        except (ValueError, TypeError) as e:
+                            debug_info.append(f"Error formatting balance: {e}")
                             balance_value = str(balance_raw)
+                    else:
+                        debug_info.append("No balance value found in client record")
+                else:
+                    debug_info.append(f"Client with ID {current_client_id} not found in client data")
+            else:
+                debug_info.append("No client data available")
             
             # Get order data for order status, amount, and items
             if handler.order_data:
+                debug_info.append(f"Order data available: {len(handler.order_data)} records")
+                # Print sample order for debugging
+                if len(handler.order_data) > 0:
+                    debug_info.append(f"Sample order keys: {list(handler.order_data[0].keys())}")
+                
+                # Filter client orders
                 client_orders = [order for order in handler.order_data if str(order.get("ClientID", "")) == str(current_client_id)]
+                debug_info.append(f"Found {len(client_orders)} orders for client {current_client_id}")
                 
                 if client_orders:
                     # Get most recent order
                     recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
+                    debug_info.append(f"Found recent order with ID: {recent_order.get('OrderID')}")
+                    debug_info.append(f"Recent order fields: {list(recent_order.keys())}")
                     
                     # Get order status
                     if 'OrderStatus' in recent_order and recent_order['OrderStatus']:
                         orderstatus_value = recent_order['OrderStatus'].capitalize()
+                        debug_info.append(f"Found order status: {orderstatus_value}")
+                    else:
+                        debug_info.append("OrderStatus field not found in recent order")
                     
                     # Get order ETA
                     if 'ETA' in recent_order and recent_order['ETA']:
                         eta_value = recent_order['ETA']
+                        debug_info.append(f"Found ETA: {eta_value}")
+                    else:
+                        debug_info.append("ETA field not found in recent order")
                     
                     # Check for technical issues
                     if 'Technical Issue' in recent_order:
                         value = recent_order['Technical Issue']
+                        debug_info.append(f"Found Technical Issue: {value}")
                         if isinstance(value, bool) and value:
                             tech_value = "Technical issues = True"
                         elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
                             tech_value = "Technical issues = True"
+                    else:
+                        debug_info.append("Technical Issue field not found in recent order")
                     
                     # Check for weather conditions for delivery status
                     if 'Weather Conditions' in recent_order:
                         value = recent_order['Weather Conditions']
+                        debug_info.append(f"Found Weather Conditions: {value}")
                         if (isinstance(value, bool) and value) or (isinstance(value, str) and value.lower() in ['true', 'yes', '1']):
                             delay_value = "Weather conditions are poor"
+                    else:
+                        debug_info.append("Weather Conditions field not found in recent order")
                     
                     # Get order items
                     items_fields = ["OrderItems", "Order Items", "Items"]
+                    debug_info.append(f"Looking for items fields: {items_fields}")
+                    
+                    items_found = False
                     for field in items_fields:
                         if field in recent_order and recent_order[field]:
                             orderitems_value = str(recent_order[field])
+                            debug_info.append(f"Found order items using field '{field}': {orderitems_value}")
+                            items_found = True
                             break
                     
                     # If not found, try case-insensitive matching
-                    if orderitems_value == "N/A":
+                    if not items_found:
+                        debug_info.append("Trying case-insensitive items field match")
                         order_keys = list(recent_order.keys())
                         for field in items_fields:
                             matching_keys = [k for k in order_keys if k.lower() == field.lower()]
@@ -2799,18 +2855,32 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
                                 field_key = matching_keys[0]
                                 if recent_order[field_key]:
                                     orderitems_value = str(recent_order[field_key])
+                                    debug_info.append(f"Found order items via case-insensitive match for '{field}': {orderitems_value}")
+                                    items_found = True
                                     break
+                    
+                    if not items_found:
+                        debug_info.append("No order items found in recent order")
+                        # Try to find any field that might contain items
+                        item_related_keys = [k for k in recent_order.keys() if 'item' in k.lower() or 'product' in k.lower()]
+                        if item_related_keys:
+                            field_key = item_related_keys[0]
+                            if recent_order[field_key]:
+                                orderitems_value = str(recent_order[field_key])
+                                debug_info.append(f"Found possible order items in field '{field_key}': {orderitems_value}")
                     
                     # Get order amount
                     possible_amount_fields = [
                         "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
                         "Total", "Amount", "Price", "Cost", "Value"
                     ]
+                    debug_info.append(f"Looking for amount fields: {possible_amount_fields}")
                     
-                    # Try direct key matching
+                    amount_found = False
                     for field in possible_amount_fields:
                         if field in recent_order and recent_order[field]:
                             order_amount = recent_order[field]
+                            debug_info.append(f"Found order amount using field '{field}': {order_amount}")
                             try:
                                 amount_float = safe_float_conversion(order_amount)
                                 orderamount_value = f"${amount_float:.2f}"
