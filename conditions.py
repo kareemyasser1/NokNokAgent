@@ -304,7 +304,7 @@ Now, answer the user's query based on these search results and chat history. You
         try:
             client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             final_resp = client.chat.completions.create(
-                model="gpt-4o",
+                model="o4-mini",
                 messages=[{"role":"user","content":one_shot}],
                 temperature=1,
                 stream=False
