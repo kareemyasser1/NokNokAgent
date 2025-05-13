@@ -145,9 +145,8 @@ def handle_address_update(handler, context):
         try:
             client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             gpt_resp = client.chat.completions.create(
-                model="gpt-o4-mini",
+                model="gpt-4o",
                 messages=[{"role": "user", "content": one_shot_prompt}],
-                temperature=1,
                 stream=False
             )
             new_address = gpt_resp.choices[0].message.content.strip()
@@ -222,9 +221,8 @@ def handle_items_request(handler, context):
             
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             extraction_resp = client.chat.completions.create(
-                model="gpt-o4-mini",
+                model="gpt-4o",
                 messages=[{"role":"user","content":extract_prompt}],
-                temperature=1,
                 stream=False
             )
             item_name = extraction_resp.choices[0].message.content.strip()
@@ -297,9 +295,8 @@ Now, answer the user's query based on these search results and chat history. You
         try:
             client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             final_resp = client.chat.completions.create(
-                model="gpt-o4-mini",
+                model="o4-mini",
                 messages=[{"role":"user","content":one_shot}],
-                temperature=1,
                 stream=False
             )
             answer = final_resp.choices[0].message.content.strip()
@@ -307,7 +304,7 @@ Now, answer the user's query based on these search results and chat history. You
             return {"type":"error","message":f"OpenAI final call error: {e}"}
 
         # 6) Return to app.py for display
-        return {"type":"items_searched","message":f"json: \n {json_results}\n\nhistory: \n {last_4_messages}\n\nanswer: \n {answer}"}
+        return {"type":"items_searched","message":answer}
 
     except Exception as e:
         return {"type":"error","message":f"Unexpected error: {e}"}
@@ -347,9 +344,8 @@ def handle_calories_request(handler, context):
         try:
             client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             gpt_resp = client.chat.completions.create(
-                model="gpt-o4-mini",  # Using same model family as elsewhere
+                model="gpt-4o",  # Using same model family as elsewhere
                 messages=[{"role": "user", "content": prompt}],
-                temperature=1,
                 stream=False
             )
             raw_answer = gpt_resp.choices[0].message.content.strip()
@@ -463,9 +459,8 @@ def handle_lebanese_prompt_switch(handler, context):
             
             # Call the API
             response = client.chat.completions.create(
-                model="gpt-o4-mini",
+                model="gpt-4o",
                 messages=api_messages,
-                temperature=1,
                 stream=False
             )
             
@@ -567,9 +562,8 @@ def handle_english_prompt_switch(handler, context):
             
             # Call the API
             response = client.chat.completions.create(
-                model="gpt-o4-mini",
+                model="gpt-4o",
                 messages=api_messages,
-                temperature=1,
                 stream=False
             )
             
