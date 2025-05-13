@@ -2083,63 +2083,99 @@ if "refund_order_pending" in st.session_state and st.session_state.refund_order_
                 data_loaded = st.session_state.condition_handler.load_data()
                 print(f"Data refresh result: {data_loaded}")
                 
-                # Get direct access to the sheets for column inspection
-                if st.session_state.noknok_sheets:
-                    if "order" in st.session_state.noknok_sheets:
-                        try:
-                            headers = st.session_state.noknok_sheets["order"].row_values(1)
-                            print(f"Order sheet headers: {headers}")
-                        except Exception as e:
-                            print(f"Could not read order sheet headers: {e}")
+                # Check if order is already refunded or canceled before proceeding
+                order_already_processed = False
+                if st.session_state.condition_handler.order_data:
+                    # Filter orders for the current client
+                    client_orders = [order for order in st.session_state.condition_handler.order_data 
+                                   if str(order.get("ClientID", "")) == str(client_id)]
                     
-                    if "client" in st.session_state.noknok_sheets:
-                        try:
-                            headers = st.session_state.noknok_sheets["client"].row_values(1)
-                            print(f"Client sheet headers: {headers}")
-                        except Exception as e:
-                            print(f"Could not read client sheet headers: {e}")
-                
-                # Prepare context for condition evaluation
-                context = {"client_id": client_id, "reply": "noknok.com/refund"}
-                
-                # Execute the refund through the condition handler
-                results = st.session_state.condition_handler.evaluate_conditions(context)
-                
-                # Process results
-                if results:
-                    for result in results:
-                        print(f"Condition result: {result}")
-                        if result.get("id") == "refund_order_detected":
-                            if "result" in result:
-                                if result["result"].get("type") == "order_refunded":
-                                    # Show success message
-                                    success_message = result["result"].get("message", "Your refund has been processed successfully.")
-                                    with st.chat_message("assistant"):
-                                        st.write(success_message)
-                                    st.session_state.messages.append({"role": "assistant", "content": success_message})
-                                    
-                                    # Add extra message about new balance
-                                    balance_message = f"Your new Noknok wallet balance is ${safe_float_conversion(result['result'].get('new_wallet_balance', '0')):.2f}."
-                                    with st.chat_message("assistant"):
-                                        st.write(balance_message)
-                                    st.session_state.messages.append({"role": "assistant", "content": balance_message})
-                                    
-                                    # Save to chat history
-                                    if st.session_state.chat_history_sheet:
-                                        save_to_chat_history(st.session_state.chat_history_sheet, 
-                                                           "System", "Order refund request", success_message)
-                                else:
-                                    # Show error message
-                                    error_message = result["result"].get("message", "Error processing refund.")
-                                    with st.chat_message("assistant"):
-                                        st.write(error_message)
-                                    st.session_state.messages.append({"role": "assistant", "content": error_message})
+                    if client_orders:
+                        # Find most recent order
+                        most_recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
+                        
+                        # Check current order status
+                        current_status = None
+                        status_fields = ["OrderStatus", "Status", "Order Status"]
+                        for field in status_fields:
+                            if field in most_recent_order and most_recent_order[field]:
+                                current_status = most_recent_order[field].lower()
+                                print(f"Found current order status for refund check: {current_status}")
+                                break
+                        
+                        # If already refunded or canceled, don't proceed
+                        if current_status in ["refunded", "cancelled", "canceled"]:
+                            status_message = f"This order has already been {current_status}. No further action is needed."
+                            with st.chat_message("assistant"):
+                                st.write(status_message)
+                            st.session_state.messages.append({"role": "assistant", "content": status_message})
+                            
+                            # Save to chat history
+                            if st.session_state.chat_history_sheet:
+                                save_to_chat_history(st.session_state.chat_history_sheet, 
+                                                   "System", "Order refund request", status_message)
+                            
+                            # Skip further processing
+                            order_already_processed = True
+                        else:
+                            # Process the refund through the condition handler
+                            context = {"client_id": client_id, "reply": "noknok.com/refund"}
+                            results = st.session_state.condition_handler.evaluate_conditions(context)
+                            
+                            # Process results
+                            if results:
+                                for result in results:
+                                    print(f"Condition result: {result}")
+                                    if result.get("id") == "refund_order_detected":
+                                        if "result" in result:
+                                            if result["result"].get("type") == "order_refunded":
+                                                # Show success message
+                                                success_message = result["result"].get("message", "Your refund has been processed successfully.")
+                                                with st.chat_message("assistant"):
+                                                    st.write(success_message)
+                                                st.session_state.messages.append({"role": "assistant", "content": success_message})
+                                                
+                                                # Add extra message about new balance
+                                                balance_message = f"Your new Noknok wallet balance is ${safe_float_conversion(result['result'].get('new_wallet_balance', '0')):.2f}."
+                                                with st.chat_message("assistant"):
+                                                    st.write(balance_message)
+                                                st.session_state.messages.append({"role": "assistant", "content": balance_message})
+                                                
+                                                # Save to chat history
+                                                if st.session_state.chat_history_sheet:
+                                                    save_to_chat_history(st.session_state.chat_history_sheet, 
+                                                                       "System", "Order refund request", success_message)
+                                            else:
+                                                # Show error message
+                                                error_message = result["result"].get("message", "Error processing refund.")
+                                                with st.chat_message("assistant"):
+                                                    st.write(error_message)
+                                                st.session_state.messages.append({"role": "assistant", "content": error_message})
+                            else:
+                                # No conditions were triggered
+                                error_message = "Failed to process refund. Please contact customer support."
+                                with st.chat_message("assistant"):
+                                    st.write(error_message)
+                                st.session_state.messages.append({"role": "assistant", "content": error_message})
+                    else:
+                        # No orders found for this client
+                        no_orders_message = "You don't have any orders to refund."
+                        with st.chat_message("assistant"):
+                            st.write(no_orders_message)
+                        st.session_state.messages.append({"role": "assistant", "content": no_orders_message})
+                        
+                        # Skip further processing
+                        order_already_processed = True
                 else:
-                    # No conditions were triggered
-                    error_message = "Failed to process refund. Please contact customer support."
+                    data_error_message = "Order data could not be loaded. Please try again later."
                     with st.chat_message("assistant"):
-                        st.write(error_message)
-                    st.session_state.messages.append({"role": "assistant", "content": error_message})
+                        st.write(data_error_message)
+                    st.session_state.messages.append({"role": "assistant", "content": data_error_message})
+                    
+                    # Skip further processing
+                    order_already_processed = True
+                
+                # Only continue with the refund if the order is not already processed
         except Exception as e:
             error_message = f"Error processing refund: {str(e)}"
             with st.chat_message("assistant"):
@@ -2168,16 +2204,6 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                 # Update the current client ID in the handler
                 st.session_state.condition_handler.current_client_id = client_id
                 print(f"Processing cancellation for client ID: {client_id}")
-                
-                # Get direct access to the order sheet for column inspection
-                if st.session_state.noknok_sheets and "order" in st.session_state.noknok_sheets:
-                    order_sheet = st.session_state.noknok_sheets["order"]
-                    try:
-                        # Get and print headers to see exact column names
-                        headers = order_sheet.row_values(1)
-                        print(f"Order sheet headers: {headers}")
-                    except Exception as e:
-                        print(f"Could not read order sheet headers: {e}")
                 
                 # Force refresh data
                 print("Forcing data refresh for cancellation...")
@@ -2225,14 +2251,8 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                             if st.session_state.chat_history_sheet:
                                 save_to_chat_history(st.session_state.chat_history_sheet, 
                                                     "System", "Order cancellation request", status_message)
-                            
-                            # Skip further processing
-                            should_process_cancellation = False
                         else:
-                            should_process_cancellation = True
-                        
-                        # Try different possible field names for the order amount - case insensitive
-                        if should_process_cancellation:
+                            # Try different possible field names for the order amount - case insensitive
                             order_amount = None
                             possible_amount_fields = [
                                 "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
@@ -2266,7 +2286,7 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                                     field_key = amount_related_keys[0]
                                     order_amount = most_recent_order[field_key]
                                     print(f"Found order amount via partial match in field: {field_key}, value: {order_amount}")
-                        
+                            
                             if order_amount is None:
                                 # If we still don't have an amount, dump the keys for debugging
                                 print(f"Order fields available: {list(most_recent_order.keys())}")
@@ -2332,16 +2352,11 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                                 with st.chat_message("assistant"):
                                     st.write(error_message)
                                 st.session_state.messages.append({"role": "assistant", "content": error_message})
-                        else:
-                            no_orders_message = "You don't have any orders to cancel."
-                            with st.chat_message("assistant"):
-                                st.write(no_orders_message)
-                            st.session_state.messages.append({"role": "assistant", "content": no_orders_message})
                     else:
-                        data_error_message = "Order data could not be loaded. Please try again later."
+                        no_orders_message = "You don't have any orders to cancel."
                         with st.chat_message("assistant"):
-                            st.write(data_error_message)
-                        st.session_state.messages.append({"role": "assistant", "content": data_error_message})
+                            st.write(no_orders_message)
+                        st.session_state.messages.append({"role": "assistant", "content": no_orders_message})
                 else:
                     data_error_message = "Order data could not be loaded. Please try again later."
                     with st.chat_message("assistant"):
