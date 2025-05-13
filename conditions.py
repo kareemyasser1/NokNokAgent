@@ -297,6 +297,7 @@ Now, answer the user's query based on these search results and chat history. You
             final_resp = client.chat.completions.create(
                 model="o4-mini",
                 messages=[{"role":"user","content":one_shot}],
+                temperature=1,
                 stream=False
             )
             answer = final_resp.choices[0].message.content.strip()
