@@ -2703,6 +2703,145 @@ if "current_client_id" in st.session_state and st.session_state.current_client_i
 with st.sidebar.expander("Debug System Prompt", expanded=False):
     if st.button("View Processed Prompt"):
         current_client_id = st.session_state.current_client_id if "current_client_id" in st.session_state else None
+        
+        # Get variable values first before processing the prompt
+        balance_value = "N/A"
+        orderitems_value = "N/A"
+        orderstatus_value = "N/A"
+        orderamount_value = "N/A"
+        eta_value = None
+        delay_value = "Default delay message"
+        tech_value = "Technical issues = False"
+        
+        # Extract the variable values directly from data
+        if "condition_handler" in st.session_state and current_client_id:
+            handler = st.session_state.condition_handler
+            
+            # Force refresh data to get latest values
+            handler.load_data()
+            
+            # Get client data for wallet balance
+            if handler.client_data:
+                client = next((c for c in handler.client_data if str(c.get('ClientID', '')) == str(current_client_id)), None)
+                if client:
+                    # Find balance (wallet) value
+                    balance_fields = ['NokNok USD Wallet', 'Wallet Balance', 'Balance', 'USD Wallet']
+                    balance_raw = None
+                    
+                    # Try direct field match
+                    for field in balance_fields:
+                        if field in client and client[field] is not None:
+                            balance_raw = client[field]
+                            break
+                    
+                    # Try case-insensitive match if needed
+                    if balance_raw is None:
+                        client_fields = list(client.keys())
+                        for field in balance_fields:
+                            matching_fields = [k for k in client_fields if k.lower() == field.lower()]
+                            if matching_fields:
+                                field_name = matching_fields[0]
+                                if client[field_name] is not None:
+                                    balance_raw = client[field_name]
+                                    break
+                    
+                    # Format the balance
+                    if balance_raw is not None:
+                        try:
+                            balance_float = safe_float_conversion(balance_raw)
+                            balance_value = f"${balance_float:.2f}"
+                        except (ValueError, TypeError):
+                            balance_value = str(balance_raw)
+            
+            # Get order data for order status, amount, and items
+            if handler.order_data:
+                client_orders = [order for order in handler.order_data if str(order.get("ClientID", "")) == str(current_client_id)]
+                
+                if client_orders:
+                    # Get most recent order
+                    recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
+                    
+                    # Get order status
+                    if 'OrderStatus' in recent_order and recent_order['OrderStatus']:
+                        orderstatus_value = recent_order['OrderStatus'].capitalize()
+                    
+                    # Get order ETA
+                    if 'ETA' in recent_order and recent_order['ETA']:
+                        eta_value = recent_order['ETA']
+                    
+                    # Check for technical issues
+                    if 'Technical Issue' in recent_order:
+                        value = recent_order['Technical Issue']
+                        if isinstance(value, bool) and value:
+                            tech_value = "Technical issues = True"
+                        elif isinstance(value, str) and value.lower() in ['true', 'yes', '1']:
+                            tech_value = "Technical issues = True"
+                    
+                    # Check for weather conditions for delivery status
+                    if 'Weather Conditions' in recent_order:
+                        value = recent_order['Weather Conditions']
+                        if (isinstance(value, bool) and value) or (isinstance(value, str) and value.lower() in ['true', 'yes', '1']):
+                            delay_value = "Weather conditions are poor"
+                    
+                    # Get order items
+                    items_fields = ["OrderItems", "Order Items", "Items"]
+                    for field in items_fields:
+                        if field in recent_order and recent_order[field]:
+                            orderitems_value = str(recent_order[field])
+                            break
+                    
+                    # If not found, try case-insensitive matching
+                    if orderitems_value == "N/A":
+                        order_keys = list(recent_order.keys())
+                        for field in items_fields:
+                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                            if matching_keys:
+                                field_key = matching_keys[0]
+                                if recent_order[field_key]:
+                                    orderitems_value = str(recent_order[field_key])
+                                    break
+                    
+                    # Get order amount
+                    possible_amount_fields = [
+                        "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
+                        "Total", "Amount", "Price", "Cost", "Value"
+                    ]
+                    
+                    # Try direct key matching
+                    for field in possible_amount_fields:
+                        if field in recent_order and recent_order[field]:
+                            order_amount = recent_order[field]
+                            try:
+                                amount_float = safe_float_conversion(order_amount)
+                                orderamount_value = f"${amount_float:.2f}"
+                            except (ValueError, TypeError):
+                                orderamount_value = str(order_amount)
+                            break
+                    
+                    # If not found, try case-insensitive matching
+                    if orderamount_value == "N/A":
+                        order_keys = list(recent_order.keys())
+                        for field in possible_amount_fields:
+                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                            if matching_keys:
+                                field_key = matching_keys[0]
+                                if recent_order[field_key]:
+                                    order_amount = recent_order[field_key]
+                                    try:
+                                        amount_float = safe_float_conversion(order_amount)
+                                        orderamount_value = f"${amount_float:.2f}"
+                                    except (ValueError, TypeError):
+                                        orderamount_value = str(order_amount)
+                                    break
+                    
+                    # Set order status-based delay value
+                    order_status = recent_order.get('OrderStatus', '').lower()
+                    if order_status == "delivered":
+                        delay_value = "Order status is Delivered"
+                    elif order_status == "driver arrived":
+                        delay_value = "Order status is Driver Arrived"
+        
+        # Now process the prompt with the updated variables
         processed_prompt = process_prompt_variables(system_prompt_template, current_client_id)
         
         # Show which client is being used
@@ -2740,37 +2879,6 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         else:
             st.info("Showing prompt for guest (no client selected)")
             client_name = "valued customer (default)"
-        
-        # Extract values by looking for key phrases in the processed text
-        eta_value = None
-        if "You can expect to receive your order by" in processed_prompt:
-            eta_parts = processed_prompt.split("You can expect to receive your order by")
-            if len(eta_parts) > 1:
-                eta_end = eta_parts[1].find(".")
-                if eta_end > 0:
-                    eta_value = eta_parts[1][:eta_end]
-        
-        delay_value = None
-        if "It appears that the order was delivered" in processed_prompt:
-            delay_value = "Order status is Delivered"
-        elif "The driver has arrived" in processed_prompt:
-            delay_value = "Order status is Driver Arrived"
-        elif "difficulty in delivering your order due to the poor weather conditions" in processed_prompt:
-            delay_value = "Weather conditions are poor"
-        else:
-            delay_value = "Default delay message"
-        
-        tech_value = None
-        if "We're currently facing some difficulties" in processed_prompt:
-            tech_value = "Technical issues = True"
-        else:
-            tech_value = "Technical issues = False"
-        
-        # Get values of our variables directly from the processed prompt
-        balance_value = processed_prompt.split("@balance@")[1].split("@")[0] if "@balance@" in processed_prompt else "N/A"
-        orderitems_value = processed_prompt.split("@orderitems@")[1].split("@")[0] if "@orderitems@" in processed_prompt else "N/A"
-        orderstatus_value = processed_prompt.split("@orderstatus@")[1].split("@")[0] if "@orderstatus@" in processed_prompt else "N/A"
-        orderamount_value = processed_prompt.split("@orderamount@")[1].split("@")[0] if "@orderamount@" in processed_prompt else "N/A"
         
         st.markdown("**Prompt details:**")
         st.write("- Client name:", client_name)
