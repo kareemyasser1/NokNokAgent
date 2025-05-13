@@ -1305,7 +1305,7 @@ if st.session_state.noknok_sheets:
                 <span class="status-connected">✅ Connected to <img src="data:image/png;base64,{logo_base64}" alt="logo" class="noknok-logo-small"> Database</span>
             </div>
             <a href="{sheet_url}" target="_blank" class="sheet-button">
-                📊 Open Google Sheet
+                📋 Open Google Sheet
             </a>
         </div>
         """
