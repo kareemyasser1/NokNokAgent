@@ -637,6 +637,10 @@ def process_prompt_variables(prompt_template, client_id=None):
     order_delay_message = ""
     technical_message = ""
     order_eta_message = ""
+    balance_value = "N/A" # Changed from message to value
+    order_items_value = "N/A" # Changed from message to value
+    order_status_value = "N/A" # Changed from message to value
+    order_amount_value = "N/A" # Changed from message to value
     eta_value = None
     
     # Determine which language to use
@@ -745,13 +749,42 @@ def process_prompt_variables(prompt_template, client_id=None):
                     # If we couldn't find a name, log that information
                     if not client_name_found:
                         print("WARNING: Could not find client first name, using default 'valued customer'")
+                    
+                    # Get balance information for @balance@
+                    balance_fields = ['NokNok USD Wallet', 'Wallet Balance', 'Balance', 'USD Wallet']
+                    balance_raw = None
+                    
+                    # Try direct field match first
+                    for field in balance_fields:
+                        if field in client and client[field] is not None:
+                            balance_raw = client[field]
+                            print(f"Found balance using field '{field}': {balance_raw}")
+                            break
+                    
+                    # Try case-insensitive match if needed
+                    if balance_raw is None:
+                        client_fields = list(client.keys())
+                        for field in balance_fields:
+                            matching_fields = [k for k in client_fields if k.lower() == field.lower()]
+                            if matching_fields:
+                                field_name = matching_fields[0]
+                                if client[field_name] is not None:
+                                    balance_raw = client[field_name]
+                                    print(f"Found balance using case-insensitive match for '{field}': {balance_raw}")
+                                    break
+                    
+                    # Format the balance value (just the value, not a message)
+                    if balance_raw is not None:
+                        try:
+                            balance_float = safe_float_conversion(balance_raw)
+                            balance_value = f"${balance_float:.2f}"
+                        except (ValueError, TypeError):
+                            balance_value = str(balance_raw)
                 else:
-                    print(f"WARNING: Client with ID {client_id} not found in client data")
-            else:
-                if not client_id:
-                    print("WARNING: No client_id provided to process_prompt_variables function")
-                else:
-                    print(f"WARNING: client_id provided ({client_id}) but no client_data available")
+                    if not client_id:
+                        print("WARNING: No client_id provided to process_prompt_variables function")
+                    else:
+                        print(f"WARNING: client_id provided ({client_id}) but no client_data available")
             
             # Process order-related variables
             if client_id and handler.order_data:
@@ -851,6 +884,70 @@ def process_prompt_variables(prompt_template, client_id=None):
                             technical_message = "We're currently facing some difficulties. We should be back and running in no time. Your patience is much appreciated. 💙"
                     else:
                         technical_message = default_technical_message
+                    
+                    # @orderstatus@ - Get just the order status value
+                    if order_status:
+                        # Just use the raw status, capitalized first letter
+                        order_status_value = order_status.capitalize()
+                    
+                    # @orderamount@ - Get just the order amount value
+                    order_amount = None
+                    possible_amount_fields = [
+                        "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
+                        "Total", "Amount", "Price", "Cost", "Value"
+                    ]
+                    
+                    # Try direct key matching
+                    for field in possible_amount_fields:
+                        if field in recent_order and recent_order[field]:
+                            order_amount = recent_order[field]
+                            print(f"Found order amount in field: {field}, value: {order_amount}")
+                            break
+                    
+                    # If not found, try case-insensitive matching
+                    if order_amount is None:
+                        order_keys = list(recent_order.keys())
+                        for field in possible_amount_fields:
+                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                            if matching_keys:
+                                field_key = matching_keys[0]
+                                order_amount = recent_order[field_key]
+                                print(f"Found order amount via case-insensitive match in field: {field_key}, value: {order_amount}")
+                                break
+                    
+                    # Format the order amount value (just the value, not a message)
+                    if order_amount is not None:
+                        try:
+                            amount_float = safe_float_conversion(order_amount)
+                            order_amount_value = f"${amount_float:.2f}"
+                        except (ValueError, TypeError):
+                            order_amount_value = str(order_amount)
+                    
+                    # @orderitems@ - Get just the order items value
+                    order_items = None
+                    items_fields = ["OrderItems", "Order Items", "Items"]
+                    
+                    # Try direct key matching
+                    for field in items_fields:
+                        if field in recent_order and recent_order[field]:
+                            order_items = recent_order[field]
+                            print(f"Found order items in field: {field}, value: {order_items}")
+                            break
+                    
+                    # If not found, try case-insensitive matching
+                    if order_items is None:
+                        order_keys = list(recent_order.keys())
+                        for field in items_fields:
+                            matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                            if matching_keys:
+                                field_key = matching_keys[0]
+                                order_items = recent_order[field_key]
+                                print(f"Found order items via case-insensitive match in field: {field_key}, value: {order_items}")
+                                break
+                    
+                    # Use the raw order items value
+                    if order_items:
+                        order_items_value = str(order_items)
     except Exception as e:
         print(f"Error processing prompt variables: {e}")
         import traceback
@@ -864,6 +961,10 @@ def process_prompt_variables(prompt_template, client_id=None):
     prompt = prompt.replace("@Order Delay@", order_delay_message)  # Also handle alternative format
     prompt = prompt.replace("@Technical@", technical_message)
     prompt = prompt.replace("@OrderETA@", order_eta_message)
+    prompt = prompt.replace("@balance@", balance_value)
+    prompt = prompt.replace("@orderitems@", order_items_value)
+    prompt = prompt.replace("@orderstatus@", order_status_value)
+    prompt = prompt.replace("@orderamount@", order_amount_value)
     
     return prompt
 
