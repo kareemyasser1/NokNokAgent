@@ -3013,11 +3013,11 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
             st.write("- ETA value:", eta_value)
         st.write("- Delivery status:", delay_value)
         st.write("- Technical status:", tech_value)
-        # Add the new variables to the prompt details display
-        st.write("- Wallet balance:", balance_value)
-        st.write("- Order items:", orderitems_value)
-        st.write("- Order status:", orderstatus_value)
-        st.write("- Order amount:", orderamount_value)
+        # Remove these lines as requested
+        # st.write("- Wallet balance:", balance_value)
+        # st.write("- Order items:", orderitems_value)
+        # st.write("- Order status:", orderstatus_value)
+        # st.write("- Order amount:", orderamount_value)
         
         st.markdown("**Full processed prompt:**")
         # Add basic syntax highlighting by converting special tokens to colored spans
