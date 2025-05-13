@@ -2766,12 +2766,23 @@ with st.sidebar.expander("Debug System Prompt", expanded=False):
         else:
             tech_value = "Technical issues = False"
         
+        # Get values of our variables directly from the processed prompt
+        balance_value = processed_prompt.split("@balance@")[1].split("@")[0] if "@balance@" in processed_prompt else "N/A"
+        orderitems_value = processed_prompt.split("@orderitems@")[1].split("@")[0] if "@orderitems@" in processed_prompt else "N/A"
+        orderstatus_value = processed_prompt.split("@orderstatus@")[1].split("@")[0] if "@orderstatus@" in processed_prompt else "N/A"
+        orderamount_value = processed_prompt.split("@orderamount@")[1].split("@")[0] if "@orderamount@" in processed_prompt else "N/A"
+        
         st.markdown("**Prompt details:**")
         st.write("- Client name:", client_name)
         if eta_value:
             st.write("- ETA value:", eta_value)
         st.write("- Delivery status:", delay_value)
         st.write("- Technical status:", tech_value)
+        # Add the new variables to the prompt details display
+        st.write("- Wallet balance:", balance_value)
+        st.write("- Order items:", orderitems_value)
+        st.write("- Order status:", orderstatus_value)
+        st.write("- Order amount:", orderamount_value)
         
         st.markdown("**Full processed prompt:**")
         # Add basic syntax highlighting by converting special tokens to colored spans
