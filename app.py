@@ -1684,25 +1684,25 @@ if st.session_state.noknok_sheets:
                                     order_items = "-1x Iqos Iluma Iridescent Door Amber Green -2x Biscoff Biscuit -3x Nutella B-Ready Chocolate Hazelnut - 22g"
                                     delivery_status = "Default delay message"
                                     
-                                    # Add details section with all variables
-                                    order_details_html = '''
-                                    <div class="order-details">
-                                        <span class="order-detail-item"><span class="detail-label">ETA:</span> 16:21</span>
-                                        <span class="order-detail-item"><span class="detail-label">Delivery:</span> Default delay message</span>
-                                        <span class="order-detail-item"><span class="detail-label">Technical:</span> No issues</span>
-                                        <span class="order-detail-item"><span class="detail-label">Wallet Balance:</span> $143.36</span>
-                                        <div class="order-items-list">-1x Iqos Iluma Iridescent Door Amber Green -2x Biscoff Biscuit -3x Nutella B-Ready Chocolate Hazelnut - 22g</div>
-                                    </div>
-                                    '''
+                                    # Add details section with all variables - avoiding triple quotes and using string concatenation
+                                    order_details_html = (
+                                        '<div class="order-details">'
+                                        '<span class="order-detail-item"><span class="detail-label">ETA:</span> 16:21</span>'
+                                        '<span class="order-detail-item"><span class="detail-label">Delivery:</span> Default delay message</span>'
+                                        '<span class="order-detail-item"><span class="detail-label">Technical:</span> No issues</span>'
+                                        '<span class="order-detail-item"><span class="detail-label">Wallet Balance:</span> $143.36</span>'
+                                        '<div class="order-items-list">-1x Iqos Iluma Iridescent Door Amber Green -2x Biscoff Biscuit -3x Nutella B-Ready Chocolate Hazelnut - 22g</div>'
+                                        '</div>'
+                                    )
                                     
-                                    order_html = f'''
-                                    <div class="order-item">
-                                        <span class="order-id">Order #{order_id}</span>
-                                        <span class="order-amount">$16.42</span>
-                                        <span class="order-status status-delivering">Delivering</span>
-                                        {order_details_html}
-                                    </div>
-                                    '''
+                                    order_html = (
+                                        '<div class="order-item">'
+                                        f'<span class="order-id">Order #{order_id}</span>'
+                                        '<span class="order-amount">$16.42</span>'
+                                        '<span class="order-status status-delivering">Delivering</span>'
+                                        f'{order_details_html}'
+                                        '</div>'
+                                    )
                                 else:
                                     # Same logic for getting order amount
                                     order_amount = None
