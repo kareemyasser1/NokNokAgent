@@ -304,7 +304,7 @@ Now, answer the user's query based on these search results and chat history. You
         try:
             client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
             final_resp = client.chat.completions.create(
-                model="o4-mini",
+                model="gpt-4o",
                 messages=[{"role":"user","content":one_shot}],
                 temperature=1,
                 stream=False
@@ -314,7 +314,7 @@ Now, answer the user's query based on these search results and chat history. You
             return {"type":"error","message":f"OpenAI final call error: {e}"}
 
         # 6) Return to app.py for display
-        return {"type":"items_searched","message":f"json: \n {json_results}\n\nhistory: \n {last_4_messages}\n\nanswer: \n {answer}"}
+        return {"type":"items_searched","message":answer}
 
     except Exception as e:
         return {"type":"error","message":f"Unexpected error: {e}"}
