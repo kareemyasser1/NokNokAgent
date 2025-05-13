@@ -148,8 +148,8 @@ Q: X is missing from my order
 A: @clientName@, we apologize for the inconvenience. We will send another driver to deliver you the missing items. Your patience is much appreciated. 💙
 
 Q: Do you have item X? Is X available in stocks? What is the price of item Y? Or any inquiry that requires searching for a product in the app (except for calorie inquiries)
-RULE: Replace {Item Name} by the name of the item that the client mentioned exactly like they did in the answer below, do it inside the quotations.
-A: Unfortunately, I don't have access to stock information through the application, but you can check the app database for “{Item Name}” here noknok.com/items
+RULE: Replace “Item Name” by the name of the item that the client mentioned exactly like they did in the answer below, do it inside the two brackets. You must return the two brackets.
+A: Unfortunately, I don't have access to stock information through the application, but you can check the app database for {{“Item Name”}} here noknok.com/items
 
 Q: How many calories is in item X?
 A: To check the calorie count of an item, please go to noknok.com/calories
