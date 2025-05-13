@@ -470,16 +470,15 @@ def get_noknok_sheets(client, spreadsheet_id="12rCspNRPXyuiJpF_4keonsa1UenwHVOdr
         
         # Get specific worksheets - try by name first, then by index as fallback
         try:
-            try:
-                order_sheet = spreadsheet.worksheet("Order")
-                print("Using 'Order' worksheet by name")
-            except gspread.WorksheetNotFound:
-                # If not found by name, use first sheet
-                if len(all_worksheets) >= 1:
-                    order_sheet = all_worksheets[0]  # First sheet
-                    print(f"Using first sheet for order data: {order_sheet.title}")
-                else:
-                    raise Exception("No sheets available for order data")
+            order_sheet = spreadsheet.worksheet("Order")
+            print("Using 'Order' worksheet by name")
+        except gspread.WorksheetNotFound:
+            # If not found by name, use first sheet
+            if len(all_worksheets) >= 1:
+                order_sheet = all_worksheets[0]  # First sheet
+                print(f"Using first sheet for order data: {order_sheet.title}")
+            else:
+                raise Exception("No sheets available for order data")
         except Exception as e:
             st.error(f"Error accessing Order sheet: {e}")
             order_sheet = None
@@ -2206,111 +2205,143 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
                         # Print all fields in the most recent order for debugging
                         print(f"Most recent order details: {most_recent_order}")
                         
-                        # Try different possible field names for the order amount - case insensitive
-                        order_amount = None
-                        possible_amount_fields = [
-                            "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
-                            "Total", "Amount", "Price", "Cost", "Value"
-                        ]
-                        
-                        # First try direct key matching
-                        for field in possible_amount_fields:
+                        # Check current order status to prevent canceling already canceled/refunded orders
+                        current_status = None
+                        status_fields = ["OrderStatus", "Status", "Order Status"]
+                        for field in status_fields:
                             if field in most_recent_order and most_recent_order[field]:
-                                order_amount = most_recent_order[field]
-                                print(f"Found order amount in field: {field}, value: {order_amount}")
+                                current_status = most_recent_order[field].lower()
+                                print(f"Found current order status: {current_status}")
                                 break
                         
-                        # If not found, try case-insensitive matching
-                        if order_amount is None:
-                            order_keys = list(most_recent_order.keys())
-                            for field in possible_amount_fields:
-                                matching_keys = [k for k in order_keys if k.lower() == field.lower()]
-                                if matching_keys:
-                                    field_key = matching_keys[0]  # Use the first matching key
-                                    order_amount = most_recent_order[field_key]
-                                    print(f"Found order amount via case-insensitive match in field: {field_key}, value: {order_amount}")
-                                    break
-                        
-                        # If we still don't have an amount, check for any field containing 'amount' or 'total'
-                        if order_amount is None:
-                            order_keys = list(most_recent_order.keys())
-                            amount_related_keys = [k for k in order_keys if 'amount' in k.lower() or 'total' in k.lower() or 'price' in k.lower()]
-                            
-                            if amount_related_keys:
-                                field_key = amount_related_keys[0]  # Use the first matching key
-                                order_amount = most_recent_order[field_key]
-                                print(f"Found order amount via partial match in field: {field_key}, value: {order_amount}")
-                        
-                        if order_amount is None:
-                            # If we still don't have an amount, dump the keys for debugging
-                            print(f"Order fields available: {list(most_recent_order.keys())}")
-                            order_amount = "your order"
-                            print("Order amount not found, using generic text")
-                        
-                        # Update order status to Cancelled
-                        try:
-                            if st.session_state.noknok_sheets and "order" in st.session_state.noknok_sheets:
-                                order_sheet = st.session_state.noknok_sheets["order"]
-                                all_orders = order_sheet.get_all_records()
-                                
-                                # Find the row index (adding 2 because row 1 is header and sheet is 1-indexed)
-                                found = False
-                                for i, order in enumerate(all_orders):
-                                    if str(order.get("OrderID")) == str(order_id):
-                                        row_index = i + 2  # +2 for header row and 1-indexed
-                                        
-                                        # Check for the OrderStatus column - find the right column number
-                                        header_row = order_sheet.row_values(1)  # Get header row
-                                        status_col = 0
-                                        for idx, header in enumerate(header_row):
-                                            if header == "OrderStatus":
-                                                status_col = idx + 1  # 1-indexed columns in sheets API
-                                                break
-                                        
-                                        if status_col > 0:
-                                            # Update the Status column to "Cancelled"
-                                            order_sheet.update_cell(row_index, status_col, "Cancelled")
-                                            found = True
-                                            break
-                                        else:
-                                            raise Exception("OrderStatus column not found in sheet")
-                                
-                                if found:
-                                    # Show success message
-                                    # Check if the order amount is numeric to format it correctly
-                                    try:
-                                        # Try to convert to float to check if it's numeric
-                                        float_amount = safe_float_conversion(order_amount)
-                                        # Format with dollar sign
-                                        amount_display = f"${float_amount:.2f}"
-                                    except (ValueError, TypeError):
-                                        # If not numeric, use the value as is
-                                        amount_display = order_amount
-                                    
-                                    message = f"Your order totaling {amount_display} has been canceled. We hope to serve you better in the future. Thank you for your kind understanding! 💙🙏🏻"
-                                    with st.chat_message("assistant"):
-                                        st.write(message)
-                                    st.session_state.messages.append({"role": "assistant", "content": message})
-                                    
-                                    # Save to chat history
-                                    if st.session_state.chat_history_sheet:
-                                        save_to_chat_history(st.session_state.chat_history_sheet, 
-                                                            "System", "Order cancellation request", message)
-                                else:
-                                    error_message = f"Could not locate order {order_id} in the database to cancel it."
-                                    with st.chat_message("assistant"):
-                                        st.write(error_message)
-                                    st.session_state.messages.append({"role": "assistant", "content": error_message})
-                        except Exception as e:
-                            error_message = f"Error cancelling order: {str(e)}"
+                        # If current status is canceled or refunded, don't proceed with cancellation
+                        if current_status in ["cancelled", "canceled", "refunded"]:
+                            status_message = f"This order has already been {current_status}. No further action is needed."
                             with st.chat_message("assistant"):
-                                st.write(error_message)
-                            st.session_state.messages.append({"role": "assistant", "content": error_message})
+                                st.write(status_message)
+                            st.session_state.messages.append({"role": "assistant", "content": status_message})
+                            
+                            # Save to chat history
+                            if st.session_state.chat_history_sheet:
+                                save_to_chat_history(st.session_state.chat_history_sheet, 
+                                                    "System", "Order cancellation request", status_message)
+                            
+                            # Skip further processing
+                            should_process_cancellation = False
+                        else:
+                            should_process_cancellation = True
+                        
+                        # Try different possible field names for the order amount - case insensitive
+                        if should_process_cancellation:
+                            order_amount = None
+                            possible_amount_fields = [
+                                "TotalAmount", "OrderAmount", "Order Amount", "Total Amount", 
+                                "Total", "Amount", "Price", "Cost", "Value"
+                            ]
+                            
+                            # First try direct key matching
+                            for field in possible_amount_fields:
+                                if field in most_recent_order and most_recent_order[field]:
+                                    order_amount = most_recent_order[field]
+                                    print(f"Found order amount in field: {field}, value: {order_amount}")
+                                    break
+                            
+                            # If not found, try case-insensitive matching
+                            if order_amount is None:
+                                order_keys = list(most_recent_order.keys())
+                                for field in possible_amount_fields:
+                                    matching_keys = [k for k in order_keys if k.lower() == field.lower()]
+                                    if matching_keys:
+                                        field_key = matching_keys[0]
+                                        order_amount = most_recent_order[field_key]
+                                        print(f"Found order amount via case-insensitive match in field: {field_key}, value: {order_amount}")
+                                        break
+                            
+                            # If we still don't have an amount, check for any field containing 'amount' or 'total'
+                            if order_amount is None:
+                                order_keys = list(most_recent_order.keys())
+                                amount_related_keys = [k for k in order_keys if 'amount' in k.lower() or 'total' in k.lower() or 'price' in k.lower()]
+                                
+                                if amount_related_keys:
+                                    field_key = amount_related_keys[0]
+                                    order_amount = most_recent_order[field_key]
+                                    print(f"Found order amount via partial match in field: {field_key}, value: {order_amount}")
+                        
+                            if order_amount is None:
+                                # If we still don't have an amount, dump the keys for debugging
+                                print(f"Order fields available: {list(most_recent_order.keys())}")
+                                order_amount = "your order"
+                                print("Order amount not found, using generic text")
+                            
+                            # Update order status to Cancelled
+                            try:
+                                if st.session_state.noknok_sheets and "order" in st.session_state.noknok_sheets:
+                                    order_sheet = st.session_state.noknok_sheets["order"]
+                                    all_orders = order_sheet.get_all_records()
+                                    
+                                    # Find the row index (adding 2 because row 1 is header and sheet is 1-indexed)
+                                    found = False
+                                    for i, order in enumerate(all_orders):
+                                        if str(order.get("OrderID")) == str(order_id):
+                                            row_index = i + 2  # +2 for header row and 1-indexed
+                                            
+                                            # Check for the OrderStatus column - find the right column number
+                                            header_row = order_sheet.row_values(1)  # Get header row
+                                            status_col = 0
+                                            for idx, header in enumerate(header_row):
+                                                if header == "OrderStatus":
+                                                    status_col = idx + 1  # 1-indexed columns in sheets API
+                                                    break
+                                            
+                                            if status_col > 0:
+                                                # Update the Status column to "Cancelled"
+                                                order_sheet.update_cell(row_index, status_col, "Cancelled")
+                                                found = True
+                                                break
+                                            else:
+                                                raise Exception("OrderStatus column not found in sheet")
+                                    
+                                    if found:
+                                        # Show success message
+                                        # Check if the order amount is numeric to format it correctly
+                                        try:
+                                            # Try to convert to float to check if it's numeric
+                                            float_amount = safe_float_conversion(order_amount)
+                                            # Format with dollar sign
+                                            amount_display = f"${float_amount:.2f}"
+                                        except (ValueError, TypeError):
+                                            # If not numeric, use the value as is
+                                            amount_display = order_amount
+                                        
+                                        message = f"Your order totaling {amount_display} has been canceled. We hope to serve you better in the future. Thank you for your kind understanding! 💙🙏🏻"
+                                        with st.chat_message("assistant"):
+                                            st.write(message)
+                                        st.session_state.messages.append({"role": "assistant", "content": message})
+                                        
+                                        # Save to chat history
+                                        if st.session_state.chat_history_sheet:
+                                            save_to_chat_history(st.session_state.chat_history_sheet, 
+                                                                "System", "Order cancellation request", message)
+                                    else:
+                                        error_message = f"Could not locate order {order_id} in the database to cancel it."
+                                        with st.chat_message("assistant"):
+                                            st.write(error_message)
+                                        st.session_state.messages.append({"role": "assistant", "content": error_message})
+                            except Exception as e:
+                                error_message = f"Error cancelling order: {str(e)}"
+                                with st.chat_message("assistant"):
+                                    st.write(error_message)
+                                st.session_state.messages.append({"role": "assistant", "content": error_message})
+                        else:
+                            no_orders_message = "You don't have any orders to cancel."
+                            with st.chat_message("assistant"):
+                                st.write(no_orders_message)
+                            st.session_state.messages.append({"role": "assistant", "content": no_orders_message})
                     else:
-                        no_orders_message = "You don't have any orders to cancel."
+                        data_error_message = "Order data could not be loaded. Please try again later."
                         with st.chat_message("assistant"):
-                            st.write(no_orders_message)
-                        st.session_state.messages.append({"role": "assistant", "content": no_orders_message})
+                            st.write(data_error_message)
+                        st.session_state.messages.append({"role": "assistant", "content": data_error_message})
                 else:
                     data_error_message = "Order data could not be loaded. Please try again later."
                     with st.chat_message("assistant"):

@@ -737,6 +737,22 @@ def handle_order_cancellation(handler, context):
     most_recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
     order_id = most_recent_order.get("OrderID")
     
+    # Check if the order is already refunded or canceled
+    current_status = None
+    status_fields = ["OrderStatus", "Status", "Order Status"]
+    for field in status_fields:
+        if field in most_recent_order and most_recent_order[field]:
+            current_status = most_recent_order[field].lower()
+            print(f"Found current order status for cancellation: {current_status}")
+            break
+    
+    # If order is already refunded or canceled, don't proceed with cancellation
+    if current_status in ["refunded", "cancelled", "canceled"]:
+        return {
+            "type": "error",
+            "message": f"This order has already been {current_status}. No further action is needed."
+        }
+    
     # Get the order amount with safe conversion
     order_amount = most_recent_order.get("TotalAmount", 0)
     float_amount = safe_float_conversion(order_amount)
@@ -804,6 +820,22 @@ def handle_order_refund(handler, context):
     # Find the most recent order by date
     most_recent_order = max(client_orders, key=lambda order: order.get("OrderDate", ""))
     order_id = most_recent_order.get("OrderID")
+    
+    # Check if the order is already refunded or canceled
+    current_status = None
+    status_fields = ["OrderStatus", "Status", "Order Status"]
+    for field in status_fields:
+        if field in most_recent_order and most_recent_order[field]:
+            current_status = most_recent_order[field].lower()
+            print(f"Found current order status: {current_status}")
+            break
+    
+    # If order is already refunded or canceled, don't proceed with refund
+    if current_status in ["refunded", "cancelled", "canceled"]:
+        return {
+            "type": "error",
+            "message": f"This order has already been {current_status}. No further action is needed."
+        }
     
     # Find the order amount using the same approach as in app.py
     order_amount = None
