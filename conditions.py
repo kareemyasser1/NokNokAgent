@@ -67,8 +67,18 @@ Format the summary in bullet points and keep it under 100 words. This summary wi
 Conversation:
 """
         
-        # Get conversation history from context
-        conversation_history = context.get("history", "")
+        # Get complete conversation history from session state instead of limited context
+        import streamlit as st
+        # Check if messages exist in session state
+        if "messages" in st.session_state and len(st.session_state.messages) > 0:
+            # Format full conversation history from all messages
+            all_messages = st.session_state.messages
+            conversation_history = "\n".join([f"{m['role']}: {m['content']}" for m in all_messages])
+            print(f"Using complete conversation history with {len(all_messages)} messages")
+        else:
+            # Fallback to context if session state messages not available
+            conversation_history = context.get("history", "")
+            print("Using limited conversation history from context")
         
         # Call OpenAI to generate the summary
         try:
@@ -732,9 +742,19 @@ def handle_support_request(handler, context):
             "message": "No client selected for support"
         }
     
+    # Get conversation history from context or use default
+    conversation_history = context.get("history", "")
+    if not conversation_history:
+        # Fallback to last_user_message if no history is provided
+        last_user_message = context.get("support_handoff_prompt", "")
+        conversation_history = f"User: {last_user_message}" if last_user_message else "No conversation history available"
+    
+    print(f"Support handler received conversation history with {len(conversation_history.split('\n'))} lines")
+    
     return {
         "type": "support_handoff",
-        "message": "Customer needs support assistance"
+        "message": "Customer needs support assistance",
+        "history": conversation_history  # Pass the history along for the next steps
     }
 
 # Cancel order condition

@@ -2377,14 +2377,37 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
 if "support_handoff_pending" in st.session_state and st.session_state.support_handoff_pending:
     # Check if client is selected by using condition handler
     if "condition_handler" in st.session_state:
-        # Get context for the condition
-        context = {"reply": "noknok.com/support"}
+        # Get complete conversation history for the context
+        conversation_history = ""
+        if "messages" in st.session_state:
+            # Format full conversation history from all messages
+            all_messages = st.session_state.messages
+            conversation_history = "\n".join([f"{m['role']}: {m['content']}" for m in all_messages])
+            print(f"Using complete conversation history with {len(all_messages)} messages for support handoff")
+        
+        # Create context with full conversation history
+        context = {
+            "reply": "noknok.com/support",
+            "history": conversation_history,
+            "support_handoff_prompt": st.session_state.get("support_handoff_prompt", "")
+        }
+        
+        # Add client ID if available
+        if "current_client_id" in st.session_state and st.session_state.current_client_id:
+            context["client_id"] = st.session_state.current_client_id
+        
         results = st.session_state.condition_handler.evaluate_conditions(context)
         
         # Check if condition was triggered and returned a result
         if results:
             for res in results:
                 if res.get("id") == "support_url_detected":
+                    # Get the history from the result if available
+                    if res["result"].get("history"):
+                        # Store the history in session state for later use
+                        st.session_state.support_handoff_history = res["result"].get("history")
+                        print("Saved support handoff history from context to session state")
+                    
                     # Check if result indicates an error (no client selected)
                     if res["result"].get("type") == "error":
                         error_message = res["result"].get("message", "Error in support handoff")
@@ -2434,10 +2457,16 @@ if "support_handoff_pending" in st.session_state and st.session_state.support_ha
     # Get conversation history to generate a summary
     if "condition_handler" in st.session_state and st.session_state.condition_handler:
         try:
-            # Prepare history text from chat messages
-            # Get the last 10 messages or all messages if less than 10
-            recent_messages = st.session_state.messages[-10:] if len(st.session_state.messages) > 10 else st.session_state.messages
-            conversation_history = "\n".join([f"{m['role']}: {m['content']}" for m in recent_messages])
+            # Use stored conversation history if available, otherwise generate it from messages
+            if "support_handoff_history" in st.session_state:
+                conversation_history = st.session_state.support_handoff_history
+                print("Using pre-stored conversation history for summary generation")
+            else:
+                # Prepare history text from chat messages as fallback
+                # Get the last 10 messages or all messages if less than 10
+                recent_messages = st.session_state.messages[-10:] if len(st.session_state.messages) > 10 else st.session_state.messages
+                conversation_history = "\n".join([f"{m['role']}: {m['content']}" for m in recent_messages])
+                print("Generated conversation history from session state messages")
             
             # Generate summary using GPT
             summary_prompt = """Summarize the following conversation between an AI assistant and a customer on our grocery delivery app. Focus only on:
@@ -2477,10 +2506,13 @@ Conversation:
         except Exception as e:
             print(f"Error generating conversation summary: {e}")
     
-    # Clear the pending flag
+    # Clear the pending flag and clean up stored data
     st.session_state.support_handoff_pending = False
     if "support_handoff_prompt" in st.session_state:
         del st.session_state.support_handoff_prompt
+    if "support_handoff_history" in st.session_state:
+        del st.session_state.support_handoff_history
+        print("Cleaned up stored support handoff history")
 # ─────────────────────────────────────────────────────────────
 # Handle queued address-update workflow
 # ─────────────────────────────────────────────────────────────
