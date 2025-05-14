@@ -2375,6 +2375,37 @@ if "cancel_order_pending" in st.session_state and st.session_state.cancel_order_
 
 # After the chat message generation, check if we need to handle a support handoff
 if "support_handoff_pending" in st.session_state and st.session_state.support_handoff_pending:
+    # Check if client is selected by using condition handler
+    if "condition_handler" in st.session_state:
+        # Get context for the condition
+        context = {"reply": "noknok.com/support"}
+        results = st.session_state.condition_handler.evaluate_conditions(context)
+        
+        # Check if condition was triggered and returned a result
+        if results:
+            for res in results:
+                if res.get("id") == "support_url_detected":
+                    # Check if result indicates an error (no client selected)
+                    if res["result"].get("type") == "error":
+                        error_message = res["result"].get("message", "Error in support handoff")
+                        with st.chat_message("assistant"):
+                            st.write(error_message)
+                        st.session_state.messages.append({"role": "assistant", "content": error_message})
+                        
+                        # Save to chat history
+                        if "chat_history_sheet" in st.session_state and st.session_state.chat_history_sheet:
+                            save_to_chat_history(st.session_state.chat_history_sheet, 
+                                                "System", "Support handoff error", error_message)
+                        
+                        # Clear the pending flag and exit early
+                        st.session_state.support_handoff_pending = False
+                        if "support_handoff_prompt" in st.session_state:
+                            del st.session_state.support_handoff_prompt
+                        st.rerun()  # Rerun to update UI
+                        
+        # If we get here, either no error or condition wasn't triggered
+        # Proceed with normal support handoff
+        
     # First message
     first_message = "Kindly allow me a moment to check the matter."
     with st.chat_message("assistant"):
@@ -2435,8 +2466,8 @@ Conversation:
             
             # Display the conversation summary
             with st.chat_message("assistant"):
-                st.write(conversation_history + "\n\n" + third_message)
-            st.session_state.messages.append({"role": "assistant", "content": conversation_history + "\n\n" + third_message})
+                st.write(third_message)
+            st.session_state.messages.append({"role": "assistant", "content": third_message})
             
             # Save to chat history
             if "chat_history_sheet" in st.session_state and st.session_state.chat_history_sheet:

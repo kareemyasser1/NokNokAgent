@@ -672,8 +672,8 @@ def register_all_conditions(handler):
     # Support condition - detects support URL and provides custom response
     handler.register_condition(
         "support_url_detected",
-        check_support_url_in_reply,
-        action_human_agent_handoff,
+        check_support_url_in_response,
+        handle_support_request,
         "Support URL detected in response → human agent handoff"
     )
     registered_count += 1
