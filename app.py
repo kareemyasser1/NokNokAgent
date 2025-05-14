@@ -2400,6 +2400,52 @@ if "support_handoff_pending" in st.session_state and st.session_state.support_ha
         save_to_chat_history(st.session_state.chat_history_sheet, 
                             "System", "", second_message)
     
+    # Get conversation history to generate a summary
+    if "condition_handler" in st.session_state and st.session_state.condition_handler:
+        try:
+            # Prepare history text from chat messages
+            # Get the last 10 messages or all messages if less than 10
+            recent_messages = st.session_state.messages[-10:] if len(st.session_state.messages) > 10 else st.session_state.messages
+            conversation_history = "\n".join([f"{m['role']}: {m['content']}" for m in recent_messages])
+            
+            # Generate summary using GPT
+            summary_prompt = """Summarize the following conversation between an AI assistant and a customer on our grocery delivery app. Focus only on:
+
+1. Customer's name (if mentioned in the conversation)
+2. Customer's main inquiry/issue (in 1-2 sentences)
+3. Key details provided by the customer (order number, specific products, delivery time, etc.)
+4. Solutions already attempted by the AI assistant
+5. Reason for escalation to human agent
+
+Format the summary in bullet points and keep it under 100 words. This summary will be shown to the human agent handling the escalation.
+
+Conversation:
+"""
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            summary_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": summary_prompt + conversation_history}],
+                temperature=0.7,
+                stream=False
+            )
+            third_message = summary_response.choices[0].message.content.strip()
+            
+            # Wait 3 more seconds before showing the third message
+            time.sleep(3)
+            
+            # Display the conversation summary
+            with st.chat_message("assistant"):
+                st.write(conversation_history + "\n\n" + third_message)
+            st.session_state.messages.append({"role": "assistant", "content": conversation_history + "\n\n" + third_message})
+            
+            # Save to chat history
+            if "chat_history_sheet" in st.session_state and st.session_state.chat_history_sheet:
+                save_to_chat_history(st.session_state.chat_history_sheet, 
+                                    "System", "Support handoff summary", third_message)
+                
+        except Exception as e:
+            print(f"Error generating conversation summary: {e}")
+    
     # Clear the pending flag
     st.session_state.support_handoff_pending = False
     if "support_handoff_prompt" in st.session_state:
