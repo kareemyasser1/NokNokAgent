@@ -2436,7 +2436,7 @@ Conversation:
             # Display the conversation summary
             with st.chat_message("assistant"):
                 st.write(conversation_history + "\n\n" + third_message)
-            st.session_state.messages.append({"role": "assistant", "content": conversation_history + "\n\n" + third_message})
+            st.session_state.messages.append({"role": "assistant", "content": "Dear Agent, Please find the conversation Summary below to help you with assisting the customer:\n " + third_message})
             
             # Save to chat history
             if "chat_history_sheet" in st.session_state and st.session_state.chat_history_sheet:
