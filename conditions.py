@@ -53,6 +53,37 @@ def action_human_agent_handoff(handler, context=None):
         # Second message to display
         message2 = "Here the chat would have been transferred to a human agent in real life, but for testing purposes you can continue messaging the AI"
         
+        # Generate a third message - a summary for the human agent
+        summary_prompt = """Summarize the following conversation between an AI assistant and a customer on our grocery delivery app. Focus only on:
+
+1. Customer's name (if mentioned in the conversation)
+2. Customer's main inquiry/issue (in 1-2 sentences)
+3. Key details provided by the customer (order number, specific products, delivery time, etc.)
+4. Solutions already attempted by the AI assistant
+5. Reason for escalation to human agent
+
+Format the summary in bullet points and keep it under 100 words. This summary will be shown to the human agent handling the escalation.
+
+Conversation:
+"""
+        
+        # Get conversation history from context
+        conversation_history = context.get("history", "")
+        
+        # Call OpenAI to generate the summary
+        try:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            summary_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": summary_prompt + conversation_history}],
+                temperature=0.7,
+                stream=False
+            )
+            message3 = summary_response.choices[0].message.content.strip()
+        except Exception as e:
+            message3 = f"Error generating conversation summary: {str(e)}"
+            print(f"Error generating summary: {e}")
+        
         # Instead of directly writing to the UI, we'll use streamlit session state to store these messages
         # The app.py file will handle displaying them properly
         result = {
@@ -62,7 +93,8 @@ def action_human_agent_handoff(handler, context=None):
             "action_taken": "Queued transition messages",
             "replacement_messages": [
                 {"content": message1, "delay": 0},
-                {"content": message2, "delay": 5}
+                {"content": message2, "delay": 5},
+                {"content": conversation_history + "\n\n" + message3, "delay": 6}
             ]
         }
         
