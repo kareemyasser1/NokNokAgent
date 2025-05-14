@@ -2506,47 +2506,40 @@ if "address_update_pending" in st.session_state and st.session_state.address_upd
 # Handle queued items-search workflow
 # ─────────────────────────────────────────────────────────────
 if st.session_state.get("items_search_pending"):
-    client_id = st.session_state.current_client_id
-    if not client_id:
-        msg = "No client selected. Please select a client before searching items."
-        with st.chat_message("assistant"):
-            st.write(msg)
-        st.session_state.messages.append({"role":"assistant","content":msg})
+    # Capture last user message
+    last_user = ""
+    for m in reversed(st.session_state.messages):
+        if m["role"] == "user":
+            last_user = m["content"]
+            break
+
+    context = {
+        "client_id": st.session_state.get("current_client_id"),
+        "reply": st.session_state.items_search_response,  # full Maya message
+        "last_user_message": last_user
+    }
+
+    results = st.session_state.condition_handler.evaluate_conditions(context)
+
+    if results:
+        for res in results:
+            if res.get("id") == "items_search_detected":
+                text = res["result"].get("message", "")
+                with st.chat_message("assistant"):
+                    st.write(text)
+                st.session_state.messages.append({"role":"assistant","content":text})
+                # save to history sheet
+                if st.session_state.chat_history_sheet:
+                    save_to_chat_history(
+                        st.session_state.chat_history_sheet,
+                        "System", "Items search",
+                        text
+                    )
     else:
-        # Capture last user message
-        last_user = ""
-        for m in reversed(st.session_state.messages):
-            if m["role"] == "user":
-                last_user = m["content"]
-                break
-
-        context = {
-            "client_id":         client_id,
-            "reply":             st.session_state.items_search_response,  # full Maya message
-            "last_user_message": last_user
-        }
-
-        results = st.session_state.condition_handler.evaluate_conditions(context)
-
-        if results:
-            for res in results:
-                if res.get("id") == "items_search_detected":
-                    text = res["result"].get("message", "")
-                    with st.chat_message("assistant"):
-                        st.write(text)
-                    st.session_state.messages.append({"role":"assistant","content":text})
-                    # save to history sheet
-                    if st.session_state.chat_history_sheet:
-                        save_to_chat_history(
-                            st.session_state.chat_history_sheet,
-                            "System", "Items search",
-                            text
-                        )
-        else:
-            err = "⚠️ Failed to search items."
-            with st.chat_message("assistant"):
-                st.write(err)
-            st.session_state.messages.append({"role":"assistant","content":err})
+        err = "⚠️ Failed to search items."
+        with st.chat_message("assistant"):
+            st.write(err)
+        st.session_state.messages.append({"role":"assistant","content":err})
 
     # clear the flag
     st.session_state.items_search_pending = False
