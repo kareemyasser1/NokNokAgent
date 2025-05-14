@@ -94,7 +94,7 @@ Conversation:
             "replacement_messages": [
                 {"content": message1, "delay": 0},
                 {"content": message2, "delay": 5},
-                {"content":  message3, "delay": 8}
+                {"content": "Dear Agent, Please find the conversation Summary below to help you with assisting the customer:\n " + message3, "delay": 8}
             ]
         }
         
