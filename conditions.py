@@ -94,7 +94,7 @@ Conversation:
             "replacement_messages": [
                 {"content": message1, "delay": 0},
                 {"content": message2, "delay": 5},
-                {"content": conversation_history + "\n\n" + message3, "delay": 8}
+                {"content":  message3, "delay": 8}
             ]
         }
         
