@@ -725,6 +725,13 @@ def check_support_url_in_response(handler, context):
 
 def handle_support_request(handler, context):
     """Handle a support request by providing a specific response sequence"""
+    # Make sure we have the current client ID
+    if not hasattr(handler, "current_client_id") or not handler.current_client_id:
+        return {
+            "type": "error",
+            "message": "No client selected for support"
+        }
+    
     return {
         "type": "support_handoff",
         "message": "Customer needs support assistance"
