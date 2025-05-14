@@ -1397,7 +1397,7 @@ if st.session_state.noknok_sheets:
                     <div class="stat-label">Total Clients</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{sum(1 for item in items_data if item.get("In stock") == "true")}</div>
+                    <div class="stat-value">{sum(1 for item in items_data if str(item.get("In stock", "")).upper() == "TRUE")}</div>
                     <div class="stat-label">In Stock</div>
                 </div>
             </div>
