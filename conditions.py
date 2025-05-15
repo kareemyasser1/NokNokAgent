@@ -408,9 +408,9 @@ def handle_calories_request(handler, context):
             except Exception:
                 parsed = {}
 
-        carrefour_lb = parsed.get("carrefourlebanonanswer").lower()
-        carrefour_foreign = parsed.get("carrefourforeignanswer").lower()
-        other = parsed.get("otheranswer").lower()
+        carrefour_lb = parsed.get("carrefourlebanonanswer", "").lower() if parsed.get("carrefourlebanonanswer") else ""
+        carrefour_foreign = parsed.get("carrefourforeignanswer", "").lower() if parsed.get("carrefourforeignanswer") else ""
+        other = parsed.get("otheranswer", "").lower() if parsed.get("otheranswer") else ""
 
         # Decide which answer to send back
         if carrefour_lb and carrefour_lb != "missing":
